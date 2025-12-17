@@ -10,32 +10,25 @@ class Peminjaman extends Model
     use HasFactory;
 
     protected $table = 'peminjaman';
-
-    // KONFIGURASI ID CUSTOM
+    
+    protected $primaryKey = 'id_peminjaman';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $guarded = ['id'];
+    
+    protected $guarded = ['id_peminjaman'];
 
-    // Casting tanggal agar otomatis jadi object Carbon (mudah diformat)
     protected $casts = [
         'tanggal_pinjam' => 'date',
         'tanggal_jatuh_tempo' => 'date',
-        'tanggal_kembali_aktual' => 'date',
     ];
 
-    // RELASI
     public function pengguna()
     {
-        return $this->belongsTo(Pengguna::class, 'pengguna_id');
+        return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 
     public function detail()
     {
-        return $this->hasMany(DetailPeminjaman::class, 'peminjaman_id');
-    }
-
-    public function denda()
-    {
-        return $this->hasOne(Denda::class, 'peminjaman_id');
+        return $this->hasMany(DetailPeminjaman::class, 'id_peminjaman', 'id_peminjaman');
     }
 }

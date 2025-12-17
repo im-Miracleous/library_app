@@ -39,7 +39,6 @@ class PenggunaSeeder extends Seeder
             'email' => 'siti@student.com',
             'password' => Hash::make('password123'),
             'peran' => 'anggota',
-            'nim' => '10112233',
             'telepon' => '085555555555',
             'alamat' => 'Jl. Kampus No. 5'
         ]);
@@ -51,7 +50,6 @@ class PenggunaSeeder extends Seeder
             'email' => 'ahmad@gmail.com',
             'password' => Hash::make('password123'),
             'peran' => 'anggota',
-            'nim' => '10112244',
             'telepon' => '087777777777',
             'alamat' => 'Asrama Putra'
         ]);

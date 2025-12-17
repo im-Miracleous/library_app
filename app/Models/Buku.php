@@ -10,20 +10,20 @@ class Buku extends Model
     use HasFactory;
 
     protected $table = 'buku';
-
-    // KONFIGURASI ID CUSTOM
+    
+    protected $primaryKey = 'id_buku';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $guarded = ['id'];
+    
+    protected $guarded = ['id_buku'];
 
-    // RELASI
     public function kategori()
     {
-        return $this->belongsTo(Kategori::class, 'kategori_id');
+        return $this->belongsTo(Kategori::class, 'id_kategori', 'id_kategori');
     }
 
     public function detailPeminjaman()
     {
-        return $this->hasMany(DetailPeminjaman::class, 'buku_id');
+        return $this->hasMany(DetailPeminjaman::class, 'id_buku', 'id_buku');
     }
 }

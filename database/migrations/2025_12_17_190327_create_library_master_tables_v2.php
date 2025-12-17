@@ -9,32 +9,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. TABEL KATEGORI
+        // TABEL KATEGORI
         Schema::create('kategori', function (Blueprint $table) {
-            $table->string('id', 10)->primary(); // Format: C-00
+            $table->id('id_kategori'); // PK: id_kategori
             $table->string('nama_kategori');
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
 
-        // Trigger Kategori
-        DB::unprepared("
-            CREATE TRIGGER tr_kategori_id_insert BEFORE INSERT ON kategori FOR EACH ROW
-            BEGIN
-                DECLARE next_no INT;
-                SET next_no = (SELECT IFNULL(MAX(CAST(SUBSTRING(id, 3) AS UNSIGNED)), 0) + 1 FROM kategori);
-                SET NEW.id = CONCAT('C-', LPAD(next_no, 2, '0'));
-            END
-        ");
-
-        // 2. TABEL PENGGUNA
+        // TABEL PENGGUNA
         Schema::create('pengguna', function (Blueprint $table) {
-            $table->string('id', 20)->primary(); // Format: U-XYY000
+            $table->string('id_pengguna', 20)->primary(); // PK: id_pengguna
             $table->string('nama');
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('peran', ['admin', 'petugas', 'anggota']);
-            $table->string('nim')->nullable();
             $table->string('telepon')->nullable();
             $table->text('alamat')->nullable();
             $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
@@ -42,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Trigger Pengguna
+        // Trigger Pengguna (Update nama kolom id -> id_pengguna)
         DB::unprepared("
             CREATE TRIGGER tr_pengguna_id_insert BEFORE INSERT ON pengguna FOR EACH ROW
             BEGIN
@@ -58,23 +47,20 @@ return new class extends Migration
                 SET year_code = DATE_FORMAT(NOW(), '%y');
 
                 SET next_no = (
-                    SELECT IFNULL(MAX(CAST(RIGHT(id, 3) AS UNSIGNED)), 0) + 1 
+                    SELECT IFNULL(MAX(CAST(RIGHT(id_pengguna, 3) AS UNSIGNED)), 0) + 1 
                     FROM pengguna 
-                    WHERE SUBSTRING(id, 3, 1) = role_code 
-                    AND SUBSTRING(id, 4, 2) = year_code
+                    WHERE SUBSTRING(id_pengguna, 3, 1) = role_code 
+                    AND SUBSTRING(id_pengguna, 4, 2) = year_code
                 );
 
-                SET NEW.id = CONCAT('U-', role_code, year_code, LPAD(next_no, 3, '0'));
+                SET NEW.id_pengguna = CONCAT('U-', role_code, year_code, LPAD(next_no, 3, '0'));
             END
         ");
 
-        // 3. TABEL BUKU
+        // TABEL BUKU
         Schema::create('buku', function (Blueprint $table) {
-            $table->string('id', 20)->primary(); // Format: B-XX-000
-            
-            $table->string('kategori_id', 10);
-            $table->foreign('kategori_id')->references('id')->on('kategori')->onDelete('cascade');
-
+            $table->string('id_buku', 20)->primary(); // PK: id_buku
+            $table->foreignId('id_kategori')->constrained('kategori', 'id_kategori')->onDelete('cascade');
             $table->string('kode_dewey');
             $table->string('isbn')->unique();
             $table->string('judul');
@@ -89,22 +75,23 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Trigger Buku
+        // Trigger Buku (Update nama kolom id -> id_buku)
         DB::unprepared("
             CREATE TRIGGER tr_buku_id_insert BEFORE INSERT ON buku FOR EACH ROW
             BEGIN
                 DECLARE cat_code CHAR(2);
                 DECLARE next_no INT;
 
-                SET cat_code = SUBSTRING(NEW.kategori_id, 3, 2);
+                -- Ambil ID kategori (Integer) dan format jadi 2 digit string (misal 5 -> '05')
+                SET cat_code = LPAD(NEW.id_kategori, 2, '0');
 
                 SET next_no = (
-                    SELECT IFNULL(MAX(CAST(RIGHT(id, 3) AS UNSIGNED)), 0) + 1 
+                    SELECT IFNULL(MAX(CAST(RIGHT(id_buku, 3) AS UNSIGNED)), 0) + 1 
                     FROM buku 
-                    WHERE kategori_id = NEW.kategori_id
+                    WHERE id_kategori = NEW.id_kategori
                 );
 
-                SET NEW.id = CONCAT('B-', cat_code, '-', LPAD(next_no, 3, '0'));
+                SET NEW.id_buku = CONCAT('B-', cat_code, '-', LPAD(next_no, 3, '0'));
             END
         ");
     }
@@ -113,7 +100,6 @@ return new class extends Migration
     {
         DB::unprepared('DROP TRIGGER IF EXISTS tr_buku_id_insert');
         DB::unprepared('DROP TRIGGER IF EXISTS tr_pengguna_id_insert');
-        DB::unprepared('DROP TRIGGER IF EXISTS tr_kategori_id_insert');
         
         Schema::dropIfExists('buku');
         Schema::dropIfExists('pengguna');

@@ -11,32 +11,23 @@ class Pengguna extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $table = 'pengguna'; // Nama tabel kustom
+    protected $table = 'pengguna';
 
-    // KONFIGURASI ID CUSTOM (WAJIB)
+    protected $primaryKey = 'id_pengguna';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $guarded = ['id']; // ID dijaga, jangan diisi manual
 
-    // Field yang disembunyikan saat return JSON
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $guarded = ['id'];
+    protected $hidden = ['password', 'remember_token'];
+    protected $casts = ['password' => 'hashed'];
 
-    // Casting tipe data
-    protected $casts = [
-        'password' => 'hashed',
-    ];
-
-    // RELASI (Sesuai ERD)
     public function peminjaman()
     {
-        return $this->hasMany(Peminjaman::class, 'pengguna_id');
+        return $this->hasMany(Peminjaman::class, 'id_pengguna', 'id_pengguna');
     }
 
     public function notifikasi()
     {
-        return $this->hasMany(Notifikasi::class, 'pengguna_id');
+        return $this->hasMany(Notifikasi::class, 'id_pengguna', 'id_pengguna');
     }
 }

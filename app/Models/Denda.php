@@ -8,21 +8,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Denda extends Model
 {
     use HasFactory;
-
     protected $table = 'denda';
+    
+    protected $primaryKey = 'id_denda';
+    
+    protected $guarded = ['id_denda'];
+    protected $casts = ['tanggal_bayar' => 'date'];
 
-    // KONFIGURASI ID CUSTOM
-    public $incrementing = false;
-    protected $keyType = 'string';
-    protected $guarded = ['id'];
-
-    protected $casts = [
-        'tanggal_bayar' => 'date',
-    ];
-
-    // RELASI
-    public function peminjaman()
+    public function detailPeminjaman()
     {
-        return $this->belongsTo(Peminjaman::class, 'peminjaman_id');
+        return $this->belongsTo(DetailPeminjaman::class, 'id_detail_peminjaman', 'id_detail_peminjaman');
     }
 }

@@ -11,14 +11,12 @@ class Kategori extends Model
 
     protected $table = 'kategori';
 
-    // KONFIGURASI ID CUSTOM
-    public $incrementing = false;
-    protected $keyType = 'string';
-    protected $guarded = ['id'];
+    protected $primaryKey = 'id_kategori';
+    
+    protected $guarded = ['id_kategori'];
 
-    // RELASI
     public function buku()
     {
-        return $this->hasMany(Buku::class, 'kategori_id');
+        return $this->hasMany(Buku::class, 'id_kategori', 'id_kategori');
     }
 }

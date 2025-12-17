@@ -1,7 +1,5 @@
 <?php
-
 namespace Database\Seeders;
-
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
 use App\Models\Pengguna;
@@ -13,39 +11,29 @@ class PeminjamanSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil User Anggota
         $anggota = Pengguna::where('email', 'siti@student.com')->first();
-        
-        // Ambil Buku
         $buku = Buku::where('judul', 'Laskar Pelangi')->first();
 
         if ($anggota && $buku) {
-            // 1. Buat Peminjaman Header
-            // Kita tidak menampung ke variabel $peminjaman langsung, karena ID-nya pasti null di PHP
             Peminjaman::create([
-                'pengguna_id' => $anggota->id,
+                'id_pengguna' => $anggota->id_pengguna,
                 'tanggal_pinjam' => Carbon::now(),
                 'tanggal_jatuh_tempo' => Carbon::now()->addDays(7), 
-                'status' => 'dipinjam',
+                'status_transaksi' => 'berjalan', 
                 'keterangan' => 'Peminjaman rutin'
             ]);
 
-            // === AMBIL ULANG DARI DATABASE ===
-            // Kita cari data peminjaman terbaru milik user ini untuk mendapatkan ID hasil Trigger
-            $peminjaman = Peminjaman::where('pengguna_id', $anggota->id)
-                                ->orderBy('created_at', 'desc') // Ambil yang paling baru dibuat
+            $peminjaman = Peminjaman::where('id_pengguna', $anggota->id_pengguna)
+                                ->orderBy('created_at', 'desc')
                                 ->first();
 
-            // 2. Buat Detail Peminjaman (Pivot)
             if ($peminjaman) {
                 DetailPeminjaman::create([
-                    'peminjaman_id' => $peminjaman->id, // Sekarang ID ini sudah ada isinya (misal: P-2025-...)
-                    'buku_id' => $buku->id,
+                    'id_peminjaman' => $peminjaman->id_peminjaman,
+                    'id_buku' => $buku->id_buku,
                     'jumlah' => 1,
-                    'status' => 'dipinjam'
+                    'status_buku' => 'dipinjam' 
                 ]);
-
-                // Update stok buku (Simulasi sederhana)
                 $buku->decrement('stok_tersedia');
             }
         }

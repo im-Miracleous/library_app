@@ -8,22 +8,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class DetailPeminjaman extends Model
 {
     use HasFactory;
-
     protected $table = 'detail_peminjaman';
+    
+    protected $primaryKey = 'id_detail_peminjaman';
+    
+    protected $guarded = ['id_detail_peminjaman'];
 
-    // KONFIGURASI ID CUSTOM
-    public $incrementing = false;
-    protected $keyType = 'string';
-    protected $guarded = ['id'];
+    protected $casts = ['tanggal_kembali_aktual' => 'date'];
 
-    // RELASI
     public function peminjaman()
     {
-        return $this->belongsTo(Peminjaman::class, 'peminjaman_id');
+        return $this->belongsTo(Peminjaman::class, 'id_peminjaman', 'id_peminjaman');
     }
 
     public function buku()
     {
-        return $this->belongsTo(Buku::class, 'buku_id');
+        return $this->belongsTo(Buku::class, 'id_buku', 'id_buku');
+    }
+
+    public function denda()
+    {
+        return $this->hasOne(Denda::class, 'id_detail_peminjaman', 'id_detail_peminjaman');
     }
 }
