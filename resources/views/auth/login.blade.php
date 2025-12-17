@@ -1,102 +1,155 @@
 <!DOCTYPE html>
-<html lang="id">
+<html class="dark" lang="id">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Login - Library App</title>
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts (Tetap CDN karena butuh koneksi font, bisa didownload lokal jika mau 100% offline) -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
 
-    <div class="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Perpustakaan</h2>
+<body
+    class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen flex flex-col transition-colors duration-300">
+    <div class="flex flex-1 w-full h-screen overflow-hidden">
 
-        <!-- Pesan Sukses Logout -->
-        @if (session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-
-        <!-- Pesan Error Login -->
-        @if ($errors->any())
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ $errors->first() }}</span>
-            </div>
-        @endif
-
-        <form action="{{ route('login') }}" method="POST">
-            @csrf
-            
-            <!-- Input Email -->
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                <input type="email" name="email" id="email" 
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" 
-                    placeholder="nama@email.com" value="{{ old('email') }}" required autofocus>
-            </div>
-
-            <!-- Input Password dengan Toggle -->
-            <div class="mb-6">
-                <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                
-                <div class="relative">
-                    <input type="password" name="password" id="password" 
-                        class="shadow appearance-none border rounded w-full py-2 pl-3 pr-10 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" 
-                        placeholder="********" required>
-                    
-                    <!-- Tombol Mata (Toggle) -->
-                    <button type="button" onclick="togglePassword()" 
-                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none top-0 bottom-3">
-                        
-                        <!-- Ikon Mata Terbuka (Untuk melihat) -->
-                        <svg id="eye-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 hidden">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-
-                        <!-- Ikon Mata Tercoret (Untuk menyembunyikan) - Default Muncul -->
-                        <svg id="eye-icon-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                        </svg>
-                    </button>
+        <!-- Bagian Kiri: Gambar -->
+        <div
+            class="hidden lg:flex w-1/2 relative flex-col justify-between bg-background-dark p-12 text-white animate-fade">
+            <div class="absolute inset-0 z-0 overflow-hidden">
+                <img class="h-full w-full object-cover opacity-30 hover:scale-105 transition-transform duration-[2000ms]"
+                    src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2228&auto=format&fit=crop" 
+                    alt="Library Background" />
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-background-dark/40">
+                </div>
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/20 blur-[120px] rounded-full pointer-events-none animate-pulse">
                 </div>
             </div>
 
-            <div class="flex items-center justify-between">
-                <button type="submit" 
-                    class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
-                    Masuk
-                </button>
+            <div class="relative z-10 flex items-center gap-3 animate-enter delay-100">
+                <div
+                    class="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/20 text-accent border border-accent/30">
+                    <span class="material-symbols-outlined text-2xl">local_library</span>
+                </div>
+                <h2 class="text-xl font-bold tracking-wide">Library App</h2>
             </div>
-        </form>
-        
-        <p class="text-center text-gray-500 text-xs mt-6">
-            &copy;2025 Library App. All rights reserved.
-        </p>
+
+            <div class="relative z-10 max-w-lg mb-12 animate-enter delay-200">
+                <h1 class="text-5xl font-bold leading-tight mb-6 tracking-tight">
+                    Sistem Manajemen <br />
+                    <span class="text-accent">Perpustakaan Modern.</span>
+                </h1>
+                <p class="text-lg text-gray-400 font-light leading-relaxed">
+                    Akses katalog lengkap, kelola keanggotaan, dan analisis tren peminjaman.
+                </p>
+            </div>
+            <div class="relative z-10 text-xs text-gray-500 font-mono animate-enter delay-300">
+                © 2025 Library App System v1.0
+            </div>
+        </div>
+
+        <!-- Bagian Kanan: Form Login -->
+        <div
+            class="flex w-full lg:w-1/2 flex-col justify-center items-center px-6 py-12 relative bg-background-light dark:bg-background-dark">
+            <div class="w-full max-w-[420px] flex flex-col">
+                <div class="mb-10 text-center lg:text-left animate-enter delay-100">
+                    <h2
+                        class="text-3xl lg:text-[32px] font-bold leading-tight tracking-tight dark:text-white text-slate-900 mb-3">
+                        Selamat Datang
+                    </h2>
+                    <p class="text-base font-normal leading-normal text-slate-500 dark:text-gray-400">
+                        Silakan masuk menggunakan akun Anda.
+                    </p>
+                </div>
+
+                <!-- Pesan Error Global -->
+                @if (session('success'))
+                    <div class="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800 animate-enter"
+                        role="alert">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800 animate-enter"
+                        role="alert">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                <form action="{{ route('login') }}" method="POST" class="flex flex-col gap-5 animate-enter delay-200">
+                    @csrf
+
+                    <!-- Input Email -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-base font-medium leading-normal dark:text-white text-slate-900"
+                            for="email">Email Address</label>
+                        <div class="relative group input-focus-effect">
+                            <input
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border {{ $errors->has('email') ? 'border-red-500' : 'border-gray-200 dark:border-border-dark' }} focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                                id="email" name="email" placeholder="nama@email.com" type="email"
+                                value="{{ old('email') }}" required autofocus />
+                            <div
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors group-focus-within:text-primary">
+                                <span class="material-symbols-outlined">mail</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Password -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-base font-medium leading-normal dark:text-white text-slate-900"
+                            for="password">Password</label>
+                        <div class="relative group input-focus-effect">
+                            <input
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] pr-12 text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-gray-200 dark:border-border-dark focus:outline-0 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                                id="password" name="password" placeholder="••••••••" type="password" required />
+
+                            <!-- Toggle Button (Class toggle-password ditangani script.js) -->
+                            <button type="button"
+                                class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-primary transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
+                        </div>
+                        <div class="flex justify-end mt-1">
+                            <a class="text-sm font-semibold text-primary hover:text-primary/80 dark:text-accent dark:hover:text-accent/80 transition-colors"
+                                href="#">
+                                Lupa Password?
+                            </a>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="mt-6 flex w-full items-center justify-center rounded-full bg-primary h-14 text-white text-base font-bold leading-normal hover:bg-[#563b2a] active:scale-[0.95] transition-all duration-200 shadow-[0_4px_14px_0_rgba(111,78,55,0.39)] hover:shadow-[0_6px_20px_rgba(111,78,55,0.23)]">
+                        Masuk
+                        <span class="material-symbols-outlined ml-2 text-xl">arrow_forward</span>
+                    </button>
+                </form>
+
+                <div
+                    class="mt-10 pt-6 border-t border-slate-200 dark:border-border-dark flex flex-col items-center gap-4 w-full animate-enter delay-300">
+                    <p class="text-slate-500 dark:text-gray-400 text-sm">Belum memiliki akun?</p>
+                    <a href="#"
+                        class="px-6 py-2.5 rounded-full border border-slate-300 dark:border-border-dark text-slate-700 dark:text-white text-sm font-medium hover:bg-slate-50 dark:hover:bg-input-dark transition-colors w-full text-center sm:w-auto hover:scale-105 active:scale-95 duration-200">
+                        Hubungi Administrator
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </div>
-
-    <!-- Script Logika Toggle -->
-    <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeOpen = document.getElementById('eye-icon-open');
-            const eyeClosed = document.getElementById('eye-icon-closed');
-
-            if (passwordInput.type === 'password') {
-                // Ubah jadi text (Password terlihat)
-                passwordInput.type = 'text';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
-            } else {
-                // Kembalikan jadi password (Password tersembunyi)
-                passwordInput.type = 'password';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            }
-        }
-    </script>
-
 </body>
+
 </html>
