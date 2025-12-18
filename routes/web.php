@@ -27,5 +27,8 @@ Route::middleware('auth')->group(function () {
 
     // Rute Resource untuk Pengguna (Anggota)
     Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+
+    // Rute Resource untuk Kategori Buku
+    Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
     
 });

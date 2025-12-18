@@ -116,27 +116,81 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => modal.classList.add('pointer-events-none'), 300);
     }
 
-    // Logic Fetch Data Edit User
-    window.openEditModal = function(userId) {
+    // --- LOGIKA MODAL UMUM (Buka/Tutup) ---
+    window.openModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        const panel = modal.querySelector('div[class*="relative transform"]');
+        
+        modal.classList.remove('pointer-events-none');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        setTimeout(() => {
+            panel.classList.remove('scale-95');
+            panel.classList.add('scale-100');
+        }, 10);
+    }
+
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const panel = modal.querySelector('div[class*="relative transform"]');
+
+        modal.classList.add('opacity-0');
+        panel.classList.remove('scale-100');
+        panel.classList.add('scale-95');
+
+        setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+    }
+
+    // --- SPESIFIK: EDIT PENGGUNA ---
+    window.openEditPengguna = function(userId) {
         window.openModal('editModal');
+        
+        // Reset form
         const form = document.getElementById('editForm');
-        // Reset form opacity
         form.style.opacity = '0.5';
         
         fetch(`/pengguna/${userId}`)
             .then(response => response.json())
             .then(data => {
+                // Isi field khusus Pengguna
                 document.getElementById('edit_nama').value = data.nama;
                 document.getElementById('edit_email').value = data.email;
                 document.getElementById('edit_telepon').value = data.telepon;
                 document.getElementById('edit_alamat').value = data.alamat;
                 document.getElementById('edit_status').value = data.status;
-                document.getElementById('editForm').action = `/pengguna/${userId}`;
+                
+                form.action = `/pengguna/${userId}`;
                 form.style.opacity = '1';
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Gagal mengambil data user.');
+                window.closeModal('editModal');
+            });
+    }
+
+    // --- SPESIFIK: EDIT KATEGORI (BARU) ---
+    window.openEditKategori = function(kategoriId) {
+        window.openModal('editModal');
+        
+        const form = document.getElementById('editForm');
+        form.style.opacity = '0.5';
+        
+        fetch(`/kategori/${kategoriId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('edit_nama').value = data.nama_kategori;
+                document.getElementById('edit_deskripsi').value = data.deskripsi;
+                
+                form.action = `/kategori/${kategoriId}`;
+                form.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Gagal mengambil data kategori.');
                 window.closeModal('editModal');
             });
     }

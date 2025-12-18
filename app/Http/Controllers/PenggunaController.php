@@ -19,7 +19,7 @@ class PenggunaController extends Controller
         }
 
         // Ambil data dengan pagination
-        $pengguna = $query->orderBy('created_at', 'desc')->paginate(10);
+        $pengguna = $query->orderBy('id_pengguna', 'desc')->paginate(10);
 
         // Append query string ke pagination links (supaya saat pindah halaman, filter tidak hilang)
         $pengguna->appends($request->all());

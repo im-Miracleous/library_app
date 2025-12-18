@@ -64,7 +64,7 @@
                             <p class="text-sm font-medium">Kelola Buku</p>
                         </a>
 
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="#">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="{{ route('kategori.index') }}">
                             <span class="material-symbols-outlined group-hover:text-accent transition-colors">category</span>
                             <p class="text-sm font-medium">Kategori</p>
                         </a>

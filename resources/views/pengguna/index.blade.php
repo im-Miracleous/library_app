@@ -19,7 +19,7 @@
         <!-- SIDEBAR -->
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 h-full bg-background-dark border-r border-[#36271F] p-6 flex flex-col justify-between z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto">
             
-            <button id="close-sidebar" class="lg:hidden absolute top-4 right-4 text-white/60 hover:text-white">
+            <button id="close-sidebar" class="cursor-pointer lg:hidden absolute top-4 right-4 text-white/60 hover:text-white">
                 <span class="material-symbols-outlined">close</span>
             </button>
 
@@ -171,7 +171,7 @@
                                             </span>
                                         </td>
                                         <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditModal('{{ $user->id_pengguna }}')" class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors" title="Edit">
+                                            <button onclick="openEditPengguna('{{ $user->id_pengguna }}')" class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors" title="Edit">
                                                 <span class="material-symbols-outlined text-lg">edit</span>
                                             </button>
                                             <form action="{{ route('pengguna.destroy', $user->id_pengguna) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus anggota ini?');">
@@ -319,70 +319,5 @@
             </div>
         </div>
     </div>
-
-    <!-- Script Modal Logic -->
-    <script>
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const panel = modal.querySelector('div[class*="relative transform"]'); // Ambil panel dalam modal
-            
-            // 1. Remove hidden/pointer-events-none (Display)
-            modal.classList.remove('pointer-events-none');
-            
-            // 2. Play Opacity Animation (Fade In)
-            // Timeout kecil agar transisi CSS terbaca
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-            }, 10);
-
-            // 3. Play Scale Animation (Zoom In)
-            // Panel naik dari scale-95 ke scale-100
-            setTimeout(() => {
-                panel.classList.remove('scale-95');
-                panel.classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const panel = modal.querySelector('div[class*="relative transform"]');
-
-            // 1. Reverse Animation
-            modal.classList.add('opacity-0');
-            panel.classList.remove('scale-100');
-            panel.classList.add('scale-95');
-
-            // 2. Hide after transition (300ms sesuai duration-300)
-            setTimeout(() => {
-                modal.classList.add('pointer-events-none');
-            }, 300);
-        }
-
-        // Logic Fetch Data
-        function openEditModal(userId) {
-            openModal('editModal');
-            
-            // Loading state
-            const form = document.getElementById('editForm');
-            form.style.opacity = '0.5';
-            
-            fetch(`/pengguna/${userId}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('edit_nama').value = data.nama;
-                    document.getElementById('edit_email').value = data.email;
-                    document.getElementById('edit_telepon').value = data.telepon;
-                    document.getElementById('edit_alamat').value = data.alamat;
-                    document.getElementById('edit_status').value = data.status;
-                    document.getElementById('editForm').action = `/pengguna/${userId}`;
-                    form.style.opacity = '1';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal mengambil data user.');
-                    closeModal('editModal');
-                });
-        }
-    </script>
 </body>
 </html>
