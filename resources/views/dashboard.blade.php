@@ -54,7 +54,7 @@
                     @if(Auth::user()->peran == 'admin')
                         <div class="mt-4 mb-2 px-4 text-xs font-bold text-white/40 uppercase tracking-widest">Administrator</div>
                         
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="#">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="{{ route('pengguna.index') }}">
                             <span class="material-symbols-outlined group-hover:text-accent transition-colors">group</span>
                             <p class="text-sm font-medium">Kelola Pengguna</p>
                         </a>
@@ -109,7 +109,7 @@
             </div>
 
             <!-- User Profile & Logout -->
-            <div class="flex flex-col gap-4 flex-shrink-0 pt-4 border-t border-[#36271F]">
+            <div class="flex flex-col gap-4 shrink-0 pt-4 border-t border-[#36271F]">
                 <div class="bg-surface-dark p-4 rounded-xl flex items-center gap-3 border border-[#36271F] hover-card cursor-default">
                     <div class="size-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
                         {{ substr(Auth::user()->nama, 0, 1) }}
@@ -159,7 +159,7 @@
                         <span class="text-accent text-xs uppercase tracking-wider font-bold">{{ Auth::user()->id_pengguna }}</span>
                     </div>
 
-                    <button class="flex items-center justify-center size-10 rounded-full bg-surface-dark text-white hover:bg-[#36271F] transition-all hover:rotate-12 relative">
+                    <button class="cursor-pointer flex items-center justify-center size-10 rounded-full bg-surface-dark text-white hover:bg-[#36271F] transition-all hover:rotate-12 relative">
                         <span class="material-symbols-outlined">notifications</span>
                         <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-surface-dark animate-pulse"></span>
                     </button>
@@ -167,7 +167,7 @@
             </header>
 
             <!-- Dashboard -->
-            <div class="p-4 sm:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full">
+            <div class="p-4 sm:p-8 flex flex-col gap-8 max-w-400 mx-auto w-full">
                 
                 <!-- Welcome Section -->
                 <div class="animate-enter">
@@ -257,11 +257,11 @@
                     <div class="bg-surface-dark rounded-2xl border border-[#36271F] p-6 animate-enter delay-300">
                         <h3 class="text-lg font-bold text-white mb-4">Akses Cepat</h3>
                         <div class="flex flex-col gap-3">
-                            <button class="w-full py-3 px-4 bg-accent text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                            <button class="cursor-pointer w-full py-3 px-4 bg-accent text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2">
                                 <span class="material-symbols-outlined">add</span>
                                 Transaksi Baru
                             </button>
-                            <button class="w-full py-3 px-4 bg-[#36271F] text-white rounded-xl font-bold text-sm hover:bg-[#4D3A2F] transition-all flex items-center justify-center gap-2">
+                            <button class="cursor-pointer w-full py-3 px-4 bg-[#36271F] text-white rounded-xl font-bold text-sm hover:bg-[#4D3A2F] transition-all flex items-center justify-center gap-2">
                                 <span class="material-symbols-outlined">person_add</span>
                                 Tambah Anggota
                             </button>

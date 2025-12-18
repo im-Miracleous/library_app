@@ -6,7 +6,6 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Login - Library App</title>
 
-    <!-- Google Fonts (Tetap CDN karena butuh koneksi font, bisa didownload lokal jika mau 100% offline) -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
@@ -132,7 +131,7 @@
                     </div>
 
                     <button type="submit"
-                        class="mt-6 flex w-full items-center justify-center rounded-full bg-primary h-14 text-white text-base font-bold leading-normal hover:bg-[#563b2a] active:scale-[0.95] transition-all duration-200 shadow-[0_4px_14px_0_rgba(111,78,55,0.39)] hover:shadow-[0_6px_20px_rgba(111,78,55,0.23)]">
+                        class="cursor-pointer mt-6 flex w-full items-center justify-center rounded-full bg-primary h-14 text-white text-base font-bold leading-normal hover:bg-[#563b2a] active:scale-[0.95] transition-all duration-200 shadow-[0_4px_14px_0_rgba(111,78,55,0.39)] hover:shadow-[0_6px_20px_rgba(111,78,55,0.23)]">
                         Masuk
                         <span class="material-symbols-outlined ml-2 text-xl">arrow_forward</span>
                     </button>

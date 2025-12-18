@@ -24,5 +24,8 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard (Menggunakan DashboardController)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Rute Resource untuk Pengguna (Anggota)
+    Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
     
 });
