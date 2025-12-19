@@ -30,98 +30,7 @@
     <div class="flex h-screen w-full relative">
 
         <!-- SIDEBAR -->
-        <aside id="sidebar"
-            class="fixed lg:static inset-y-0 left-0 w-72 h-full bg-surface dark:bg-surface-dark border-r border-primary/20 dark:border-border-dark p-6 flex flex-col justify-between z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto">
-
-            <button id="close-sidebar"
-                class="lg:hidden absolute top-4 right-4 text-primary-mid dark:text-white/60 hover:text-primary-dark dark:hover:text-white">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-
-            <div class="flex flex-col gap-8">
-                <div class="flex items-center gap-3 px-2">
-                    <div class="bg-primary/10 dark:bg-accent/20 flex items-center justify-center rounded-full size-12">
-                        <span class="material-symbols-outlined text-primary dark:text-accent"
-                            style="font-size: 28px;">local_library</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <h1 class="text-primary-dark dark:text-white text-lg font-bold leading-tight">Library App</h1>
-                        <p class="text-primary-mid dark:text-white/60 text-xs font-medium">Panel Manajemen</p>
-                    </div>
-                </div>
-
-                <nav class="flex flex-col gap-6">
-                    <div class="flex flex-col gap-2">
-                        <a href="{{ route('dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-[#36271F] hover:text-primary-dark dark:hover:text-white transition-all duration-200 ease-in-out">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            <p class="text-sm font-medium">Dashboard</p>
-                        </a>
-
-                        <div
-                            class="px-4 py-3 rounded-xl bg-primary/10 dark:bg-accent text-primary-dark dark:text-primary-dark shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)] flex items-center gap-3">
-                            <span class="material-symbols-outlined filled">group</span>
-                            <p class="text-sm font-bold">Kelola Pengguna</p>
-                        </div>
-                    </div>
-
-                    <div
-                        class="bg-white dark:bg-[#1A1410] rounded-2xl p-5 border border-primary/20 dark:border-[#36271F] space-y-4 shadow-sm dark:shadow-none">
-                        <h3 class="text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest">
-                            Statistik Data</h3>
-                        <div
-                            class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-[#36271F]">
-                            <div class="flex items-center gap-2">
-                                <span class="size-2 rounded-full bg-blue-500"></span>
-                                <span class="text-sm text-primary-dark/80 dark:text-white/80">Total Anggota</span>
-                            </div>
-                            <span
-                                class="text-xs font-bold text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded">{{ $totalAnggota }}</span>
-                        </div>
-                        <div
-                            class="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-[#36271F]">
-                            <div class="flex items-center gap-2">
-                                <span class="size-2 rounded-full bg-green-500"></span>
-                                <span class="text-sm text-primary-dark/80 dark:text-white/80">Aktif</span>
-                            </div>
-                            <span
-                                class="text-xs font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded">{{ $totalAktif }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <span class="size-2 rounded-full bg-red-500"></span>
-                                <span class="text-sm text-primary-dark/80 dark:text-white/80">Nonaktif</span>
-                            </div>
-                            <span
-                                class="text-xs font-bold text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded">{{ $totalNonaktif }}</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3
-                            class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest mb-3">
-                            Filter Cepat</h3>
-                        <div class="flex flex-col gap-1">
-                            <a href="{{ route('pengguna.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-xl {{ !request('status') ? 'bg-white dark:bg-white/10 text-primary-dark dark:text-white shadow-sm dark:shadow-none' : 'text-primary-normal dark:text-white/60 hover:bg-white dark:hover:bg-[#36271F] hover:text-primary-dark dark:hover:text-white' }} transition-all duration-200 ease-in-out">
-                                <span class="material-symbols-outlined text-[18px]">list</span>
-                                <span class="text-sm font-medium">Semua Data</span>
-                            </a>
-                            <a href="{{ route('pengguna.index', ['status' => 'aktif']) }}"
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-xl {{ request('status') == 'aktif' ? 'bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400' : 'text-primary-normal dark:text-white/60 hover:bg-white dark:hover:bg-[#36271F] hover:text-primary-dark dark:hover:text-white' }} transition-all duration-200 ease-in-out">
-                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                                <span class="text-sm font-medium">Hanya Aktif</span>
-                            </a>
-                            <a href="{{ route('pengguna.index', ['status' => 'nonaktif']) }}"
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-xl {{ request('status') == 'nonaktif' ? 'bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400' : 'text-primary-normal dark:text-white/60 hover:bg-white dark:hover:bg-[#36271F] hover:text-primary-dark dark:hover:text-white' }} transition-all duration-200 ease-in-out">
-                                <span class="material-symbols-outlined text-[18px]">cancel</span>
-                                <span class="text-sm font-medium">Hanya Nonaktif</span>
-                            </a>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-        </aside>
+        <x-sidebar-component />
 
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
@@ -148,6 +57,31 @@
                             Daftar Anggota
                         </h1>
                         <p class="text-slate-500 dark:text-white/60 mt-1">Kelola data anggota perpustakaan di sini.</p>
+
+                        <!-- Statistik Bar -->
+                        <div class="flex flex-wrap gap-3 mt-4">
+                            <div
+                                class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total:</span>
+                                <span
+                                    class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalAnggota }}</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
+                                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-green-700 dark:text-green-400">Aktif:</span>
+                                <span
+                                    class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalAktif }}</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
+                                <span class="size-2 rounded-full bg-red-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-red-700 dark:text-red-400">Nonaktif:</span>
+                                <span
+                                    class="text-sm font-bold text-red-700 dark:text-red-400">{{ $totalNonaktif }}</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -174,6 +108,107 @@
 
                 <div
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none transition-colors">
+
+                    <!-- Table Header & Filter -->
+                    <div
+                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
+                        <!-- Filter Tabs (Animated Sliding Pill with Colors) -->
+                        <div class="relative bg-slate-100 dark:bg-black/20 rounded-xl p-1 grid grid-cols-3 w-full sm:w-[320px]">
+                            {{-- Pill Background yang Bergerak & Berubah Warna --}}
+                            <div id="filter-pill" 
+                                class="absolute top-1 bottom-1 shadow-sm dark:shadow-md rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0 box-border"
+                                style="width: calc(33.33% - 0.4rem); left: 0.2rem;">
+                            </div>
+
+                            {{-- Tab Items --}}
+                            <a href="{{ route('pengguna.index') }}" onclick="movePill(this, 'all')"
+                                data-color="all"
+                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ !request('status') ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
+                                Semua
+                            </a>
+                            <a href="{{ route('pengguna.index', ['status' => 'aktif']) }}" onclick="movePill(this, 'active')"
+                                data-color="active"
+                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'aktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
+                                Aktif
+                            </a>
+                            <a href="{{ route('pengguna.index', ['status' => 'nonaktif']) }}" onclick="movePill(this, 'inactive')"
+                                data-color="inactive"
+                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'nonaktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
+                                Nonaktif
+                            </a>
+                        </div>
+
+                        <script>
+                            function initPill() {
+                                const pill = document.getElementById('filter-pill');
+                                let activeTab = document.querySelector('.filter-tab.active');
+
+                                if (activeTab && pill) {
+                                    // Set warna awal dan posisi
+                                    setPillColor(pill, activeTab.dataset.color);
+                                    positionPill(activeTab, pill);
+                                } else if (pill) {
+                                    // Default ke 'all' jika tidak ada yang active (fallback)
+                                    setPillColor(pill, 'all');
+                                }
+                            }
+
+                            function movePill(el, colorType) {
+                                const pill = document.getElementById('filter-pill');
+                                
+                                // Reset text classes
+                                document.querySelectorAll('.filter-tab').forEach(t => {
+                                    t.classList.remove('active', 'text-white');
+                                    t.classList.add('text-slate-500', 'dark:text-white/50');
+                                });
+
+                                // Set active state to clicked element
+                                el.classList.remove('text-slate-500', 'dark:text-white/50');
+                                el.classList.add('active', 'text-white');
+                                
+                                // Move and Color Pill
+                                setPillColor(pill, colorType);
+                                positionPill(el, pill);
+                            }
+
+                            function setPillColor(pill, type) {
+                                // Reset warna
+                                pill.classList.remove('bg-primary', 'dark:bg-accent', 'bg-green-500', 'bg-red-500');
+                                
+                                // Set warna baru
+                                if (type === 'active') {
+                                    pill.classList.add('bg-green-500');
+                                } else if (type === 'inactive') {
+                                    pill.classList.add('bg-red-500');
+                                } else {
+                                    pill.classList.add('bg-primary', 'dark:bg-accent'); // Default Cokelat
+                                }
+                            }
+
+                            function positionPill(element, pill) {
+                                const parentRect = element.parentElement.getBoundingClientRect();
+                                const rect = element.getBoundingClientRect();
+                                const left = rect.left - parentRect.left;
+                                
+                                pill.style.width = `${rect.width}px`;
+                                pill.style.transform = `translateX(${left}px)`;
+                                pill.style.left = '0';
+                            }
+
+                            document.addEventListener('DOMContentLoaded', initPill);
+                        </script>
+
+                        <!-- Search Bar -->
+                        <form action="{{ route('pengguna.index') }}" method="GET" class="relative w-full sm:w-64">
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Cari nama atau email..."
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
+                        </form>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>

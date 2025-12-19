@@ -31,143 +31,7 @@
         <div id="mobile-overlay"
             class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden transition-opacity opacity-0 cursor-pointer"></div>
 
-        <aside id="sidebar"
-            class="fixed lg:static inset-y-0 left-0 w-72 h-full bg-surface dark:bg-surface-dark border-r border-primary/20 dark:border-border-dark flex flex-col z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-hidden">
-
-            <button id="close-sidebar"
-                class="lg:hidden absolute top-4 right-4 text-primary-dark dark:text-white/60 hover:text-primary dark:hover:text-white cursor-pointer transition-colors z-50">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-
-            <!-- Fixed Header -->
-            <div class="flex-none flex items-center px-6 py-5 border-b border-primary/20 dark:border-border-dark gap-3">
-                <div
-                    class="bg-primary/20 dark:bg-accent/20 flex items-center justify-center rounded-full size-10 flex-shrink-0 cursor-default">
-                    <span class="material-symbols-outlined text-primary-dark dark:text-accent"
-                        style="font-size: 24px;">local_library</span>
-                </div>
-                <div class="flex flex-col cursor-default">
-                    <h1 class="text-primary-dark dark:text-white text-base font-bold leading-tight">Library App</h1>
-                    <p class="text-primary-mid dark:text-white/60 text-[10px] font-medium uppercase tracking-wider">
-                        Panel Manajemen</p>
-                </div>
-            </div>
-
-            <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto flex flex-col justify-between px-4 py-4">
-                <nav class="flex flex-col gap-2">
-
-                    <!-- Menu Utama (Dashboard) -->
-                    <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]"
-                        href="{{ route('dashboard') }}">
-                        <span class="material-symbols-outlined filled"
-                            style="font-variation-settings: 'FILL' 1;">dashboard</span>
-                        <p class="text-sm font-bold">Dashboard</p>
-                    </a>
-
-                    @if(Auth::user()->peran == 'admin')
-                        <div
-                            class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                            Administrator</div>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="{{ route('pengguna.index') }}">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">group</span>
-                            <p class="text-sm font-medium">Kelola Pengguna</p>
-                        </a>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="{{ route('buku.index') }}">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">library_books</span>
-                            <p class="text-sm font-medium">Kelola Buku</p>
-                        </a>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="{{ route('kategori.index') }}">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">category</span>
-                            <p class="text-sm font-medium">Kategori Buku</p>
-                        </a>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="#">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">monitoring</span>
-                            <p class="text-sm font-medium">Laporan</p>
-                        </a>
-                    @endif
-
-                    @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
-                        <div
-                            class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                            Sirkulasi</div>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="#">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">sync_alt</span>
-                            <p class="text-sm font-medium">Transaksi Peminjaman</p>
-                        </a>
-
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="#">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">assignment_return</span>
-                            <p class="text-sm font-medium">Pengembalian & Denda</p>
-                        </a>
-                    @endif
-
-                    @if(Auth::user()->peran == 'anggota')
-                        <div
-                            class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                            Menu Anggota</div>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="#">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">search</span>
-                            <p class="text-sm font-medium">Cari Buku</p>
-                        </a>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group"
-                            href="#">
-                            <span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">history</span>
-                            <p class="text-sm font-medium">Riwayat Saya</p>
-                        </a>
-                    @endif
-
-                </nav>
-
-                <div
-                    class="flex flex-col gap-4 flex-shrink-0 pt-4 pb-4 border-t border-primary/20 dark:border-border-dark mt-4">
-                    <div
-                        class="bg-white/50 dark:bg-surface-dark p-4 rounded-xl flex items-center gap-3 border border-primary/10 dark:border-border-dark cursor-default transition-colors">
-                        <div
-                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold">
-                            {{ substr(Auth::user()->nama, 0, 1) }}
-                        </div>
-                        <div class="flex flex-col overflow-hidden">
-                            <p class="text-sm font-bold truncate text-primary-dark dark:text-white">
-                                {{ Auth::user()->nama }}
-                            </p>
-                            <p class="text-xs text-primary-mid dark:text-white/60 truncate capitalize">
-                                {{ Auth::user()->peran }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <form action="{{ route('logout') }}" method="POST" class="w-full form-logout">
-                        @csrf
-                        <button type="submit"
-                            class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-12 bg-white dark:bg-[#36271F] border border-primary/20 dark:border-transparent hover:bg-red-50 dark:hover:bg-[#4D3A2F] text-primary-dark dark:text-white hover:text-red-600 dark:hover:text-white text-sm font-bold transition-all active:scale-95 shadow-sm hover:shadow-md">
-                            <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
-                            <span>Log Out</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </aside>
+        <x-sidebar-component />
 
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
             <header
@@ -235,16 +99,22 @@
                         <p class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mr-1">
                             Status Sistem</p>
                         <div class="flex items-center gap-3">
+                            <!-- DB Status -->
                             <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-500/10 rounded-full border border-green-200 dark:border-green-500/20 shadow-sm">
+                                class="flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm {{ $dbStatus ? 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' : 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20' }}">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $dbStatus ? 'bg-green-400' : 'bg-red-400' }}"></span>
+                                    <span
+                                        class="relative inline-flex rounded-full size-2 {{ $dbStatus ? 'bg-green-500' : 'bg-red-500' }}"></span>
                                 </span>
-                                <span class="text-xs font-bold text-green-700 dark:text-green-400">Database
-                                    Terhubung</span>
+                                <span
+                                    class="text-xs font-bold {{ $dbStatus ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400' }}">
+                                    {{ $dbStatus ? 'Database Terhubung' : 'Koneksi DB Gagal' }}
+                                </span>
                             </div>
+
+                            <!-- Server Status -->
                             <div
                                 class="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-500/10 rounded-full border border-green-200 dark:border-green-500/20 shadow-sm">
                                 <span class="relative flex size-2">
@@ -259,68 +129,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    <div
-                        class="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-primary/20 dark:border-border-dark hover:border-primary/40 dark:hover:border-accent/50 hover:shadow-md hover:-translate-y-1 animate-enter delay-100 shadow-sm dark:shadow-none transition-all duration-300 cursor-default">
-                        <div class="flex items-center justify-start gap-4 mb-4">
-                            <div
-                                class="size-14 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-500">
-                                <span class="material-symbols-outlined text-3xl">library_books</span>
-                            </div>
-                            <span
-                                class="text-base font-bold text-blue-600 dark:text-blue-500 bg-blue-100 dark:bg-blue-500/10 px-3 py-1.5 rounded-xl">Koleksi</span>
-                        </div>
-                        <h3 class="text-3xl font-bold text-primary-dark dark:text-white">
-                            {{ number_format($stats['total_buku']) }}
-                        </h3>
-                        <p class="text-primary-mid dark:text-white/40 text-sm font-medium mt-1">Total Judul Buku</p>
-                    </div>
+                    <x-stat-card-component title="Koleksi" value="{{ number_format($stats['total_buku']) }}"
+                        desc="Total Judul Buku" icon="library_books" color="blue" />
 
-                    <div
-                        class="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-primary/20 dark:border-border-dark hover:border-primary/40 dark:hover:border-accent/50 hover:shadow-md hover:-translate-y-1 animate-enter delay-200 shadow-sm dark:shadow-none transition-all duration-300 cursor-default">
-                        <div class="flex items-center justify-start gap-4 mb-4">
-                            <div
-                                class="size-14 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-500">
-                                <span class="material-symbols-outlined text-3xl">group</span>
-                            </div>
-                            <span
-                                class="text-base font-bold text-purple-600 dark:text-purple-500 bg-purple-100 dark:bg-purple-500/10 px-3 py-1.5 rounded-xl">Anggota</span>
-                        </div>
-                        <h3 class="text-3xl font-bold text-primary-dark dark:text-white">
-                            {{ number_format($stats['total_anggota']) }}
-                        </h3>
-                        <p class="text-primary-mid dark:text-white/40 text-sm font-medium mt-1">Total Anggota</p>
-                    </div>
+                    <x-stat-card-component title="Anggota" value="{{ number_format($stats['total_anggota']) }}"
+                        desc="Anggota Terdaftar" icon="group" color="purple" />
 
-                    <div
-                        class="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-primary/20 dark:border-border-dark hover:border-primary/40 dark:hover:border-accent/50 hover:shadow-md hover:-translate-y-1 animate-enter delay-300 shadow-sm dark:shadow-none transition-all duration-300 cursor-default">
-                        <div class="flex items-center justify-start gap-4 mb-4">
-                            <div
-                                class="size-14 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-500">
-                                <span class="material-symbols-outlined text-3xl">sync_alt</span>
-                            </div>
-                            <span
-                                class="text-base font-bold text-orange-600 dark:text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-3 py-1.5 rounded-xl">Sirkulasi</span>
-                        </div>
-                        <h3 class="text-3xl font-bold text-primary-dark dark:text-white">
-                            {{ number_format($stats['peminjaman_aktif']) }}
-                        </h3>
-                        <p class="text-primary-mid dark:text-white/40 text-sm font-medium mt-1">Peminjaman Aktif</p>
-                    </div>
+                    <x-stat-card-component title="Sirkulasi" value="{{ number_format($stats['peminjaman_aktif']) }}"
+                        desc="Peminjaman Aktif" icon="sync_alt" color="orange" />
 
-                    <div
-                        class="bg-white dark:bg-surface-dark p-6 rounded-2xl border border-primary/20 dark:border-border-dark hover:border-primary/40 dark:hover:border-accent/50 hover:shadow-md hover:-translate-y-1 animate-enter delay-300 shadow-sm dark:shadow-none transition-all duration-300 cursor-default">
-                        <div class="flex items-center justify-start gap-4 mb-4">
-                            <div
-                                class="size-14 rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-500">
-                                <span class="material-symbols-outlined text-3xl">payments</span>
-                            </div>
-                            <span
-                                class="text-base font-bold text-red-600 dark:text-red-500 bg-red-100 dark:bg-red-500/10 px-3 py-1.5 rounded-xl">Denda</span>
-                        </div>
-                        <h3 class="text-3xl font-bold text-primary-dark dark:text-white">
-                            Rp{{ number_format($stats['total_denda'], 0, ',', '.') }}</h3>
-                        <p class="text-primary-mid dark:text-white/40 text-sm font-medium mt-1">Denda Belum Bayar</p>
-                    </div>
+                    <x-stat-card-component title="Denda"
+                        value="Rp{{ number_format($stats['total_denda'], 0, ',', '.') }}" desc="Denda Belum Bayar"
+                        icon="payments" color="red" />
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -330,7 +150,7 @@
                         <div class="flex flex-col gap-4">
                             @forelse($peminjamanTerbaru as $pinjam)
                                 <div
-                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-colors hover:bg-white dark:hover:bg-[#2F241E] cursor-default">
+                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-colors hover:bg-primary/10 dark:hover:bg-[#4D3A2F] hover:border-primary/20 cursor-default">
                                     <div class="flex items-center gap-4">
                                         <div
                                             class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold">
@@ -380,13 +200,14 @@
                                 class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mb-3 select-none">
                                 Status Sistem</p>
                             <div
-                                class="flex items-center gap-2 text-sm text-primary-dark dark:text-white cursor-default">
+                                class="flex items-center gap-2 text-sm {{ $dbStatus ? 'text-primary-dark dark:text-white' : 'text-red-600 dark:text-red-400 font-bold' }} cursor-default">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $dbStatus ? 'bg-green-400' : 'bg-red-400' }}"></span>
+                                    <span
+                                        class="relative inline-flex rounded-full size-2 {{ $dbStatus ? 'bg-green-500' : 'bg-red-500' }}"></span>
                                 </span>
-                                Database Terhubung
+                                {{ $dbStatus ? 'Database Terhubung' : 'Koneksi DB Gagal' }}
                             </div>
                             <div
                                 class="flex items-center gap-2 text-sm text-primary-dark dark:text-white mt-2 cursor-default">

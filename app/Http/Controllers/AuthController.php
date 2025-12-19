@@ -44,8 +44,6 @@ class AuthController extends Controller
         $request->session()->invalidate(); // Hancurkan file sesi lama
         $request->session()->regenerateToken(); // Buat token CSRF baru (security)
 
-        return redirect('/login');
-
         // Redirect ke login dengan pesan sukses
         return redirect()->route('login')->with('success', 'Anda berhasil keluar dari sistem.');
     }

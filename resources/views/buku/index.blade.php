@@ -27,55 +27,7 @@
 
         <!-- SIDEBAR -->
         <aside id="sidebar"
-            class="fixed lg:static inset-y-0 left-0 w-72 h-full bg-surface dark:bg-surface-dark border-r border-primary/20 dark:border-border-dark p-6 flex flex-col justify-between z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto">
-            <button id="close-sidebar"
-                class="lg:hidden absolute top-4 right-4 text-primary-dark dark:text-white/60 hover:text-primary dark:hover:text-white transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <div class="flex flex-col gap-8">
-                <div class="flex items-center gap-3 px-2">
-                    <div
-                        class="bg-primary/10 dark:bg-accent/20 flex items-center justify-center rounded-full size-12 hover:scale-110 transition-transform duration-300">
-                        <span class="material-symbols-outlined text-primary dark:text-accent"
-                            style="font-size: 28px;">local_library</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <h1 class="text-primary-dark dark:text-white text-lg font-bold leading-tight">Library App</h1>
-                        <p class="text-primary-mid dark:text-white/60 text-xs font-medium">Panel Manajemen</p>
-                    </div>
-                </div>
-                <nav class="flex flex-col gap-6">
-                    <div class="flex flex-col gap-2">
-                        <a href="{{ route('dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-[#36271F] hover:text-primary-dark dark:hover:text-white transition-all duration-200 ease-in-out group"><span
-                                class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">arrow_back</span>
-                            <p class="text-sm font-medium">Dashboard</p>
-                        </a>
-                        <div
-                            class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 dark:bg-accent text-primary-dark dark:text-primary-dark shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]">
-                            <span class="material-symbols-outlined filled">library_books</span>
-                            <p class="text-sm font-bold">Kelola Buku</p>
-                        </div>
-                    </div>
-                    <!-- STATISTIK -->
-                    <div class="bg-white dark:bg-[#1A1410] rounded-2xl p-5 border border-primary/20 dark:border-[#36271F] space-y-4 shadow-sm dark:shadow-none">
-                        <h3 class="text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest">Koleksi</h3>
-                        <div class="flex justify-between items-center px-0.5">
-                            <div class="flex items-center gap-2"><span
-                                    class="size-2 rounded-full bg-blue-500"></span><span
-                                    class="text-sm text-primary-dark dark:text-white/80">Total Judul</span></div><span
-                                class="text-xs font-bold text-blue-600 dark:text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded">{{ $totalBuku }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2"><span
-                                    class="size-2 rounded-full bg-green-500"></span><span
-                                    class="text-sm text-primary-dark/80 dark:text-white/80">Total Eksemplar</span></div><span
-                                class="text-xs font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded">{{ $totalStok }}</span>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-        </aside>
+        <x-sidebar-component />
 
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
@@ -102,6 +54,8 @@
                                 class="material-symbols-outlined text-primary dark:text-accent hidden sm:block">library_books</span>
                             Daftar Buku</h1>
                         <p class="text-primary-mid dark:text-white/60 mt-1">Kelola katalog buku perpustakaan.</p>
+
+
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -127,7 +81,22 @@
                 <!-- Tabel Data -->
                 <div
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
-                    <div class="p-4 border-b border-primary/20 dark:border-[#36271F] flex justify-end bg-surface dark:bg-[#1A1410]">
+                    <div
+                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
+                        
+                        <!-- Indikator Statistik Compact -->
+                        <div class="flex items-center gap-3 ml-1">
+                            <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-full">
+                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total Judul:</span>
+                                <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalBuku }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-full">
+                                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <span class="text-xs font-medium text-green-700 dark:text-green-400">Total Stok:</span>
+                                <span class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalStok }}</span>
+                            </div>
+                        </div>
                         <form action="{{ route('buku.index') }}" method="GET" class="relative w-full sm:w-64">
                             <span
                                 class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
