@@ -30,5 +30,8 @@ Route::middleware('auth')->group(function () {
 
     // Rute Resource untuk Kategori Buku
     Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
+
+    // Rute Resource untuk Buku
+    Route::resource('buku', \App\Http\Controllers\BukuController::class);
     
 });

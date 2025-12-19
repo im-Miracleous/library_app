@@ -116,7 +116,7 @@
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
             <header class="flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-sm z-30 px-4 py-4 border-b border-[#36271F] lg:hidden">
                 <div class="flex items-center gap-4">
-                    <button id="open-sidebar" class="text-white hover:text-accent transition-colors">
+                    <button id="open-sidebar" class="cursor-pointer text-white hover:text-accent transition-colors">
                         <span class="material-symbols-outlined text-3xl">menu</span>
                     </button>
                     <h2 class="text-white text-lg font-bold">Kelola Pengguna</h2>

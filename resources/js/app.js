@@ -194,4 +194,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.closeModal('editModal');
             });
     }
+
+    // --- SPESIFIK: EDIT BUKU (BARU) ---
+    window.openEditBuku = function(bukuId) {
+        window.openModal('editModal');
+        
+        const form = document.getElementById('editForm');
+        form.style.opacity = '0.5';
+        
+        fetch(`/buku/${bukuId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Isi form dengan data buku
+                document.getElementById('edit_judul').value = data.judul;
+                document.getElementById('edit_kategori').value = data.id_kategori; // Dropdown select
+                document.getElementById('edit_penulis').value = data.penulis;
+                document.getElementById('edit_penerbit').value = data.penerbit;
+                document.getElementById('edit_tahun').value = data.tahun_terbit;
+                document.getElementById('edit_isbn').value = data.isbn;
+                document.getElementById('edit_dewey').value = data.kode_dewey;
+                document.getElementById('edit_stok').value = data.stok_total;
+                document.getElementById('edit_deskripsi').value = data.deskripsi;
+                document.getElementById('edit_status').value = data.status;
+                
+                form.action = `/buku/${bukuId}`;
+                form.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Gagal mengambil data buku.');
+                window.closeModal('editModal');
+            });
+    }
 });

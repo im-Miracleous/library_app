@@ -203,7 +203,7 @@
                         <h3 class="text-lg font-bold text-white flex items-center gap-2">
                             <span class="material-symbols-outlined text-blue-400">edit</span> Edit Kategori
                         </h3>
-                        <button onclick="closeModal('editModal')" class="text-white/60 hover:text-white transition-colors"><span class="material-symbols-outlined">close</span></button>
+                        <button onclick="closeModal('editModal')" class="cursor-pointer text-white/60 hover:text-white transition-colors"><span class="material-symbols-outlined">close</span></button>
                     </div>
                     <form id="editForm" method="POST" class="p-6 flex flex-col gap-5">
                         @csrf @method('PUT')

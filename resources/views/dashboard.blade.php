@@ -26,7 +26,7 @@
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 h-full bg-background-dark border-r border-[#36271F] p-6 flex flex-col justify-between z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto">
             
             <!-- Close Sidebar Button -->
-            <button id="close-sidebar" class="lg:hidden absolute top-4 right-4 text-white/60 hover:text-white">
+            <button id="close-sidebar" class="cursor-pointer lg:hidden absolute top-4 right-4 text-white/60 hover:text-white">
                 <span class="material-symbols-outlined">close</span>
             </button>
 
@@ -59,7 +59,7 @@
                             <p class="text-sm font-medium">Kelola Pengguna</p>
                         </a>
                         
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="#">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-full text-white/70 hover:bg-[#36271F] hover:text-white transition-colors group" href="{{ route('buku.index') }}">
                             <span class="material-symbols-outlined group-hover:text-accent transition-colors">library_books</span>
                             <p class="text-sm font-medium">Kelola Buku</p>
                         </a>
@@ -136,7 +136,7 @@
                 
                 <div class="flex items-center gap-4">
                     <!-- Hamburger Button -->
-                    <button id="open-sidebar" class="lg:hidden text-white hover:text-accent transition-colors">
+                    <button id="open-sidebar" class="cursor-pointer **:lg:hidden text-white hover:text-accent transition-colors">
                         <span class="material-symbols-outlined text-3xl">menu</span>
                     </button>
 
