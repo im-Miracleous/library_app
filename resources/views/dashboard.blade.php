@@ -99,30 +99,31 @@
                         <p class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mr-1">
                             Status Sistem</p>
                         <div class="flex items-center gap-3">
-                            <!-- DB Status -->
+                            <!-- DB Status (JS Monitor) -->
                             <div
-                                class="flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm {{ $dbStatus ? 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' : 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20' }}">
+                                class="sys-db-container flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-colors duration-300 bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $dbStatus ? 'bg-green-400' : 'bg-red-400' }}"></span>
+                                        class="sys-db-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
                                     <span
-                                        class="relative inline-flex rounded-full size-2 {{ $dbStatus ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                                        class="sys-db-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
                                 </span>
-                                <span
-                                    class="text-xs font-bold {{ $dbStatus ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400' }}">
-                                    {{ $dbStatus ? 'Database Terhubung' : 'Koneksi DB Gagal' }}
+                                <span class="sys-db-text text-xs font-bold text-green-700 dark:text-green-400">
+                                    Checking...
                                 </span>
                             </div>
 
-                            <!-- Server Status -->
+                            <!-- Server Status (JS Monitor) -->
                             <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-500/10 rounded-full border border-green-200 dark:border-green-500/20 shadow-sm">
+                                class="sys-server-container flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-colors duration-300 bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
+                                        class="sys-server-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
+                                    <span
+                                        class="sys-server-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
                                 </span>
-                                <span class="text-xs font-bold text-green-700 dark:text-green-400">Server Normal</span>
+                                <span
+                                    class="sys-server-text text-xs font-bold text-green-700 dark:text-green-400">Checking...</span>
                             </div>
                         </div>
                     </div>
@@ -200,23 +201,24 @@
                                 class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mb-3 select-none">
                                 Status Sistem</p>
                             <div
-                                class="flex items-center gap-2 text-sm {{ $dbStatus ? 'text-primary-dark dark:text-white' : 'text-red-600 dark:text-red-400 font-bold' }} cursor-default">
+                                class="sys-db-text-mobile flex items-center gap-2 text-sm font-bold text-primary-dark dark:text-white cursor-default">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $dbStatus ? 'bg-green-400' : 'bg-red-400' }}"></span>
+                                        class="sys-db-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
                                     <span
-                                        class="relative inline-flex rounded-full size-2 {{ $dbStatus ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                                        class="sys-db-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
                                 </span>
-                                {{ $dbStatus ? 'Database Terhubung' : 'Koneksi DB Gagal' }}
+                                <span class="sys-db-label-mobile">Checking...</span>
                             </div>
                             <div
-                                class="flex items-center gap-2 text-sm text-primary-dark dark:text-white mt-2 cursor-default">
+                                class="sys-server-text-mobile flex items-center gap-2 text-sm text-primary-dark dark:text-white mt-2 cursor-default font-bold">
                                 <span class="relative flex size-2">
                                     <span
-                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full size-2 bg-green-500"></span>
+                                        class="sys-server-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
+                                    <span
+                                        class="sys-server-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
                                 </span>
-                                Server Berjalan Normal
+                                <span class="sys-server-label-mobile">Checking...</span>
                             </div>
                         </div>
                     </div>
@@ -225,6 +227,171 @@
             </div>
         </main>
     </div>
-</body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to update DB status UI
+            function updateDbStatus(isOnline) {
+                // Desktop Elements
+                const containers = document.querySelectorAll('.sys-db-container');
+                const texts = document.querySelectorAll('.sys-db-text');
+                const dotsAnimate = document.querySelectorAll('.sys-db-dot-animate');
+                const dotsStatic = document.querySelectorAll('.sys-db-dot-static');
+
+                // Mobile Elements
+                const mobileTexts = document.querySelectorAll('.sys-db-text-mobile');
+                const mobileLabels = document.querySelectorAll('.sys-db-label-mobile');
+
+                if (isOnline) {
+                    // Update Desktop
+                    containers.forEach(el => {
+                        el.classList.remove('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
+                        el.classList.add('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
+                    });
+                    texts.forEach(el => {
+                        el.classList.remove('text-red-700', 'dark:text-red-400');
+                        el.classList.add('text-green-700', 'dark:text-green-400');
+                        el.textContent = 'Database Terhubung';
+                    });
+                    dotsAnimate.forEach(el => {
+                        el.classList.remove('bg-red-400');
+                        el.classList.add('bg-green-400');
+                    });
+                    dotsStatic.forEach(el => {
+                        el.classList.remove('bg-red-500');
+                        el.classList.add('bg-green-500');
+                    });
+
+                    // Update Mobile
+                    mobileTexts.forEach(el => {
+                        el.classList.remove('text-red-600', 'dark:text-red-400');
+                        el.classList.add('text-primary-dark', 'dark:text-white');
+                    });
+                    mobileLabels.forEach(el => el.textContent = 'Database Terhubung');
+
+                } else {
+                    // Update Desktop (Offline)
+                    containers.forEach(el => {
+                        el.classList.remove('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
+                        el.classList.add('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
+                    });
+                    texts.forEach(el => {
+                        el.classList.remove('text-green-700', 'dark:text-green-400');
+                        el.classList.add('text-red-700', 'dark:text-red-400');
+                        el.textContent = 'Koneksi DB Gagal';
+                    });
+                    dotsAnimate.forEach(el => {
+                        el.classList.remove('bg-green-400');
+                        el.classList.add('bg-red-400');
+                    });
+                    dotsStatic.forEach(el => {
+                        el.classList.remove('bg-green-500');
+                        el.classList.add('bg-red-500');
+                    });
+
+                    // Update Mobile (Offline)
+                    mobileTexts.forEach(el => {
+                        el.classList.remove('text-primary-dark', 'dark:text-white');
+                        el.classList.add('text-red-600', 'dark:text-red-400');
+                    });
+                    mobileLabels.forEach(el => el.textContent = 'Koneksi DB Gagal');
+                }
+            }
+
+            // Function to update Server status UI
+            function updateServerStatus(isOnline) {
+                const containers = document.querySelectorAll('.sys-server-container');
+                const texts = document.querySelectorAll('.sys-server-text');
+                const dotsAnimate = document.querySelectorAll('.sys-server-dot-animate');
+                const dotsStatic = document.querySelectorAll('.sys-server-dot-static');
+
+                const mobileTexts = document.querySelectorAll('.sys-server-text-mobile');
+                const mobileLabels = document.querySelectorAll('.sys-server-label-mobile');
+
+                if (isOnline) {
+                    // Desktop
+                    containers.forEach(el => {
+                        el.classList.remove('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
+                        el.classList.add('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
+                    });
+                    texts.forEach(el => {
+                        el.classList.remove('text-red-700', 'dark:text-red-400');
+                        el.classList.add('text-green-700', 'dark:text-green-400');
+                        el.textContent = 'Server Normal';
+                    });
+                    dotsAnimate.forEach(el => {
+                        el.classList.remove('bg-red-400');
+                        el.classList.add('bg-green-400');
+                    });
+                    dotsStatic.forEach(el => {
+                        el.classList.remove('bg-red-500');
+                        el.classList.add('bg-green-500');
+                    });
+                    // Mobile
+                    mobileTexts.forEach(el => {
+                        el.classList.remove('text-red-600', 'dark:text-red-400');
+                        el.classList.add('text-primary-dark', 'dark:text-white');
+                    });
+                    mobileLabels.forEach(el => el.textContent = 'Server Normal');
+
+                } else {
+                    // Desktop (Offline)
+                    containers.forEach(el => {
+                        el.classList.remove('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
+                        el.classList.add('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
+                    });
+                    texts.forEach(el => {
+                        el.classList.remove('text-green-700', 'dark:text-green-400');
+                        el.classList.add('text-red-700', 'dark:text-red-400');
+                        el.textContent = 'Server Down';
+                    });
+                    dotsAnimate.forEach(el => {
+                        el.classList.remove('bg-green-400');
+                        el.classList.add('bg-red-400');
+                    });
+                    dotsStatic.forEach(el => {
+                        el.classList.remove('bg-green-500');
+                        el.classList.add('bg-red-500');
+                    });
+                    // Mobile
+                    mobileTexts.forEach(el => {
+                        el.classList.remove('text-primary-dark', 'dark:text-white');
+                        el.classList.add('text-red-600', 'dark:text-red-400');
+                    });
+                    mobileLabels.forEach(el => el.textContent = 'Server Down');
+                }
+            }
+
+            // Polling Function
+            function checkSystemStatus() {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5 detik
+
+                fetch('/api/system-status', { signal: controller.signal })
+                    .then(response => {
+                        clearTimeout(timeoutId); // Clear timeout jika sukses
+                        if (!response.ok) {
+                            throw new Error('Network error');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateDbStatus(data.db_status);
+                        updateServerStatus(true);
+                    })
+                    .catch(error => {
+                        // Error bisa karena Network Error (Server Mati) atau Timeout (Abort)
+                        updateDbStatus(false);
+                        updateServerStatus(false);
+                    });
+            }
+
+            // Initial Check
+            checkSystemStatus();
+
+            // Interval Check (every 5s)
+            setInterval(checkSystemStatus, 5000);
+        });
+    </script>
 
 </html>
