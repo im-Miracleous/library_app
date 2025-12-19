@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Session;
 class AuthController extends Controller
 {
     // 1. Tampilkan Halaman Login
-    public function showLoginForm()
+    public function showLogin()
     {
         return view('auth.login');
     }

@@ -1,30 +1,37 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 
-// Halaman Utama (Redirect ke Login jika belum login)
+// 1. Halaman Utama (Root)
+// Logika: Jika sudah login -> lempar ke dashboard. Jika belum -> lempar ke login.
 Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return redirect()->route('login');
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Guest Routes (Hanya bisa diakses jika BELUM login)
+// 2. Rute Guest - Hanya bisa diakses jika BELUM login
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-// Authenticated Routes (Hanya bisa diakses jika SUDAH login)
+// 3. Rute Auth - Hanya bisa diakses jika SUDAH login
 Route::middleware('auth')->group(function () {
+    
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
-    // Halaman Dashboard
-    Route::get('/dashboard', function () {
-        $user = Auth::user();
-        return view('dashboard', ['user' => $user]);
-    })->name('dashboard');
+    // Dashboard (Menggunakan DashboardController)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Rute Resource untuk Pengguna (Anggota)
+    Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+
+    // Rute Resource untuk Kategori Buku
+    Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
+
+    // Rute Resource untuk Buku
+    Route::resource('buku', \App\Http\Controllers\BukuController::class);
+    
 });
