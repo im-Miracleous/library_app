@@ -94,6 +94,13 @@
                         {{ session('success') }}
                     </div>
                 @endif
+
+                @if (session('status'))
+                    <div class="mb-4 p-4 text-sm text-green-700 dark:text-green-800 bg-green-100 dark:bg-green-200 rounded-lg animate-enter"
+                        role="alert">
+                        {{ session('status') }}
+                    </div>
+                @endif
                 @if ($errors->any())
                     <div class="mb-4 p-4 text-sm text-red-700 dark:text-red-800 bg-red-100 dark:bg-red-200 rounded-lg animate-enter"
                         role="alert">
@@ -134,7 +141,7 @@
                         </div>
                         <div class="flex justify-end mt-1">
                             <a class="text-sm font-semibold text-primary hover:text-primary-dark dark:text-accent dark:hover:text-accent/80 transition-colors"
-                                href="#">
+                                href="{{ route('password.request') }}">
                                 Lupa Password?
                             </a>
                         </div>
