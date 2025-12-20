@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Login - Library App</title>
+    <title>Daftar - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
 
     <link href="https://fonts.googleapis.com" rel="preconnect" />
@@ -55,11 +55,11 @@
 
             <div class="relative z-10 max-w-lg mb-12 animate-enter delay-200">
                 <h1 class="text-5xl font-bold leading-tight mb-6 tracking-tight">
-                    Sistem Manajemen <br />
-                    <span class="text-accent">Perpustakaan Modern.</span>
+                    Bergabunglah <br />
+                    <span class="text-accent">Bersama Kami.</span>
                 </h1>
                 <p class="text-lg text-gray-400 font-light leading-relaxed">
-                    Akses katalog lengkap, kelola keanggotaan, dan analisis tren peminjaman.
+                    Daftar menjadi anggota perpustakaan dan nikmati akses ke ribuan koleksi buku kami.
                 </p>
             </div>
             <div class="relative z-10 text-xs text-gray-500 font-mono animate-enter delay-300">
@@ -78,38 +78,44 @@
             </div>
 
             <div class="w-full max-w-[420px] flex flex-col">
-                <div class="mb-10 text-center lg:text-left animate-enter delay-100">
+                <div class="mb-8 text-center lg:text-left animate-enter delay-100">
                     <h2
                         class="text-3xl lg:text-[32px] font-bold leading-tight tracking-tight dark:text-white text-slate-900 mb-3">
-                        Selamat Datang
+                        Buat Akun Baru
                     </h2>
                     <p class="text-base font-normal leading-normal text-slate-500 dark:text-gray-400">
-                        Silakan masuk menggunakan akun Anda.
+                        Lengkapi data diri Anda untuk mendaftar.
                     </p>
                 </div>
 
-                @if (session('success'))
-                    <div class="mb-4 p-4 text-sm text-green-700 dark:text-green-800 bg-green-100 dark:bg-green-200 rounded-lg animate-enter"
-                        role="alert">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if (session('status'))
-                    <div class="mb-4 p-4 text-sm text-green-700 dark:text-green-800 bg-green-100 dark:bg-green-200 rounded-lg animate-enter"
-                        role="alert">
-                        {{ session('status') }}
-                    </div>
-                @endif
                 @if ($errors->any())
                     <div class="mb-4 p-4 text-sm text-red-700 dark:text-red-800 bg-red-100 dark:bg-red-200 rounded-lg animate-enter"
                         role="alert">
-                        {{ $errors->first() }}
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
 
-                <form action="{{ route('login') }}" method="POST" class="flex flex-col gap-5 animate-enter delay-200">
+                <form action="{{ route('register') }}" method="POST" class="flex flex-col gap-5 animate-enter delay-200">
                     @csrf
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-base font-medium leading-normal dark:text-white text-slate-900"
+                            for="nama">Nama Lengkap</label>
+                        <div class="relative group input-focus-effect">
+                            <input
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-gray-200 dark:border-border-dark focus:outline-0 focus:ring-2 focus:ring-primary dark:focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                                id="nama" name="name" placeholder="John Doe" type="text"
+                                value="{{ old('name') }}" required autofocus />
+                            <div
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors group-focus-within:text-primary">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="text-base font-medium leading-normal dark:text-white text-slate-900"
@@ -118,7 +124,7 @@
                             <input
                                 class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-gray-200 dark:border-border-dark focus:outline-0 focus:ring-2 focus:ring-primary dark:focus:ring-primary/50 focus:border-primary transition-all duration-200"
                                 id="email" name="email" placeholder="nama@email.com" type="email"
-                                value="{{ old('email') }}" required autofocus />
+                                value="{{ old('email') }}" required />
                             <div
                                 class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none transition-colors group-focus-within:text-primary">
                                 <span class="material-symbols-outlined">mail</span>
@@ -133,33 +139,36 @@
                             <input
                                 class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] pr-12 text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-gray-200 dark:border-border-dark focus:outline-0 focus:ring-2 focus:ring-primary dark:focus:ring-primary/50 focus:border-primary transition-all duration-200"
                                 id="password" name="password" placeholder="••••••••" type="password" required />
-
                             <button type="button"
                                 class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-primary transition-colors cursor-pointer">
                                 <span class="material-symbols-outlined">visibility</span>
                             </button>
                         </div>
-                        <div class="flex justify-end mt-1">
-                            <a class="text-sm font-semibold text-primary hover:text-primary-dark dark:text-accent dark:hover:text-accent/80 transition-colors"
-                                href="{{ route('password.request') }}">
-                                Lupa Password?
-                            </a>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-base font-medium leading-normal dark:text-white text-slate-900"
+                            for="password_confirmation">Konfirmasi Password</label>
+                        <div class="relative group input-focus-effect">
+                            <input
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] pr-12 text-base font-normal leading-normal bg-white dark:bg-input-dark text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-gray-200 dark:border-border-dark focus:outline-0 focus:ring-2 focus:ring-primary dark:focus:ring-primary/50 focus:border-primary transition-all duration-200"
+                                id="password_confirmation" name="password_confirmation" placeholder="••••••••" type="password" required />
                         </div>
                     </div>
 
                     <button type="submit"
                         class="cursor-pointer mt-6 flex w-full items-center justify-center rounded-full bg-primary-dark dark:bg-primary h-14 text-white dark:text-primary-dark text-base font-bold leading-normal hover:bg-[#563b2a] dark:hover:brightness-110 dark:hover:text-white active:scale-[0.95] transition-all duration-200 shadow-md hover:shadow-lg">
-                        Masuk
-                        <span class="material-symbols-outlined ml-2 text-xl">arrow_forward</span>
+                        Daftar
+                        <span class="material-symbols-outlined ml-2 text-xl">person_add</span>
                     </button>
                 </form>
 
                 <div
                     class="mt-10 pt-6 border-t border-gray-200 dark:border-border-dark flex flex-col items-center gap-4 w-full animate-enter delay-300">
-                    <p class="text-slate-500 dark:text-gray-400 text-sm">Belum memiliki akun?</p>
-                    <a href="{{ route('register') }}"
+                    <p class="text-slate-500 dark:text-gray-400 text-sm">Sudah memiliki akun?</p>
+                    <a href="{{ route('login') }}"
                         class="cursor-pointer px-6 py-2.5 rounded-full border border-gray-300 dark:border-border-dark text-slate-700 dark:text-white text-sm font-medium hover:bg-slate-50 dark:hover:bg-input-dark transition-colors w-full text-center sm:w-auto hover:scale-105 active:scale-95 duration-200">
-                        Daftar
+                        Masuk Disini
                     </a>
                 </div>
 

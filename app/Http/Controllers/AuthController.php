@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\Pengguna;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 
 class AuthController extends Controller
 {
@@ -13,6 +15,32 @@ class AuthController extends Controller
     public function showLogin()
     {
         return view('auth.login');
+    }
+
+    // 1b. Tampilkan Halaman Register
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+    // 1c. Proses Register
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:pengguna'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = Pengguna::create([
+            'nama' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'peran' => 'anggota', // Default role for registration
+            'status' => 'aktif',
+        ]);
+
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
     }
 
     // 2. Proses Login dengan Advanced Rate Limiting

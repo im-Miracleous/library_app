@@ -16,6 +16,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 
+    // Route Register
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+
     // Route Lupa Password
     Route::get('/forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
