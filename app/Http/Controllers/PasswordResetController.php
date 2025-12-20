@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
-use App\Models\User; // Atau App\Models\Pengguna tergantung model Anda
+use App\Models\Pengguna;
 use Illuminate\Auth\Events\PasswordReset;
 
 class PasswordResetController extends Controller
@@ -28,6 +28,18 @@ class PasswordResetController extends Controller
         $request->validate([
             'email' => ['required', 'email'],
         ]);
+
+        // Cek apakah akun terkunci (Advanced Rate Limiting Rule)
+        $user = Pengguna::where('email', $request->email)->first();
+        if ($user) {
+            if ($user->is_locked) {
+                return back()->withErrors(['email' => 'Akun terkunci permanen. Fitur reset password dinonaktifkan.']);
+            }
+            if ($user->lockout_time && now()->lessThan($user->lockout_time)) {
+                $diff = now()->diffForHumans($user->lockout_time, ['syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW]);
+                return back()->withErrors(['email' => "Akun sedang dibekukan. Silakan tunggu hingga sesi kunci berakhir."]);
+            }
+        }
 
         // Kirim link reset password (menggunakan default Laravel Password Broker)
         $status = Password::sendResetLink($request->only('email'));

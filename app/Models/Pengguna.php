@@ -19,7 +19,11 @@ class Pengguna extends Authenticatable
 
     protected $guarded = ['id'];
     protected $hidden = ['password', 'remember_token'];
-    protected $casts = ['password' => 'hashed'];
+    protected $casts = [
+        'password' => 'hashed',
+        'lockout_time' => 'datetime',
+        'is_locked' => 'boolean',
+    ];
 
     public function peminjaman()
     {
