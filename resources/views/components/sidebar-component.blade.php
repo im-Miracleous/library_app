@@ -8,13 +8,23 @@
 
     <!-- Fixed Header -->
     <div class="flex-none flex items-center px-6 py-5 border-b border-primary/20 dark:border-border-dark gap-3">
-        <div
-            class="bg-primary/20 dark:bg-accent/20 flex items-center justify-center rounded-full size-10 flex-shrink-0 cursor-default">
-            <span class="material-symbols-outlined text-primary-dark dark:text-accent"
-                style="font-size: 24px;">local_library</span>
-        </div>
+        @if(isset($pengaturan) && !empty($pengaturan->logo_path))
+            <div
+                class="size-10 flex items-center justify-center rounded-xl overflow-hidden bg-white dark:bg-surface-dark border border-primary/20 cursor-default">
+                <img src="{{ asset('storage/' . $pengaturan->logo_path) }}" alt="Logo"
+                    class="w-full h-full object-contain p-1">
+            </div>
+        @else
+            <div
+                class="bg-primary/20 dark:bg-accent/20 flex items-center justify-center rounded-full size-10 flex-shrink-0 cursor-default">
+                <span class="material-symbols-outlined text-primary-dark dark:text-accent"
+                    style="font-size: 24px;">local_library</span>
+            </div>
+        @endif
         <div class="flex flex-col cursor-default">
-            <h1 class="text-primary-dark dark:text-white text-base font-bold leading-tight">Library App</h1>
+            <h1 class="text-primary-dark dark:text-white text-base font-bold leading-tight">
+                {{ optional($pengaturan)->nama_perpustakaan ?? 'Library App' }}
+            </h1>
             <p class="text-primary-mid dark:text-white/60 text-[10px] font-medium uppercase tracking-wider">
                 Panel Manajemen</p>
         </div>
@@ -75,6 +85,15 @@
                         <span
                             class="material-symbols-outlined {{ request()->routeIs('laporan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">monitoring</span>
                         <p class="text-sm {{ request()->routeIs('laporan*') ? 'font-bold' : 'font-medium' }}">Laporan</p>
+                    </a>
+
+                    <a href="{{ route('pengaturan.index') }}"
+                        class="{{ request()->routeIs('pengaturan*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('pengaturan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">settings</span>
+                        <p class="text-sm {{ request()->routeIs('pengaturan*') ? 'font-bold' : 'font-medium' }}">Pengaturan</p>
                     </a>
             @endif
 

@@ -45,4 +45,8 @@ Route::middleware('auth')->group(function () {
     // Rute Resource untuk Buku
     Route::resource('buku', \App\Http\Controllers\BukuController::class);
 
+    // Rute Pengaturan
+    Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
+    Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+
 });

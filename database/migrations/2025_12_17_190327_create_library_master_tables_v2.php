@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         // TABEL KATEGORI
@@ -23,6 +22,9 @@ return new class extends Migration
             $table->string('nama');
             $table->string('email')->unique();
             $table->string('password');
+            $table->integer('login_attempts')->default(0);
+            $table->timestamp('lockout_time')->nullable();
+            $table->boolean('is_locked')->default(false);
             $table->enum('peran', ['admin', 'petugas', 'anggota']);
             $table->string('telepon')->nullable();
             $table->text('alamat')->nullable();
@@ -100,7 +102,7 @@ return new class extends Migration
     {
         DB::unprepared('DROP TRIGGER IF EXISTS tr_buku_id_insert');
         DB::unprepared('DROP TRIGGER IF EXISTS tr_pengguna_id_insert');
-        
+
         Schema::dropIfExists('buku');
         Schema::dropIfExists('pengguna');
         Schema::dropIfExists('kategori');

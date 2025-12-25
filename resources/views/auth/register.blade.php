@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Daftar - Library App</title>
-    <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" href="{{ !empty($pengaturan->logo_path) ? asset('storage/' . $pengaturan->logo_path) : 'https://laravel.com/img/favicon/favicon-32x32.png' }}">
 
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
@@ -46,11 +46,19 @@
             </div>
 
             <div class="relative z-10 flex items-center gap-3 animate-enter delay-100">
-                <div
-                    class="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/20 text-accent border border-accent/30">
-                    <span class="material-symbols-outlined text-2xl">local_library</span>
-                </div>
-                <h2 class="text-xl font-bold tracking-wide">Library App</h2>
+                @if(!empty($pengaturan->logo_path))
+                    <div
+                        class="h-10 w-10 flex items-center justify-center rounded-xl bg-white overflow-hidden border border-white/20 shadow-sm">
+                        <img src="{{ asset('storage/' . $pengaturan->logo_path) }}" alt="Logo"
+                            class="w-full h-full object-contain p-1">
+                    </div>
+                @else
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-xl bg-accent/20 text-accent border border-accent/30">
+                        <span class="material-symbols-outlined text-2xl">local_library</span>
+                    </div>
+                @endif
+                <h2 class="text-xl font-bold tracking-wide">{{ $pengaturan->nama_perpustakaan ?? 'Library App' }}</h2>
             </div>
 
             <div class="relative z-10 max-w-lg mb-12 animate-enter delay-200">
@@ -63,7 +71,7 @@
                 </p>
             </div>
             <div class="relative z-10 text-xs text-gray-500 font-mono animate-enter delay-300">
-                © 2025 Library App System v1.0
+                © 2025 {{ $pengaturan->nama_perpustakaan ?? 'Library App System' }} v1.0
             </div>
         </div>
 

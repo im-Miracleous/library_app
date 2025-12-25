@@ -51,12 +51,13 @@
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 animate-enter">
                     <div>
                         <h1
-                            class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white flex items-center gap-2">
                             <span
                                 class="material-symbols-outlined text-primary dark:text-accent hidden sm:block">group</span>
                             Daftar Anggota
                         </h1>
-                        <p class="text-slate-500 dark:text-white/60 mt-1">Kelola data anggota perpustakaan di sini.</p>
+                        <p class="text-primary-mid dark:text-white/60 mt-1">Kelola data anggota perpustakaan di sini.
+                        </p>
 
                         <!-- Statistik Bar -->
                         <div class="flex flex-wrap gap-3 mt-4">
@@ -113,26 +114,26 @@
                     <div
                         class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
                         <!-- Filter Tabs (Animated Sliding Pill with Colors) -->
-                        <div class="relative bg-slate-100 dark:bg-black/20 rounded-xl p-1 grid grid-cols-3 w-full sm:w-[320px]">
+                        <div
+                            class="relative bg-slate-100 dark:bg-black/20 rounded-xl p-1 grid grid-cols-3 w-full sm:w-[320px]">
                             {{-- Pill Background yang Bergerak & Berubah Warna --}}
-                            <div id="filter-pill" 
+                            <div id="filter-pill"
                                 class="absolute top-1 bottom-1 shadow-sm dark:shadow-md rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0 box-border"
                                 style="width: calc(33.33% - 0.4rem); left: 0.2rem;">
                             </div>
 
                             {{-- Tab Items --}}
-                            <a href="{{ route('pengguna.index') }}" onclick="movePill(this, 'all')"
-                                data-color="all"
+                            <a href="{{ route('pengguna.index') }}" onclick="movePill(this, 'all')" data-color="all"
                                 class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ !request('status') ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
                                 Semua
                             </a>
-                            <a href="{{ route('pengguna.index', ['status' => 'aktif']) }}" onclick="movePill(this, 'active')"
-                                data-color="active"
+                            <a href="{{ route('pengguna.index', ['status' => 'aktif']) }}"
+                                onclick="movePill(this, 'active')" data-color="active"
                                 class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'aktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
                                 Aktif
                             </a>
-                            <a href="{{ route('pengguna.index', ['status' => 'nonaktif']) }}" onclick="movePill(this, 'inactive')"
-                                data-color="inactive"
+                            <a href="{{ route('pengguna.index', ['status' => 'nonaktif']) }}"
+                                onclick="movePill(this, 'inactive')" data-color="inactive"
                                 class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'nonaktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
                                 Nonaktif
                             </a>
@@ -155,7 +156,7 @@
 
                             function movePill(el, colorType) {
                                 const pill = document.getElementById('filter-pill');
-                                
+
                                 // Reset text classes
                                 document.querySelectorAll('.filter-tab').forEach(t => {
                                     t.classList.remove('active', 'text-white');
@@ -165,7 +166,7 @@
                                 // Set active state to clicked element
                                 el.classList.remove('text-slate-500', 'dark:text-white/50');
                                 el.classList.add('active', 'text-white');
-                                
+
                                 // Move and Color Pill
                                 setPillColor(pill, colorType);
                                 positionPill(el, pill);
@@ -174,7 +175,7 @@
                             function setPillColor(pill, type) {
                                 // Reset warna
                                 pill.classList.remove('bg-primary', 'dark:bg-accent', 'bg-green-500', 'bg-red-500');
-                                
+
                                 // Set warna baru
                                 if (type === 'active') {
                                     pill.classList.add('bg-green-500');
@@ -189,7 +190,7 @@
                                 const parentRect = element.parentElement.getBoundingClientRect();
                                 const rect = element.getBoundingClientRect();
                                 const left = rect.left - parentRect.left;
-                                
+
                                 pill.style.width = `${rect.width}px`;
                                 pill.style.transform = `translateX(${left}px)`;
                                 pill.style.left = '0';

@@ -19,6 +19,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('pengaturan')) {
+                $pengaturan = \App\Models\Pengaturan::first();
+                \Illuminate\Support\Facades\View::share('pengaturan', $pengaturan);
+            }
+        } catch (\Exception $e) {
+            // Prevent crash during migration
+        }
     }
 }

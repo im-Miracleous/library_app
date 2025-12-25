@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
+use App\Models\Pengaturan;
 use App\Models\Pengguna;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -14,7 +14,11 @@ class AuthController extends Controller
     // 1. Tampilkan Halaman Login
     public function showLogin()
     {
-        return view('auth.login');
+        // Ambil data pengaturan (hanya satu baris pertama)
+        $pengaturan = Pengaturan::first();
+        
+        // Kirim data $pengaturan ke view login
+        return view('auth.login', compact('pengaturan'));
     }
 
     // 1b. Tampilkan Halaman Register
