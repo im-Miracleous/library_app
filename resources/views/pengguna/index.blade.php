@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kelola Pengguna - Library App</title>
+    <title>Data Anggota - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -35,68 +35,38 @@
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
 
-            <header
-                class="flex items-center justify-between sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 py-4 border-b border-primary/20 dark:border-border-dark lg:hidden">
-                <div class="flex items-center gap-4">
-                    <button id="open-sidebar"
-                        class="text-slate-600 dark:text-white hover:text-primary dark:hover:text-accent transition-colors">
-                        <span class="material-symbols-outlined text-3xl">menu</span>
-                    </button>
-                    <h2 class="text-slate-800 dark:text-white text-lg font-bold">Kelola Pengguna</h2>
-                </div>
-            </header>
+            <x-header-component title="Data Anggota" />
 
             <div class="p-4 sm:p-8">
                 <div
-                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 animate-enter">
-                    <div>
-                        <h1
-                            class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white flex items-center gap-2">
-                            <span
-                                class="material-symbols-outlined text-primary dark:text-accent hidden sm:block">group</span>
-                            Daftar Anggota
-                        </h1>
-                        <p class="text-primary-mid dark:text-white/60 mt-1">Kelola data anggota perpustakaan di sini.
-                        </p>
-
-                        <!-- Statistik Bar -->
-                        <div class="flex flex-wrap gap-3 mt-4">
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
-                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total:</span>
-                                <span
-                                    class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalAnggota }}</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
-                                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-green-700 dark:text-green-400">Aktif:</span>
-                                <span
-                                    class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalAktif }}</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
-                                <span class="size-2 rounded-full bg-red-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-red-700 dark:text-red-400">Nonaktif:</span>
-                                <span
-                                    class="text-sm font-bold text-red-700 dark:text-red-400">{{ $totalNonaktif }}</span>
-                            </div>
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
+                    <!-- Statistik Bar -->
+                    <div class="flex flex-wrap gap-3">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total:</span>
+                            <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalAnggota }}</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-green-700 dark:text-green-400">Aktif:</span>
+                            <span class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalAktif }}</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-red-700 dark:text-red-400">Nonaktif:</span>
+                            <span class="text-sm font-bold text-red-700 dark:text-red-400">{{ $totalNonaktif }}</span>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleTheme()"
-                            class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-[#36271F] shadow-sm border border-slate-200 dark:border-transparent">
-                            <span id="theme-icon-page" class="material-symbols-outlined text-[20px]">dark_mode</span>
-                        </button>
-
-                        <button onclick="openModal('createModal')"
-                            class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200">
-                            <span class="material-symbols-outlined text-lg">add</span>
-                            Tambah Anggota
-                        </button>
-                    </div>
+                    <button onclick="openModal('createModal')"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Anggota
+                    </button>
                 </div>
 
                 @if (session('success'))

@@ -37,53 +37,7 @@
         <x-sidebar-component />
 
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
-            <header
-                class="animate-enter flex items-center justify-between sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 sm:px-8 py-4 border-b border-primary/20 dark:border-border-dark">
-
-                <div class="flex items-center gap-4">
-                    <button id="open-sidebar"
-                        class="lg:hidden text-primary-dark dark:text-white hover:text-primary dark:hover:text-accent transition-colors cursor-pointer">
-                        <span class="material-symbols-outlined text-3xl">menu</span>
-                    </button>
-
-                    <h2 class="text-primary-dark dark:text-white text-xl sm:text-2xl font-bold tracking-tight">Overview
-                    </h2>
-                </div>
-
-                <div class="flex-1 max-w-xl px-8 hidden md:block">
-                    <div class="relative group input-focus-effect">
-                        <div
-                            class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-primary-mid dark:text-accent">
-                            <span class="material-symbols-outlined">search</span>
-                        </div>
-                        <input
-                            class="block w-full p-3 pl-12 text-sm text-primary-dark dark:text-white bg-white dark:bg-surface-dark border-none rounded-full placeholder-primary-mid/60 dark:placeholder-white/40 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:bg-white dark:focus:bg-[#36271F] transition-all shadow-sm dark:shadow-none"
-                            placeholder="Cari buku, ISBN, atau anggota..." type="text" />
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3 sm:gap-4">
-
-                    <button onclick="toggleTheme()"
-                        class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] shadow-sm border border-primary/20 dark:border-transparent cursor-pointer">
-                        <span id="theme-icon" class="material-symbols-outlined text-[20px]">dark_mode</span>
-                    </button>
-
-                    <div class="hidden sm:flex flex-col items-end mr-2 cursor-default">
-                        <span
-                            class="text-primary-dark dark:text-white text-sm font-bold">{{ Auth::user()->nama }}</span>
-                        <span
-                            class="text-primary dark:text-accent text-xs uppercase tracking-wider font-bold">{{ Auth::user()->id_pengguna }}</span>
-                    </div>
-
-                    <button
-                        class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] transition-all hover:rotate-12 relative shadow-sm border border-primary/20 dark:border-transparent cursor-pointer">
-                        <span class="material-symbols-outlined">notifications</span>
-                        <span
-                            class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark animate-pulse"></span>
-                    </button>
-                </div>
-            </header>
+            <x-header-component title="Dashboard" />
 
             <div class="p-4 sm:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full">
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kelola Buku - Library App</title>
+    <title>Data Buku - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -26,55 +26,42 @@
     <div class="flex h-screen w-full relative">
 
         <!-- SIDEBAR -->
-        <aside id="sidebar"
         <x-sidebar-component />
 
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
-            <header
-                class="flex items-center justify-between sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 sm:px-8 py-4 border-b border-primary/20 dark:border-border-dark lg:hidden">
-                <div class="flex items-center gap-4">
-                    <button id="open-sidebar"
-                        class="cursor-pointer text-slate-600 dark:text-white hover:text-primary dark:hover:text-accent transition-colors">
-                        <span class="material-symbols-outlined text-3xl">menu</span>
-                    </button>
-                    <!-- Tampilkan Judul di Mobile only -->
-                    <h2 class="text-primary-dark dark:text-white text-lg font-bold">Kelola Buku</h2>
-                </div>
-            </header>
+            <x-header-component title="Data Buku" />
 
             <div class="p-4 sm:p-8">
-                <!-- Header Page -->
-                <div
-                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 animate-enter">
-                    <div>
-                        <h1
-                            class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white flex items-center gap-2">
-                            <span
-                                class="material-symbols-outlined text-primary dark:text-accent hidden sm:block">library_books</span>
-                            Daftar Buku</h1>
-                        <p class="text-primary-mid dark:text-white/60 mt-1">Kelola katalog buku perpustakaan.</p>
-
-
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
+                    <!-- Indikator Statistik Compact (Moved here) -->
+                    <div class="flex flex-wrap gap-3">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total Judul:</span>
+                            <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalBuku }}</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-green-700 dark:text-green-400">Total Stok:</span>
+                            <span class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalStok }}</span>
+                        </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleTheme()"
-                            class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-[#36271F] shadow-sm border border-slate-200 dark:border-transparent">
-                            <span id="theme-icon-page" class="material-symbols-outlined text-[20px]">dark_mode</span>
-                        </button>
-
-                        <button onclick="openModal('createModal')"
-                            class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm transition-all shadow-sm dark:shadow-lg shadow-accent/10 w-full sm:w-auto justify-center hover:scale-105 active:scale-95 duration-200">
-                            <span class="material-symbols-outlined text-lg">add</span> Tambah Buku
-                        </button>
-                    </div>
+                    <button onclick="openModal('createModal')"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Buku
+                    </button>
                 </div>
 
                 @if (session('success'))
                     <div
-                        class="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 flex items-center gap-3 animate-enter">
-                        <span class="material-symbols-outlined">check_circle</span> {{ session('success') }}
+                        class="mb-6 p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-green-700 dark:text-green-400 flex items-center gap-3 animate-enter">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        {{ session('success') }}
                     </div>
                 @endif
 
@@ -82,21 +69,8 @@
                 <div
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
                     <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
+                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
                         
-                        <!-- Indikator Statistik Compact -->
-                        <div class="flex items-center gap-3 ml-1">
-                            <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-full">
-                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total Judul:</span>
-                                <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalBuku }}</span>
-                            </div>
-                            <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-full">
-                                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-green-700 dark:text-green-400">Total Stok:</span>
-                                <span class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalStok }}</span>
-                            </div>
-                        </div>
                         <form action="{{ route('buku.index') }}" method="GET" class="relative w-full sm:w-64">
                             <span
                                 class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>

@@ -56,7 +56,7 @@
                 : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
                         <span
                             class="material-symbols-outlined {{ request()->routeIs('pengguna*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">group</span>
-                        <p class="text-sm {{ request()->routeIs('pengguna*') ? 'font-bold' : 'font-medium' }}">Kelola Pengguna
+                        <p class="text-sm {{ request()->routeIs('pengguna*') ? 'font-bold' : 'font-medium' }}">Data Anggota
                         </p>
                     </a>
 
@@ -66,7 +66,7 @@
                 : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
                         <span
                             class="material-symbols-outlined {{ request()->routeIs('buku*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">library_books</span>
-                        <p class="text-sm {{ request()->routeIs('buku*') ? 'font-bold' : 'font-medium' }}">Kelola Buku</p>
+                        <p class="text-sm {{ request()->routeIs('buku*') ? 'font-bold' : 'font-medium' }}">Data Buku</p>
                     </a>
 
                     <a href="{{ route('kategori.index') }}"
@@ -75,7 +75,7 @@
                 : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
                         <span
                             class="material-symbols-outlined {{ request()->routeIs('kategori*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">category</span>
-                        <p class="text-sm {{ request()->routeIs('kategori*') ? 'font-bold' : 'font-medium' }}">Kategori Buku</p>
+                        <p class="text-sm {{ request()->routeIs('kategori*') ? 'font-bold' : 'font-medium' }}">Data Kategori</p>
                     </a>
 
                     <a href="#"

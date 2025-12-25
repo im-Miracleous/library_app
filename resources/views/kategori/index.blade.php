@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kelola Kategori - Library App</title>
+    <title>Data Kategori - Library App</title>
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -33,43 +33,36 @@
 
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
-            <header
-                class="flex items-center justify-between sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 sm:px-8 py-4 border-b border-primary/20 dark:border-border-dark lg:hidden">
-                <div class="flex items-center gap-4">
-                    <button id="open-sidebar"
-                        class="cursor-pointer text-slate-600 dark:text-white hover:text-primary dark:hover:text-accent transition-colors">
-                        <span class="material-symbols-outlined text-3xl">menu</span>
-                    </button>
-                    <h2 class="text-primary-dark dark:text-white text-lg font-bold">Kategori</h2>
-                </div>
-            </header>
+            <x-header-component title="Data Kategori" />
 
             <div class="p-4 sm:p-8">
                 <!-- Header & Action -->
                 <div
-                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 animate-enter">
-                    <div>
-                        <h1
-                            class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white flex items-center gap-2">
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
+                    <!-- Stats moved here -->
+                    <div class="flex flex-wrap gap-3">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total
+                                Kategori:</span>
+                            <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalKategori }}</span>
+                        </div>
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-lg">
+                            <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-green-700 dark:text-green-400">Baru Bulan
+                                Ini:</span>
                             <span
-                                class="material-symbols-outlined text-primary dark:text-accent hidden sm:block">category</span>
-                            Kategori Buku
-                        </h1>
-                        <p class="text-primary-mid dark:text-white/60 mt-1">Klasifikasi koleksi buku perpustakaan.</p>
+                                class="text-sm font-bold text-green-700 dark:text-green-400">{{ $kategoriBaru }}</span>
+                        </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleTheme()"
-                            class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-[#36271F] shadow-sm border border-slate-200 dark:border-transparent">
-                            <span id="theme-icon-page" class="material-symbols-outlined text-[20px]">dark_mode</span>
-                        </button>
-
-                        <button onclick="openModal('createModal')"
-                            class="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm transition-all shadow-sm dark:shadow-lg shadow-accent/10 w-full sm:w-auto justify-center hover:scale-105 active:scale-95 duration-200">
-                            <span class="material-symbols-outlined text-lg">add</span>
-                            Tambah Kategori
-                        </button>
-                    </div>
+                    <button onclick="openModal('createModal')"
+                        class="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm transition-all shadow-sm dark:shadow-lg shadow-accent/10 w-full sm:w-auto justify-center hover:scale-105 active:scale-95 duration-200">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Kategori
+                    </button>
                 </div>
 
                 <!-- Pesan Sukses / Error -->
@@ -93,27 +86,7 @@
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
                     <!-- Search Bar Sederhana -->
                     <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
-
-                        <!-- Indikator Statistik Compact -->
-                        <div class="flex items-center gap-3 ml-1">
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-full">
-                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total
-                                    Kategori:</span>
-                                <span
-                                    class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalKategori }}</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-full">
-                                <span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
-                                <span class="text-xs font-medium text-green-700 dark:text-green-400">Baru Bulan
-                                    Ini:</span>
-                                <span
-                                    class="text-sm font-bold text-green-700 dark:text-green-400">{{ $kategoriBaru }}</span>
-                            </div>
-                        </div>
+                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
                         <form action="{{ route('kategori.index') }}" method="GET" class="relative w-full sm:w-64">
                             <span
                                 class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
