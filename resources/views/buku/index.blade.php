@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Buku - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -13,7 +14,7 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js', 'resources/js/live-search-buku.js'])
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
@@ -71,13 +72,14 @@
                     <div
                         class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
                         
-                        <form action="{{ route('buku.index') }}" method="GET" class="relative w-full sm:w-64">
+                        <!-- Form Search AJAX -->
+                        <div class="relative w-full sm:w-64">
                             <span
                                 class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" name="search" value="{{ request('search') }}"
+                            <input type="text" id="searchInput"
                                 placeholder="Cari judul, penulis..."
                                 class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </form>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">

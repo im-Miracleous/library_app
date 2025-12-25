@@ -23,7 +23,8 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js'])
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js', 'resources/js/live-search-anggota.js'])
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-slate-700 dark:text-white font-display">
@@ -169,15 +170,13 @@
                             document.addEventListener('DOMContentLoaded', initPill);
                         </script>
 
-                        <!-- Search Bar -->
-                        <form action="{{ route('pengguna.index') }}" method="GET" class="relative w-full sm:w-64">
-                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        <!-- Search Bar AJAX -->
+                        <div class="relative w-full sm:w-64">
                             <span
                                 class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari nama atau email..."
+                            <input type="text" id="searchAnggotaInput" placeholder="Cari nama atau email..."
                                 class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </form>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
