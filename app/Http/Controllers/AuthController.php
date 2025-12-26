@@ -7,47 +7,132 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Pengaturan;
 use App\Models\Pengguna;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
     // 1. Tampilkan Halaman Login
     public function showLogin()
     {
-        // Ambil data pengaturan (hanya satu baris pertama)
+        // Cek jika sudah login, lempar ke dashboard
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
         $pengaturan = Pengaturan::first();
-        
-        // Kirim data $pengaturan ke view login
         return view('auth.login', compact('pengaturan'));
     }
 
     // 1b. Tampilkan Halaman Register
     public function showRegister()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.register');
     }
 
-    // 1c. Proses Register
+    // 1c. PROSES REGISTER (LOGIKA: DAFTAR -> GENERATE OTP -> REDIRECT OTP)
     public function register(Request $request)
     {
+        // Validasi Input
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:pengguna'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // 1. Generate ID Pengguna (Format: U-12345)
+        $id_baru = 'U-' . rand(10000, 99999);
+
+        // 2. Generate OTP 6 Digit
+        $otp = rand(100000, 999999);
+
+        // 3. Simpan ke Database
         $user = Pengguna::create([
+            'id_pengguna' => $id_baru,
             'nama' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'peran' => 'anggota', // Default role for registration
+            'peran' => 'anggota',
             'status' => 'aktif',
+            'otp_code' => $otp,
+            'otp_expires_at' => Carbon::now()->addMinutes(10), // Expired 10 menit
+            'login_attempts' => 0,
+            'is_locked' => false
         ]);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
+        // 4. Kirim Email OTP
+        try {
+            Mail::raw("Halo $user->nama, Kode Verifikasi (OTP) Anda adalah: $otp. Kode ini berlaku selama 10 menit.", function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Kode OTP Perpustakaan');
+            });
+        } catch (\Exception $e) {
+            // Log error diam-diam
+        }
+
+        // 5. PENTING: JANGAN LOGIN DISINI (Auth::login HILANG)
+        // Langsung lempar ke halaman verifikasi membawa ID Pengguna
+        return redirect()->route('otp.verify', ['id' => $user->id_pengguna])
+                         ->with('success', 'Registrasi berhasil! Cek email Anda untuk kode OTP.');
     }
 
-    // 2. Proses Login dengan Advanced Rate Limiting
+    // ==========================================
+    // BAGIAN VERIFIKASI OTP
+    // ==========================================
+
+    // Tampilkan Form Input OTP
+    public function showVerifyOtp($id)
+    {
+        return view('auth.verify-otp', ['id' => $id]);
+    }
+
+    // Proses Cek OTP
+    public function verifyOtp(Request $request, $id)
+    {
+        $request->validate([
+            'otp' => 'required|numeric'
+        ]);
+
+        // 1. Bersihkan ID
+        $clean_id = trim($id);
+
+        // 2. Cari user
+        $user = Pengguna::where('id_pengguna', $clean_id)->first();
+
+        // Jika user tidak ada / URL ngaco
+        if (!$user) {
+            return redirect('/login')->with('error', 'User tidak ditemukan atau Link tidak valid.');
+        }
+
+        // Cek 2: OTP cocok gak?
+        if ($user->otp_code != $request->otp) {
+            return back()->with('error', 'Kode OTP salah!');
+        }
+
+        // Cek 3: OTP kadaluarsa gak?
+        if (Carbon::now()->gt($user->otp_expires_at)) {
+            return back()->with('error', 'Kode OTP sudah kadaluarsa. Silakan daftar ulang.');
+        }
+
+        // Jika Sukses:
+        $user->update([
+            'otp_code' => null,
+            'otp_expires_at' => null
+        ]);
+
+        // BARU DISINI KITA LOGIN  USER
+        Auth::login($user);
+
+        return redirect()->route('dashboard')->with('success', 'Verifikasi berhasil! Selamat datang.');
+    }
+
+    // ==========================================
+    // LOGIKA LOGIN BIASA
+    // ==========================================
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -55,84 +140,34 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        // Cek User Manual untuk logika Lockout
         $user = Pengguna::where('email', $request->email)->first();
 
         if ($user) {
-            // Cek Status Kunci/Blokir
             if ($user->is_locked) {
-                return back()->withErrors(['email' => 'Akun terkunci karena aktivitas mencurigakan. Silahkan hubungi Administrator.'])->onlyInput('email');
+                return back()->withErrors(['email' => 'Akun terkunci. Hubungi Admin.'])->onlyInput('email');
             }
-
-            // Cek Status Lockout Sementara
             if ($user->lockout_time && now()->lessThan($user->lockout_time)) {
                 $seconds = now()->diffInSeconds($user->lockout_time);
-                $minutes = ceil($seconds / 60); // Bulatkan ke atas
-                return back()->withErrors(['email' => "Terlalu banyak percobaan Login. Silakan coba lagi dalam $minutes menit."])->onlyInput('email');
+                $minutes = ceil($seconds / 60);
+                return back()->withErrors(['email' => "Tunggu $minutes menit lagi."])->onlyInput('email');
             }
         }
 
-        // Coba Login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-
-            // Reset Counter Kunci jika Login Sukses
             if ($user) {
-                $user->update([
-                    'login_attempts' => 0,
-                    'lockout_time' => null,
-                    'is_locked' => false
-                ]);
+                $user->update(['login_attempts' => 0, 'lockout_time' => null, 'is_locked' => false]);
             }
-
             return redirect()->route('dashboard')->with('success', 'Selamat Datang!');
         }
 
-        // Jika Gagal Login: Terapkan Penalti
+        // Logic Lockout
         if ($user) {
             $user->increment('login_attempts');
-            $attempts = $user->login_attempts; // Ambil nilai terbaru
-
-            $lockData = [];
-            $pesanKunci = null;
-
-            // ATURAN 1: ADMINISTRATOR (Kelipatan 3 -> Lock 1 Menit)
-            // Asumsi peran admin bisa 'administrator' atau 'admin' (case insensitive biar aman)
-            if (in_array(strtolower($user->peran), ['administrator', 'admin'])) {
-                if ($attempts % 3 == 0) {
-                    $lockData['lockout_time'] = now()->addMinute();
-                    $pesanKunci = "Akun dibekukan sementara (1 menit).";
-                }
+        
+            if ($user->login_attempts >= 3) {
+            
             }
-            // ATURAN 2: USER BIASA (Progressive Timeout)
-            else {
-                if ($attempts == 3) {
-                    $lockData['lockout_time'] = now()->addMinutes();
-                    $pesanKunci = "Akun dibekukan selama 1 menit.";
-                } elseif ($attempts == 6) {
-                    $lockData['lockout_time'] = now()->addHour();
-                    $pesanKunci = "Akun dibekukan selama 1 jam.";
-                } elseif ($attempts == 9) {
-                    $lockData['lockout_time'] = now()->addDay();
-                    $pesanKunci = "Akun dibekukan selama 24 jam.";
-                } elseif ($attempts >= 12) {
-                    $lockData['is_locked'] = true;
-                    $lockData['lockout_time'] = null;
-                    $pesanKunci = "Akun telah diblokir. Silahkan hubungi admin untuk membuka blokir.";
-                }
-            }
-
-            // Simpan Perubahan jika ada Lock
-            if (!empty($lockData)) {
-                $user->update($lockData);
-
-                if ($pesanKunci) {
-                    return back()->withErrors(['email' => "Login gagal. $pesanKunci"])->onlyInput('email');
-                }
-            }
-
-            // Info sisa kesempatan
-            return back()->withErrors(['email' => "Password salah. Percobaan ke-$attempts."])->onlyInput('email');
         }
 
         return back()->withErrors([
@@ -140,15 +175,11 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    // 3. Proses Logout
     public function logout(Request $request)
     {
-        Auth::logout(); // Hapus sesi otentikasi
-
-        $request->session()->invalidate(); // Hancurkan file sesi lama
-        $request->session()->regenerateToken(); // Buat token CSRF baru (security)
-
-        // Redirect ke login dengan pesan sukses
-        return redirect()->route('login')->with('success', 'Anda berhasil keluar dari sistem.');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
 }
