@@ -1,6 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('searchAnggotaInput');
+    const searchInput = document.getElementById('searchPegawaiInput');
     const tableBody = document.querySelector('tbody');
     let timeout = null;
 
@@ -12,21 +12,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         timeout = setTimeout(() => {
             const query = e.target.value;
-            fetchUsers(query);
+            fetchPegawai(query);
         }, 300);
     });
 
-    async function fetchUsers(query) {
+    async function fetchPegawai(query) {
         try {
-            // Tambahkan filter &peran=anggota secara eksplisit
-            const response = await fetch(`/api/pengguna?search=${encodeURIComponent(query)}&peran=anggota`);
+            // Menggunakan Endpoint Web yang menerima Request AJAX (sehingga Cookie Auth Session terbawa otomatis)
+            const response = await fetch(`/kepegawaian?search=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
             const json = await response.json();
 
             if (json.status === 'success') {
                 renderTable(json.data);
+            } else if (response.status === 403) {
+                console.error('Unauthorized access to Kepegawaian API');
             }
         } catch (error) {
-            console.error('Error fetching users:', error);
+            console.error('Error fetching pegawai:', error);
         } finally {
             tableBody.style.opacity = '1';
         }
@@ -46,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (users.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="p-8 text-center text-slate-400 dark:text-white/40">
-                        Tidak ada data anggota.
+                    <td colspan="7" class="p-8 text-center text-slate-400 dark:text-white/40">
+                        Belum ada data pegawai.
                     </td>
                 </tr>
             `;
@@ -63,7 +70,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500'
                 : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500';
 
-            // Template Row disesuaikan persis dengan index.blade.php
+            const roleClass = user.peran === 'admin'
+                ? 'bg-purple-100 text-purple-700'
+                : 'bg-orange-100 text-orange-700';
+
             const row = `
                 <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group animate-enter">
                     <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
@@ -85,6 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     </td>
                     <td class="p-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${roleClass} uppercase">
+                            ${user.peran}
+                        </span>
+                    </td>
+                    <td class="p-4">
                         ${user.telepon || '-'}
                     </td>
                     <td class="p-4 max-w-[200px] truncate" title="${user.alamat || '-'}">
@@ -96,12 +111,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         </span>
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                        <button onclick="openEditPengguna('${user.id_pengguna}')" 
+                        <button onclick='openEditPegawai(${JSON.stringify(user)})' 
                             class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
                             title="Edit">
                             <span class="material-symbols-outlined text-lg">edit</span>
                         </button>
-                        <form action="/pengguna/${user.id_pengguna}" method="POST" onsubmit="return confirm('Yakin hapus?');">
+                        <form action="/kepegawaian/${user.id_pengguna}" method="POST" onsubmit="return confirm('Yakin hapus?');">
                             <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" 

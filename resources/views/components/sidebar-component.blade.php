@@ -60,6 +60,17 @@
                         </p>
                     </a>
 
+                    <a href="{{ route('kepegawaian.index') }}"
+                        class="{{ request()->routeIs('kepegawaian*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('kepegawaian*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">badge</span>
+                        <p class="text-sm {{ request()->routeIs('kepegawaian*') ? 'font-bold' : 'font-medium' }}">Data
+                            Kepegawaian
+                        </p>
+                    </a>
+
                     <a href="{{ route('buku.index') }}"
                         class="{{ request()->routeIs('buku*')
                 ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
