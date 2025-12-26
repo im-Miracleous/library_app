@@ -109,23 +109,33 @@
             @endif
 
             @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
-                <div
-                    class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                    Sirkulasi</div>
+                    <div
+                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        Sirkulasi</div>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">sync_alt</span>
-                    <p class="text-sm font-medium">Transaksi Peminjaman</p>
-                </a>
+                    <a href="#"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
+                        <span
+                            class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">sync_alt</span>
+                        <p class="text-sm font-medium">Transaksi Peminjaman</p>
+                    </a>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">assignment_return</span>
-                    <p class="text-sm font-medium">Pengembalian & Denda</p>
-                </a>
+                    <a href="#"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
+                        <span
+                            class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">assignment_return</span>
+                        <p class="text-sm font-medium">Pengembalian & Denda</p>
+                    </a>
+
+                    <a href="{{ route('pengunjung.index') }}"
+                        class="{{ request()->routeIs('pengunjung*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('pengunjung*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">groups_3</span>
+                        <p class="text-sm {{ request()->routeIs('pengunjung*') ? 'font-bold' : 'font-medium' }}">Data Pengunjung
+                        </p>
+                    </a>
             @endif
 
             @if(Auth::user()->peran == 'anggota')
