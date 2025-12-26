@@ -14,7 +14,9 @@ Route::get('/', function () {
 // 2. Rute Guest - Hanya bisa diakses jika BELUM login
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:5,1')
+    ->name('login.process');
 
     // Route Register
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -28,28 +30,34 @@ Route::middleware('guest')->group(function () {
 });
 
 // 3. Rute Auth - Hanya bisa diakses jika SUDAH login
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
 
-    // Logout
+    // --- AREA BEBAS (Semua user login bisa akses) ---
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Dashboard (Menggunakan DashboardController)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Rute Resource untuk Pengguna (Anggota)
-    Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
 
-    // Rute Resource untuk Kepegawaian (Admin & Petugas) - Hanya Admin
-    Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+    // --- AREA KHUSUS ADMIN (Pakai Middleware Role) ---
+    // Hanya user dengan role 'admin' yang bisa masuk sini
+    Route::middleware(['role:admin'])->group(function () {
+        // Kelola data pegawai (Sangat Rahasia)
+        Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+        
+        // Pengaturan Aplikasi
+        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+    });
 
-    // Rute Resource untuk Kategori Buku
-    Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
 
-    // Rute Resource untuk Buku
-    Route::resource('buku', \App\Http\Controllers\BukuController::class);
-
-    // Rute Pengaturan
-    Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
-    Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+    // --- AREA PETUGAS & ADMIN ---
+    // User role 'petugas' DAN 'admin' bisa akses (mengelola buku & anggota)
+    // Catatan: Pastikan Middleware kamu support multi-role atau buat logic 'admin' boleh akses area 'petugas'.
+    // Kalau middleware kamu simple, bisa buat group terpisah atau pakai logic OR.
+    
+    Route::middleware(['role:admin,petugas'])->group(function () {
+        Route::resource('buku', \App\Http\Controllers\BukuController::class);
+        Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
+        Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+    });
 
 });
