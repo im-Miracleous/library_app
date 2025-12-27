@@ -63,4 +63,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
     Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
 
+    // Modul Laporan
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
+        Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
+        Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
+    });
+
 });
