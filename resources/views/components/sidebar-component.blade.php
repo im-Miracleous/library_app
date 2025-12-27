@@ -210,3 +210,26 @@
         </div>
     </div>
 </aside>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sidebarContent = document.querySelector("#sidebar .overflow-y-auto");
+        const sidebarScrollKey = "sidebarScrollPos";
+
+        if (sidebarContent) {
+            // Restore scroll position
+            const savedScrollPos = localStorage.getItem(sidebarScrollKey);
+            if (savedScrollPos) {
+                sidebarContent.scrollTop = savedScrollPos;
+            }
+
+            // Save scroll position on scroll
+            sidebarContent.addEventListener("scroll", function () {
+                localStorage.setItem(sidebarScrollKey, sidebarContent.scrollTop);
+            });
+
+            // Optional: reset scroll on logout or specific actions if needed, 
+            // but usually persistent scroll is desired behavior for navigation.
+        }
+    });
+</script>

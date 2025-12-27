@@ -9,6 +9,8 @@ use App\Models\Pengguna;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Pengaturan;
+use Carbon\Carbon;
 
 class PeminjamanController extends Controller
 {
@@ -21,7 +23,8 @@ class PeminjamanController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('kode_peminjaman', 'like', "%{$search}%")
+            $search = $request->search;
+            $query->where('id_peminjaman', 'like', "%{$search}%")
                 ->orWhereHas('pengguna', function ($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%");
                 });
@@ -41,7 +44,8 @@ class PeminjamanController extends Controller
      */
     public function create()
     {
-        return view('sirkulasi.peminjaman.create');
+        $pengaturan = Pengaturan::first();
+        return view('sirkulasi.peminjaman.create', compact('pengaturan'));
     }
 
     /**
@@ -57,30 +61,63 @@ class PeminjamanController extends Controller
             'buku.*.id_buku' => 'required|exists:buku,id_buku',
         ]);
 
+        $pengaturan = Pengaturan::first();
+        $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
+        $maxBuku = $pengaturan->maksimal_buku_pinjam ?? 3;
+
+        // Validasi Batas Waktu
+        $tglPinjam = Carbon::parse($request->tanggal_pinjam);
+        $tglJatuhTempo = Carbon::parse($request->tanggal_jatuh_tempo);
+
+        if ($tglPinjam->diffInDays($tglJatuhTempo) > $batasHari) {
+            return back()->with('error', "Maksimal peminjaman adalah $batasHari hari.")->withInput();
+        }
+
+        // Validasi Maksimal Buku
+        // Hitung buku yang sedang dipinjam oleh user (status 'dipinjam')
+        $bukuSedangDipinjam = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($request) {
+            $q->where('id_pengguna', $request->id_pengguna)
+                ->where('status_transaksi', 'berjalan');
+        })->where('status_buku', 'dipinjam')->count();
+
+        $bukuAkanDipinjam = count($request->buku);
+
+        if (($bukuSedangDipinjam + $bukuAkanDipinjam) > $maxBuku) {
+            return back()->with('error', "User ini sudah meminjam $bukuSedangDipinjam buku. Maksimal peminjaman adalah $maxBuku buku. (Akan meminjam: $bukuAkanDipinjam)")->withInput();
+        }
+
         try {
             DB::beginTransaction();
 
-            // 1. Buat Peminjaman Header
-            // We use a temporary unique code to identify the record after trigger generates the ID
-            $tempCode = 'TRX-' . uniqid();
+            // 1. Buat ID Peminjaman (Manual Generation in PHP)
+            $today = date('Y-m-d');
+            $dateCode = date('Y-m-d'); // Keep distinct just in case format changes
 
-            // Create with temp code (Trigger will generate id_peminjaman, but respect our kode_peminjaman)
-            Peminjaman::create([
+            // Get last ID from today
+            $lastTx = Peminjaman::whereDate('created_at', $today)
+                ->orderBy('id_peminjaman', 'desc')
+                ->first();
+
+            $nextNo = 1;
+            if ($lastTx) {
+                // P-YYYY-MM-ddNNN (Example: P-2025-12-28001)
+                // Length is 15 chars. Last 3 is number.
+                $lastId = $lastTx->id_peminjaman;
+                $lastNo = intval(substr($lastId, -3));
+                $nextNo = $lastNo + 1;
+            }
+
+            $newId = 'P-' . $dateCode . str_pad($nextNo, 3, '0', STR_PAD_LEFT);
+
+            // Buat Peminjaman Header
+            $peminjaman = Peminjaman::create([
+                'id_peminjaman' => $newId,
                 'id_pengguna' => $request->id_pengguna,
-                'kode_peminjaman' => $tempCode,
                 'tanggal_pinjam' => $request->tanggal_pinjam,
                 'tanggal_jatuh_tempo' => $request->tanggal_jatuh_tempo,
                 'status_transaksi' => 'berjalan',
                 'keterangan' => $request->keterangan,
             ]);
-
-            // Retrieve the record to get the generated ID
-            $peminjaman = Peminjaman::where('kode_peminjaman', $tempCode)->firstOrFail();
-
-            // Optional: Align kode_peminjaman with id_peminjaman if desired, or keep as is. 
-            // The trigger logic implies it usually expects them to be same if generic.
-            // Let's update it to match ID for consistency, as the trigger would have done if we sent null.
-            $peminjaman->update(['kode_peminjaman' => $peminjaman->id_peminjaman]);
 
             // 2. Buat Detail Peminjaman & Update Stok
             foreach ($request->buku as $item) {
@@ -118,7 +155,7 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
 
-        // Prevent editing if transaction is already 'selesai'
+        // Cegah pengeditan jika transaksi sudah 'selesai'
         if ($peminjaman->status_transaksi == 'selesai') {
             return back()->with('error', 'Transaksi yang sudah selesai tidak dapat diedit.');
         }
@@ -164,8 +201,7 @@ class PeminjamanController extends Controller
      */
     public function destroy($id)
     {
-        // Hanya bisa hapus jika transaksi belum selesai? Atau bebas?
-        // Usually transaction log should be kept. Allow delete only for admin maybe.
+        // Usually transaction log should be kept. Allow delete only for admin.
         $peminjaman = Peminjaman::findOrFail($id);
         $peminjaman->delete();
         return redirect()->route('peminjaman.index')->with('success', 'Transaksi berhasil dihapus.');

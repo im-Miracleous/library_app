@@ -1,12 +1,88 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. MEMBER SEARCH LOGIC ---
+    // --- SETTINGS ---
+    const settingsDiv = document.getElementById('loanSettings');
+    const MAX_BOOKS = parseInt(settingsDiv?.dataset.maxBooks || 3);
+    const MAX_DAYS = parseInt(settingsDiv?.dataset.maxDays || 7);
+
+    // --- DOM ELEMENTS ---
+    const warningBanner = document.getElementById('warningBanner');
+    const warningList = document.getElementById('warningList');
+
     const searchAnggotaInput = document.getElementById('searchAnggota');
     const anggotaResults = document.getElementById('anggotaResults');
     const selectedAnggotaDiv = document.getElementById('selectedAnggota');
     const idPenggunaInput = document.getElementById('id_pengguna_input');
     const removeAnggotaBtn = document.getElementById('removeAnggotaBtn');
 
+    const tanggalPinjam = document.getElementById('tanggal_pinjam');
+    const tanggalJatuhTempo = document.getElementById('tanggal_jatuh_tempo');
+
+    const searchBukuInput = document.getElementById('searchBuku');
+    const bukuResults = document.getElementById('bukuResults');
+    const selectedBukuParams = document.getElementById('selectedBukuParams');
+    const emptyBukuRow = document.getElementById('emptyBukuRow');
+
+    // --- STATE ---
+    let currentUser = null; // { ..., active_books_count: 0 }
+    let selectedBooks = [];
     let anggotaTimeout = null;
+    let bukuTimeout = null;
+
+    // --- VALIDATION LOGIC ---
+    function runValidation() {
+        const warnings = [];
+        let hasError = false;
+
+        // 1. Check Max Books
+        // Total = (User's Current Active Loans) + (Books in Basket)
+        const currentActiveInfo = currentUser ? (currentUser.active_books_count || 0) : 0;
+        const basketCount = selectedBooks.length;
+        const totalBooks = currentActiveInfo + basketCount;
+
+        if (currentUser && totalBooks > MAX_BOOKS) {
+            warnings.push(`Melampaui batas peminjaman! User ini sedang meminjam <strong>${currentActiveInfo}</strong> buku. Ditambah <strong>${basketCount}</strong> buku baru, total menjadi <strong>${totalBooks}</strong> (Maksimal: ${MAX_BOOKS}).`);
+            hasError = true;
+        } else if (!currentUser && basketCount > MAX_BOOKS) {
+            // Fallback if user not selected yet but bucket full (unlikely but possible)
+            warnings.push(`Jumlah buku yang dipilih (${basketCount}) melebihi batas maksimal (${MAX_BOOKS}).`);
+            hasError = true;
+        }
+
+        // 2. Check Date Limit
+        if (tanggalPinjam && tanggalJatuhTempo) {
+            const start = new Date(tanggalPinjam.value);
+            const end = new Date(tanggalJatuhTempo.value);
+
+            if (tanggalPinjam.value && tanggalJatuhTempo.value) {
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // Note: simple diff check. 
+                if (end < start) {
+                    warnings.push(`Tanggal jatuh tempo tidak boleh lebih awal dari tanggal pinjam.`);
+                } else if (diffDays > MAX_DAYS) {
+                    warnings.push(`Durasi peminjaman (${diffDays} hari) melebihi batas maksimal (${MAX_DAYS} hari).`);
+                }
+            }
+        }
+
+        // Render Warnings
+        if (warnings.length > 0) {
+            warningList.innerHTML = warnings.map(w => `<li>${w}</li>`).join('');
+            warningBanner.classList.remove('hidden');
+            warningBanner.classList.add('flex');
+        } else {
+            warningBanner.classList.add('hidden');
+            warningBanner.classList.remove('flex');
+        }
+    }
+
+    // Attach listeners for validation
+    if (tanggalPinjam) tanggalPinjam.addEventListener('change', runValidation);
+    if (tanggalJatuhTempo) tanggalJatuhTempo.addEventListener('change', runValidation);
+
+
+    // --- 1. MEMBER SEARCH LOGIC ---
 
     if (searchAnggotaInput) {
         searchAnggotaInput.addEventListener('input', (e) => {
@@ -46,6 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
             anggotaResults.innerHTML = `<div class="p-3 text-sm text-slate-500 text-center">Tidak ada anggota ditemukan.</div>`;
         } else {
             users.forEach(user => {
+                // Determine badge color based on active loans?
+                const loanCount = user.active_books_count || 0;
+
                 const div = document.createElement('div');
                 div.className = 'p-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 flex items-center justify-between group';
                 div.innerHTML = `
@@ -53,7 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="font-bold text-slate-800 dark:text-white text-sm">${user.nama}</div>
                         <div class="text-xs text-slate-500 dark:text-white/60">${user.email}</div>
                     </div>
-                    <span class="text-xs bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">${user.id_pengguna}</span>
+                    <div class="text-right">
+                         <span class="text-xs bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">${user.id_pengguna}</span>
+                         <div class="text-[10px] text-slate-400 mt-1">Pinjam: ${loanCount}</div>
+                    </div>
                 `;
                 div.onclick = () => selectAnggota(user);
                 anggotaResults.appendChild(div);
@@ -63,6 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function selectAnggota(user) {
+        currentUser = user; // Store full user obj
+
         // Set values
         idPenggunaInput.value = user.id_pengguna;
         document.getElementById('selectedAnggotaInitial').textContent = user.nama.charAt(0).toUpperCase();
@@ -74,27 +158,25 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedAnggotaDiv.classList.remove('hidden');
         selectedAnggotaDiv.classList.add('flex');
         anggotaResults.classList.add('hidden');
+
+        runValidation(); // Re-validate
     }
 
     if (removeAnggotaBtn) {
         removeAnggotaBtn.onclick = () => {
+            currentUser = null;
             idPenggunaInput.value = '';
             searchAnggotaInput.value = ''; // Clear search text
             searchAnggotaInput.parentElement.classList.remove('hidden');
             selectedAnggotaDiv.classList.add('hidden');
             selectedAnggotaDiv.classList.remove('flex');
+
+            runValidation(); // Re-validate
         };
     }
 
 
     // --- 2. BOOK SEARCH LOGIC ---
-    const searchBukuInput = document.getElementById('searchBuku');
-    const bukuResults = document.getElementById('bukuResults');
-    const selectedBukuParams = document.getElementById('selectedBukuParams');
-    const emptyBukuRow = document.getElementById('emptyBukuRow');
-
-    let bukuTimeout = null;
-    let selectedBooks = [];
 
     // Validasi form sebelum submit
     const form = document.querySelector('form');
@@ -188,11 +270,13 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSelectedBooks();
         searchBukuInput.value = '';
         bukuResults.classList.add('hidden');
+        runValidation(); // Re-validate
     }
 
     window.removeBuku = function (id_buku) {
         selectedBooks = selectedBooks.filter(b => b.id_buku !== id_buku);
         renderSelectedBooks();
+        runValidation(); // Re-validate
     }
 
     function renderSelectedBooks() {

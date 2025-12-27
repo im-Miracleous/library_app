@@ -26,9 +26,21 @@ class PenggunaController extends Controller
 
         // Helper untuk API Search (AJAX) - Digunakan di Peminjaman
         if ($request->ajax()) {
+            $users = $query->orderBy('id_pengguna', 'desc')->limit(20)->get();
+
+            // Append info jumlah buku yang sedang dipinjam
+            foreach ($users as $user) {
+                $user->active_books_count = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
+                    ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+                    ->where('peminjaman.id_pengguna', $user->id_pengguna)
+                    ->where('peminjaman.status_transaksi', 'berjalan')
+                    ->where('detail_peminjaman.status_buku', 'dipinjam')
+                    ->count();
+            }
+
             return response()->json([
                 'status' => 'success',
-                'data' => $query->orderBy('id_pengguna', 'desc')->limit(20)->get() // Limit results for performance
+                'data' => $users
             ]);
         }
 

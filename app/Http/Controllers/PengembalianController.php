@@ -9,6 +9,7 @@ use App\Models\Buku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Pengaturan;
 
 class PengembalianController extends Controller
 {
@@ -25,7 +26,7 @@ class PengembalianController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('kode_peminjaman', 'like', "%{$search}%")
+                $q->where('id_peminjaman', 'like', "%{$search}%")
                     ->orWhereHas('pengguna', function ($subQ) use ($search) {
                         $subQ->where('nama', 'like', "%{$search}%");
                     });
@@ -60,9 +61,12 @@ class PengembalianController extends Controller
                 // If today is 2025-12-27 and due is 2025-12-19 -> diff is 8
                 $terlambatHari = $jatuhTempo->diffInDays($hariIni);
 
-                // Asumsi Denda Rp 1000 per hari per buku
+                // Ambil tarif denda dari pengaturan
+                $pengaturan = Pengaturan::first();
+                $tarifDenda = $pengaturan->denda_per_hari ?? 0;
+
                 $jumlahBukuDipinjam = $peminjaman->details->where('status_buku', 'dipinjam')->count();
-                $estimasiDenda = $terlambatHari * 1000 * $jumlahBukuDipinjam;
+                $estimasiDenda = $terlambatHari * $tarifDenda * $jumlahBukuDipinjam;
             }
         }
 
@@ -90,7 +94,9 @@ class PengembalianController extends Controller
             $hariIni = Carbon::now()->startOfDay();
             $isLate = $hariIni->gt($jatuhTempo);
             $lateDays = $isLate ? $jatuhTempo->diffInDays($hariIni) : 0;
-            $dendaPerBukuPerHari = 1000; // Configurable
+
+            $pengaturan = Pengaturan::first();
+            $dendaPerBukuPerHari = $pengaturan->denda_per_hari ?? 0;
 
             $totalDenda = 0;
 

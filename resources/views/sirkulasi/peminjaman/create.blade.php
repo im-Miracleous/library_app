@@ -66,6 +66,23 @@
                 @endif
 
 
+                <!-- SETTINGS DATA -->
+                <div id="loanSettings" data-max-books="{{ $pengaturan->maksimal_buku_pinjam ?? 3 }}"
+                    data-max-days="{{ $pengaturan->batas_peminjaman_hari ?? 7 }}">
+                </div>
+
+                <!-- DYNAMIC JS WARNING BANNER -->
+                <div id="warningBanner"
+                    class="hidden mb-6 p-4 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20 rounded-xl text-yellow-800 dark:text-yellow-400 flex items-start gap-3 animate-enter shadow-sm">
+                    <span class="material-symbols-outlined mt-0.5">warning</span>
+                    <div>
+                        <h4 class="font-bold mb-1">Perhatian</h4>
+                        <ul id="warningList" class="list-disc list-inside text-sm space-y-1">
+                            <!-- JS will populate -->
+                        </ul>
+                    </div>
+                </div>
+
                 <form action="{{ route('peminjaman.store') }}" method="POST" id="peminjamanForm"
                     class="flex flex-col gap-6 animate-enter delay-100">
                     @csrf
