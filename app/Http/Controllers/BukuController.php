@@ -15,7 +15,7 @@ class BukuController extends Controller
         // Fitur Pencarian
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%$search%")
                     ->orWhere('penulis', 'like', "%$search%")
                     ->orWhere('isbn', 'like', "%$search%");
@@ -24,6 +24,15 @@ class BukuController extends Controller
 
         $buku = $query->orderBy('id_buku', 'desc')->paginate(10);
         $buku->appends($request->all());
+
+        // Helper untuk API Search (AJAX) - Digunakan di Peminjaman
+        if ($request->ajax()) {
+            // Re-query with limit for autocomplete
+            return response()->json([
+                'status' => 'success',
+                'data' => $query->orderBy('id_buku', 'desc')->limit(20)->get()
+            ]);
+        }
 
         $kategoriList = Kategori::all();
 
@@ -40,7 +49,7 @@ class BukuController extends Controller
             'id_kategori' => 'required|exists:kategori,id_kategori',
             'penulis' => 'required|string|max:255',
             'penerbit' => 'nullable|string|max:255',
-            'tahun_terbit' => 'required|integer|min:1900|max:'.(date('Y')+1),
+            'tahun_terbit' => 'required|integer|min:1900|max:' . (date('Y') + 1),
             'isbn' => 'nullable|string|unique:buku,isbn',
             'stok_total' => 'required|integer|min:0',
             'deskripsi' => 'nullable|string',
@@ -49,7 +58,7 @@ class BukuController extends Controller
 
         // Stok tersedia awal = stok total
         $validated['stok_tersedia'] = $validated['stok_total'];
-        
+
         Buku::create($validated);
 
         return redirect()->back()->with('success', 'Buku berhasil ditambahkan.');
@@ -71,13 +80,13 @@ class BukuController extends Controller
             'penulis' => 'required|string|max:255',
             'penerbit' => 'nullable|string|max:255',
             'tahun_terbit' => 'required|integer',
-            'isbn' => 'nullable|string|unique:buku,isbn,'.$id.',id_buku',
+            'isbn' => 'nullable|string|unique:buku,isbn,' . $id . ',id_buku',
             'stok_total' => 'required|integer|min:0',
             'deskripsi' => 'nullable|string',
             'status' => 'required|in:tersedia,rusak,hilang',
             'kode_dewey' => 'nullable|string',
         ]);
-        
+
         // Update data
         $buku->update($validated);
 

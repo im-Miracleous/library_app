@@ -10,11 +10,11 @@ class Peminjaman extends Model
     use HasFactory;
 
     protected $table = 'peminjaman';
-    
+
     protected $primaryKey = 'id_peminjaman';
     public $incrementing = false;
     protected $keyType = 'string';
-    
+
     protected $guarded = ['id_peminjaman'];
 
     protected $casts = [
@@ -27,7 +27,7 @@ class Peminjaman extends Model
         return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 
-    public function detail()
+    public function details()
     {
         return $this->hasMany(DetailPeminjaman::class, 'id_peminjaman', 'id_peminjaman');
     }

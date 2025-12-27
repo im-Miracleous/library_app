@@ -51,6 +51,14 @@ Route::middleware('auth')->group(function () {
     // Rute Resource untuk Pengunjung (Sirkulasi)
     Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 
+    // Rute Resource untuk Peminjaman
+    Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class);
+
+    // Rute Resource untuk Pengembalian (Custom Routes might be needed for specific actions)
+    Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
+    Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
+    Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
+
     // Rute Pengaturan
     Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
     Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
