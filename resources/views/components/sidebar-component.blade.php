@@ -89,15 +89,6 @@
                         <p class="text-sm {{ request()->routeIs('kategori*') ? 'font-bold' : 'font-medium' }}">Data Kategori</p>
                     </a>
 
-                    <a href="#"
-                        class="{{ request()->routeIs('laporan*')
-                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
-                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
-                        <span
-                            class="material-symbols-outlined {{ request()->routeIs('laporan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">monitoring</span>
-                        <p class="text-sm {{ request()->routeIs('laporan*') ? 'font-bold' : 'font-medium' }}">Laporan</p>
-                    </a>
-
                     <a href="{{ route('pengaturan.index') }}"
                         class="{{ request()->routeIs('pengaturan*')
                 ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
@@ -106,26 +97,68 @@
                             class="material-symbols-outlined {{ request()->routeIs('pengaturan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">settings</span>
                         <p class="text-sm {{ request()->routeIs('pengaturan*') ? 'font-bold' : 'font-medium' }}">Pengaturan</p>
                     </a>
+
+                    <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
+                    <div
+                        class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
+                        Laporan</div>
+
+                    <a href="{{ route('laporan.peminjaman') }}"
+                        class="{{ request()->routeIs('laporan.peminjaman')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('laporan.peminjaman') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">description</span>
+                        <p class="text-sm {{ request()->routeIs('laporan.peminjaman') ? 'font-bold' : 'font-medium' }}">Laporan
+                            Transaksi</p>
+                    </a>
+
+                    <a href="{{ route('laporan.denda') }}"
+                        class="{{ request()->routeIs('laporan.denda')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('laporan.denda') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">payments</span>
+                        <p class="text-sm {{ request()->routeIs('laporan.denda') ? 'font-bold' : 'font-medium' }}">Laporan Denda
+                        </p>
+                    </a>
+
             @endif
 
             @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
-                <div
-                    class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                    Sirkulasi</div>
+                    <div
+                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        Sirkulasi</div>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">sync_alt</span>
-                    <p class="text-sm font-medium">Transaksi Peminjaman</p>
-                </a>
+                    <a href="{{ route('peminjaman.index') }}"
+                        class="{{ request()->routeIs('peminjaman*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('peminjaman*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">sync_alt</span>
+                        <p class="text-sm {{ request()->routeIs('peminjaman*') ? 'font-bold' : 'font-medium' }}">Transaksi
+                            Peminjaman</p>
+                    </a>
 
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">assignment_return</span>
-                    <p class="text-sm font-medium">Pengembalian & Denda</p>
-                </a>
+                    <a href="{{ route('pengembalian.index') }}"
+                        class="{{ request()->routeIs('pengembalian*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('pengembalian*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">assignment_return</span>
+                        <p class="text-sm {{ request()->routeIs('pengembalian*') ? 'font-bold' : 'font-medium' }}">Pengembalian
+                            & Denda</p>
+                    </a>
+
+                    <a href="{{ route('pengunjung.index') }}"
+                        class="{{ request()->routeIs('pengunjung*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('pengunjung*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">groups_3</span>
+                        <p class="text-sm {{ request()->routeIs('pengunjung*') ? 'font-bold' : 'font-medium' }}">Data Pengunjung
+                        </p>
+                    </a>
             @endif
 
             @if(Auth::user()->peran == 'anggota')
@@ -177,3 +210,26 @@
         </div>
     </div>
 </aside>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sidebarContent = document.querySelector("#sidebar .overflow-y-auto");
+        const sidebarScrollKey = "sidebarScrollPos";
+
+        if (sidebarContent) {
+            // Restore scroll position
+            const savedScrollPos = localStorage.getItem(sidebarScrollKey);
+            if (savedScrollPos) {
+                sidebarContent.scrollTop = savedScrollPos;
+            }
+
+            // Save scroll position on scroll
+            sidebarContent.addEventListener("scroll", function () {
+                localStorage.setItem(sidebarScrollKey, sidebarContent.scrollTop);
+            });
+
+            // Optional: reset scroll on logout or specific actions if needed, 
+            // but usually persistent scroll is desired behavior for navigation.
+        }
+    });
+</script>

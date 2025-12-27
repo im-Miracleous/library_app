@@ -24,6 +24,26 @@ class PenggunaController extends Controller
         // Append query string ke pagination links (supaya saat pindah halaman, filter tidak hilang)
         $pengguna->appends($request->all());
 
+        // Helper untuk API Search (AJAX) - Digunakan di Peminjaman
+        if ($request->ajax()) {
+            $users = $query->orderBy('id_pengguna', 'desc')->limit(20)->get();
+
+            // Append info jumlah buku yang sedang dipinjam
+            foreach ($users as $user) {
+                $user->active_books_count = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
+                    ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+                    ->where('peminjaman.id_pengguna', $user->id_pengguna)
+                    ->where('peminjaman.status_transaksi', 'berjalan')
+                    ->where('detail_peminjaman.status_buku', 'dipinjam')
+                    ->count();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $users
+            ]);
+        }
+
         // HITUNG STATISTIK UNTUK SIDEBAR
         $totalAnggota = Pengguna::where('peran', 'anggota')->count();
         $totalAktif = Pengguna::where('peran', 'anggota')->where('status', 'aktif')->count();
@@ -68,7 +88,10 @@ class PenggunaController extends Controller
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
             'email' => [
-                'required', 'string', 'email', 'max:255',
+                'required',
+                'string',
+                'email',
+                'max:255',
                 Rule::unique('pengguna')->ignore($user->id_pengguna, 'id_pengguna'),
             ],
             'password' => 'nullable|string|min:8|confirmed',
@@ -85,7 +108,7 @@ class PenggunaController extends Controller
         $user->telepon = $validatedData['telepon'];
         $user->alamat = $validatedData['alamat'];
         $user->status = $validatedData['status'];
-        
+
         $user->save();
 
         return redirect()->back()->with('success', 'Data anggota berhasil diperbarui.');
