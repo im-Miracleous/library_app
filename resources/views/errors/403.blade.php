@@ -29,7 +29,7 @@
 <body
     class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-gray-200 h-screen w-full flex flex-col items-center justify-center p-6 text-center overflow-hidden">
 
-    <div class="animate-enter flex flex-col items-center max-w-md w-full">
+    <div class="animate-enter flex flex-col items-center max-w-lg w-full">
         <!-- Icon/Illustration -->
         <!-- Menggunakan inline style untuk memaksa bentuk lingkaran (override issue CSS lainnya) -->
         <div style="width: 80px; height: 80px;"

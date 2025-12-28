@@ -109,8 +109,9 @@ class AuthController extends Controller
         if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
             $minutes = ceil($seconds / 60);
-            return view('auth.verify-otp', ['id' => $id])
-                ->withErrors(['otp' => "Terlalu banyak percobaan. Tunggu $minutes menit ($seconds detik) lagi."]);
+            return back()
+                ->withErrors(['otp' => "Terlalu banyak percobaan. Tunggu $minutes menit ($seconds detik) lagi."])
+                ->withInput();
         }
 
         // DEBUG: Cek Data Masuk
@@ -128,12 +129,12 @@ class AuthController extends Controller
         // Cek 2: OTP cocok gak?
         if (strval($user->otp_code) !== strval($request->otp)) {
             \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
-            return view('auth.verify-otp', ['id' => $id])->withErrors(['otp' => 'Kode OTP salah!']);
+            return back()->withErrors(['otp' => 'Kode OTP salah!'])->withInput();
         }
 
         // Cek 3: OTP kadaluarsa gak?
         if ($user->otp_expires_at && Carbon::now()->gt($user->otp_expires_at)) {
-            return view('auth.verify-otp', ['id' => $id])->withErrors(['otp' => 'Kode OTP sudah kadaluarsa. Silakan minta kode baru.']);
+            return back()->withErrors(['otp' => 'Kode OTP sudah kadaluarsa. Silakan minta kode baru.']);
         }
 
         // Jika Sukses:

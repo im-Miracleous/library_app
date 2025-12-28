@@ -54,14 +54,21 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
         Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
         Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
-    });
 
-    // --- AREA PETUGAS & ADMIN ---
-    Route::middleware(['role:admin,petugas'])->group(function () {
         Route::resource('buku', \App\Http\Controllers\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
         Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
 
+        // Modul Laporan
+        Route::prefix('laporan')->name('laporan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
+            Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
+            Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
+        });
+    });
+
+    // --- AREA PETUGAS & ADMIN (Sirkulasi) ---
+    Route::middleware(['role:admin,petugas'])->group(function () {
         // Rute Resource untuk Pengunjung (Sirkulasi)
         Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 
@@ -72,13 +79,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
         Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
         Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
-    });
-
-    // Modul Laporan
-    Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
-        Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
-        Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
     });
 
 });
