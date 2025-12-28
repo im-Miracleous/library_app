@@ -41,6 +41,16 @@
 
             <div class="p-4 sm:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full">
 
+                {{-- Flash Messages --}}
+
+                @if (session('error'))
+                    <div class="mb-4 lg:mb-6 p-4 flex items-center gap-3 text-sm font-medium text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl animate-enter"
+                        role="alert">
+                        <span class="material-symbols-outlined text-xl">error</span>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <div class="animate-enter flex justify-between items-end">
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white">Selamat Datang,

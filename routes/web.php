@@ -6,62 +6,73 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasswordResetController;
 
 // 1. Halaman Utama (Root)
-// Logika: Jika sudah login -> lempar ke dashboard. Jika belum -> lempar ke login.
 Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
 // 2. Rute Guest - Hanya bisa diakses jika BELUM login
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
 
-    // Route Register
+    // Login
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.process');
+
+    // Register
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 
-    // Route Lupa Password
+    // OTP Routes
+    Route::get('/verify-otp/{id}', [AuthController::class, 'showVerifyOtp'])->name('otp.verify');
+    Route::post('/verify-otp/{id}', [AuthController::class, 'verifyOtp'])
+        // ->middleware('throttle:5,1')  <-- Handled manually in Controller now
+        ->name('otp.action');
+
+    // Resend OTP
+    Route::post('/resend-otp/{id}', [AuthController::class, 'resendOtp'])
+        ->middleware('throttle:3,1') // Limit 3 kali per menit
+        ->name('otp.resend');
+
+    // === INI YANG TADI KURANG (PEMICU ERROR ANDA) ===
     Route::get('/forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+    // ================================================
 });
 
 // 3. Rute Auth - Hanya bisa diakses jika SUDAH login
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
 
-    // Logout
+    // --- AREA BEBAS ---
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Dashboard (Menggunakan DashboardController)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Rute Resource untuk Pengguna (Anggota)
-    Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+    // --- AREA KHUSUS ADMIN ---
+    Route::middleware(['role:admin'])->group(function () {
+        Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+    });
 
-    // Rute Resource untuk Kepegawaian (Admin & Petugas) - Hanya Admin
-    Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+    // --- AREA PETUGAS & ADMIN ---
+    Route::middleware(['role:admin,petugas'])->group(function () {
+        Route::resource('buku', \App\Http\Controllers\BukuController::class);
+        Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
+        Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
 
-    // Rute Resource untuk Kategori Buku
-    Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
+        // Rute Resource untuk Pengunjung (Sirkulasi)
+        Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 
-    // Rute Resource untuk Buku
-    Route::resource('buku', \App\Http\Controllers\BukuController::class);
+        // Rute Resource untuk Peminjaman
+        Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class);
 
-    // Rute Resource untuk Pengunjung (Sirkulasi)
-    Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
-
-    // Rute Resource untuk Peminjaman
-    Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class);
-
-    // Rute Resource untuk Pengembalian (Custom Routes might be needed for specific actions)
-    Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
-    Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
-    Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
-
-    // Rute Pengaturan
-    Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
-    Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+        // Rute Resource untuk Pengembalian
+        Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
+        Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
+        Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
+    });
 
     // Modul Laporan
     Route::prefix('laporan')->name('laporan.')->group(function () {

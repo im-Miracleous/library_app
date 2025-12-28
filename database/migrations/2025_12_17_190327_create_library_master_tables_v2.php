@@ -29,6 +29,8 @@ return new class extends Migration {
             $table->string('telepon')->nullable();
             $table->text('alamat')->nullable();
             $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
+            $table->string('otp_code', 6)->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
