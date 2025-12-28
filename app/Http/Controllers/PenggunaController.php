@@ -54,25 +54,36 @@ class PenggunaController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:pengguna',
-            'password' => 'required|string|min:8|confirmed',
-            'telepon' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
-        ]);
+        \Illuminate\Support\Facades\Log::info('PenggunaController::store triggered', $request->all());
 
-        Pengguna::create([
-            'nama' => $validatedData['nama'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
-            'peran' => 'anggota',
-            'telepon' => $validatedData['telepon'],
-            'alamat' => $validatedData['alamat'],
-            'status' => 'aktif',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'nama' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:pengguna',
+                'password' => 'required|string|min:8|confirmed',
+                'telepon' => 'nullable|string|max:20',
+                'alamat' => 'nullable|string',
+            ]);
 
-        return redirect()->back()->with('success', 'Anggota berhasil ditambahkan.');
+            \Illuminate\Support\Facades\Log::info('Validation passed');
+
+            Pengguna::create([
+                'nama' => $validatedData['nama'],
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']),
+                'peran' => 'anggota',
+                'telepon' => $validatedData['telepon'],
+                'alamat' => $validatedData['alamat'],
+                'status' => 'aktif',
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('User created successfully');
+
+            return redirect()->back()->with('success', 'Anggota berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error in store: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => $e->getMessage()])->withInput();
+        }
     }
 
     public function show($id)
@@ -116,8 +127,15 @@ class PenggunaController extends Controller
 
     public function destroy($id)
     {
-        $user = Pengguna::findOrFail($id);
-        $user->delete();
-        return redirect()->back()->with('success', 'Anggota berhasil dihapus.');
+        \Illuminate\Support\Facades\Log::info('PenggunaController::destroy triggered for ID: ' . $id);
+        try {
+            $user = Pengguna::findOrFail($id);
+            $user->delete();
+            \Illuminate\Support\Facades\Log::info('User deleted successfully');
+            return redirect()->back()->with('success', 'Anggota berhasil dihapus.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error in destroy: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus anggota: ' . $e->getMessage());
+        }
     }
 }

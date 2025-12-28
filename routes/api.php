@@ -42,7 +42,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     // KELOLA PENGGUNA (Otomatis buat route store, show, update, destroy. Index sudah di public)
-    Route::apiResource('pengguna', PenggunaController::class)->except(['index']);
+    Route::apiResource('pengguna', PenggunaController::class)
+        ->except(['index'])
+        ->names([
+            'store' => 'api.pengguna.store',
+            'show' => 'api.pengguna.show',
+            'update' => 'api.pengguna.update',
+            'destroy' => 'api.pengguna.destroy',
+        ]);
 
     // KELOLA BUKU (Create, Update, Delete)
     Route::post('/buku', [BukuController::class, 'store']);
