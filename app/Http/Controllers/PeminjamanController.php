@@ -87,64 +87,38 @@ class PeminjamanController extends Controller
         }
 
         try {
-            DB::beginTransaction();
+            // Persiapkan Data untuk Stored Procedure
+            $idPengguna = $request->id_pengguna;
+            $tglPinjam = $request->tanggal_pinjam;
+            $tglJatuhTempo = $request->tanggal_jatuh_tempo;
+            $keterangan = $request->keterangan;
 
-            // 1. Buat ID Peminjaman (Manual Generation in PHP)
-            $today = date('Y-m-d');
-            $dateCode = date('Y-m-d'); // Keep distinct just in case format changes
+            // Format buku ke JSON Array of Strings: ["B001", "B002"]
+            $jsonBuku = collect($request->buku)->pluck('id_buku')->toJson();
 
-            // Get last ID from today
-            $lastTx = Peminjaman::whereDate('created_at', $today)
-                ->orderBy('id_peminjaman', 'desc')
-                ->first();
+            // Panggil Stored Procedure
+            // Karena menggunakan OUT parameter di MySQL Driver PHP biasa agak ribet, 
+            // kita gunakan session variable @output untuk menangkap pesan.
 
-            $nextNo = 1;
-            if ($lastTx) {
-                // P-YYYY-MM-ddNNN (Example: P-2025-12-28001)
-                // Length is 15 chars. Last 3 is number.
-                $lastId = $lastTx->id_peminjaman;
-                $lastNo = intval(substr($lastId, -3));
-                $nextNo = $lastNo + 1;
-            }
-
-            $newId = 'P-' . $dateCode . str_pad($nextNo, 3, '0', STR_PAD_LEFT);
-
-            // Buat Peminjaman Header
-            $peminjaman = Peminjaman::create([
-                'id_peminjaman' => $newId,
-                'id_pengguna' => $request->id_pengguna,
-                'tanggal_pinjam' => $request->tanggal_pinjam,
-                'tanggal_jatuh_tempo' => $request->tanggal_jatuh_tempo,
-                'status_transaksi' => 'berjalan',
-                'keterangan' => $request->keterangan,
+            DB::statement("CALL sp_buat_peminjaman(?, ?, ?, ?, ?, @output)", [
+                $idPengguna,
+                $tglPinjam,
+                $tglJatuhTempo,
+                $keterangan,
+                $jsonBuku
             ]);
 
-            // 2. Buat Detail Peminjaman & Update Stok
-            foreach ($request->buku as $item) {
-                // Check availability again just in case
-                $buku = Buku::find($item['id_buku']);
-                if ($buku->stok_tersedia <= 0) {
-                    throw new \Exception("Buku {$buku->judul} stok habis.");
-                }
+            // Ambil Output Message
+            $result = DB::select("SELECT @output as message")[0]->message;
 
-                DetailPeminjaman::create([
-                    'id_peminjaman' => $peminjaman->id_peminjaman,
-                    'id_buku' => $item['id_buku'],
-                    'jumlah' => 1,
-                    'status_buku' => 'dipinjam',
-                ]);
-
-                // Decrement Stok
-                $buku->decrement('stok_tersedia');
+            if ($result !== 'Success') {
+                return back()->with('error', 'Gagal memproses peminjaman: ' . $result)->withInput();
             }
 
-            DB::commit();
-
-            return redirect()->route('peminjaman.index')->with('success', 'Transaksi peminjaman berhasil dibuat.');
+            return redirect()->route('peminjaman.index')->with('success', 'Transaksi peminjaman berhasil dibuat (via Stored Procedure).');
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage())->withInput();
         }
     }
 

@@ -113,21 +113,31 @@ class PengembalianController extends Controller
                     'tanggal_kembali_aktual' => $hariIni,
                 ]);
 
-                // Increment Book Stock
-                $buku = Buku::find($detail->id_buku);
-                $buku->increment('stok_tersedia');
+                // Increment Book Stock -> HANDLED BY TRIGGER 'tr_kembalikan_stok_buku'
+                // $buku = Buku::find($detail->id_buku);
+                // $buku->increment('stok_tersedia');
 
-                // Calculate Fine for THIS book
+                // Calculate Fine for THIS book using DB Function
                 if ($isLate) {
-                    $dendaAmount = $lateDays * $dendaPerBukuPerHari;
+                    // Use DB Select for calculation (Example usage of Stored Function)
+                    // Note: In high throughput, calculating in PHP is faster than Round Trip.
+                    // But here we demonstrate the usage.
+                    // FIX: selectScalar not available in standard Laravel. Use select()[0]->denda
+                    $resultDenda = DB::select("SELECT fn_hitung_denda(?, ?, ?) as denda", [
+                        $jatuhTempo->format('Y-m-d'),
+                        $hariIni->format('Y-m-d'),
+                        $dendaPerBukuPerHari
+                    ]);
+                    $dendaAmount = $resultDenda[0]->denda;
+
                     $totalDenda += $dendaAmount;
 
                     Denda::create([
                         'id_detail_peminjaman' => $detail->id_detail_peminjaman,
                         'jenis_denda' => 'terlambat',
                         'jumlah_denda' => $dendaAmount,
-                        'status_bayar' => 'belum_bayar', // Bisa langsung bayar jika fitur allow
-                        'keterangan' => "Terlambat $lateDays hari"
+                        'status_bayar' => 'belum_bayar',
+                        'keterangan' => "Terlambat $lateDays hari (Calc by DB Function)"
                     ]);
                 }
             }

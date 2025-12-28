@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkboxes = document.querySelectorAll('.book-checkbox');
     const dendaDisplay = document.getElementById('dendaDisplay');
     const countDisplay = document.getElementById('countDisplay');
+    const btnConfirm = document.getElementById('btnConfirm');
+    const returnForm = document.getElementById('returnForm');
 
     // Get variables from global window object or data attributes
     // Recommended: use data attributes on the container or script tag
@@ -48,6 +50,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Handle Submit Loading
+    if (btnConfirm && returnForm) {
+        btnConfirm.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            // Disable button & Show Loading
+            btnConfirm.disabled = true;
+            btnConfirm.innerHTML = `
+                <span class="animate-spin material-symbols-outlined">progress_activity</span>
+                Memproses...
+            `;
+            btnConfirm.classList.add('opacity-75', 'cursor-not-allowed');
+
+            // Submit form
+            returnForm.submit();
+        });
+    }
 
     // Init Logic
     calculateTotals();

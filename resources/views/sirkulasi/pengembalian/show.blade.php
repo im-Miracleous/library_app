@@ -232,7 +232,7 @@
                                 jumlah hari keterlambatan x Rp 1.000 per buku.
                             </div>
 
-                            <button type="button" onclick="document.getElementById('returnForm').submit()"
+                            <button type="button" id="btnConfirm"
                                 class="w-full py-3.5 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-xl font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2">
                                 <span class="material-symbols-outlined">save</span>
                                 Konfirmasi Pengembalian

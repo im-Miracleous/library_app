@@ -145,6 +145,7 @@
                                     <th class="p-4 font-medium">Buku</th>
                                     <th class="p-4 font-medium text-right">Nominal</th>
                                     <th class="p-4 font-medium text-center">Status</th>
+                                    <th class="p-4 font-medium text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody
@@ -156,7 +157,8 @@
                                             <div class="font-bold">{{ $item->detail->peminjaman->pengguna->nama ?? '-' }}
                                             </div>
                                             <div class="text-xs text-slate-400">
-                                                {{ $item->detail->peminjaman->kode_peminjaman ?? '-' }}</div>
+                                                {{ $item->detail->peminjaman->kode_peminjaman ?? '-' }}
+                                            </div>
                                         </td>
                                         <td class="p-4 capitalize">{{ $item->jenis_denda }}</td>
                                         <td class="p-4">{{ $item->detail->buku->judul ?? '-' }}</td>
@@ -169,10 +171,25 @@
                                                 {{ $item->status_bayar == 'lunas' ? 'LUNAS' : 'BELUM BAYAR' }}
                                             </span>
                                         </td>
+                                        <td class="p-4 text-center">
+                                            @if ($item->status_bayar == 'belum_bayar')
+                                                <form action="{{ route('denda.update', $item->id_denda) }}" method="POST"
+                                                    onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan pembayaran ini? Status akan berubah menjadi Lunas.')">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit"
+                                                        class="px-3 py-1 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-md text-xs font-bold shadow-sm hover:brightness-110 transition-all">
+                                                        Bayar
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-slate-400 dark:text-white/40">-</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="p-8 text-center text-slate-400 dark:text-white/40 italic">
+                                        <td colspan="7" class="p-8 text-center text-slate-400 dark:text-white/40 italic">
                                             Tidak ada catatan denda pada periode ini.</td>
                                     </tr>
                                 @endforelse

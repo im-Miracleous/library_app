@@ -65,6 +65,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
             Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
         });
+
+        // Route Update Status Denda (Outside Laporan Prefix)
+        Route::put('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.update');
     });
 
     // --- AREA PETUGAS & ADMIN (Sirkulasi) ---
