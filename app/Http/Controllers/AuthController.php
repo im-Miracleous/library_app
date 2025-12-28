@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 class AuthController extends Controller
 {
-    // 1. Tampilkan Halaman Login
+    // 1a. Tampilkan Halaman Login
     public function showLogin()
     {
         // Cek jika sudah login, lempar ke dashboard
@@ -51,8 +51,8 @@ class AuthController extends Controller
         $otp = rand(100000, 999999);
 
         // 3. Simpan ke Database
-        $user = Pengguna::create([
-            'id_pengguna' => $id_baru,
+        Pengguna::create([
+            'id_pengguna' => 'TEMP-' . time(),
             'nama' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -64,20 +64,23 @@ class AuthController extends Controller
             'is_locked' => false
         ]);
 
+        // RE-FETCH User berdasarkan Email untuk mendapatkan ID ASLI dari Trigger Database
+        $user = Pengguna::where('email', $request->email)->firstOrFail();
+
         // 4. Kirim Email OTP
         try {
             Mail::raw("Halo $user->nama, Kode Verifikasi (OTP) Anda adalah: $otp. Kode ini berlaku selama 10 menit.", function ($message) use ($user) {
                 $message->to($user->email)
-                        ->subject('Kode OTP Perpustakaan');
+                    ->subject('Kode OTP Perpustakaan');
             });
         } catch (\Exception $e) {
             // Log error diam-diam
         }
 
         // 5. PENTING: JANGAN LOGIN DISINI (Auth::login HILANG)
-        // Langsung lempar ke halaman verifikasi membawa ID Pengguna
+        // Langsung lempar ke halaman verifikasi membawa ID Pengguna yang BENAR
         return redirect()->route('otp.verify', ['id' => $user->id_pengguna])
-                         ->with('success', 'Registrasi berhasil! Cek email Anda untuk kode OTP.');
+            ->with('success', 'Registrasi berhasil! Cek email Anda untuk kode OTP.');
     }
 
     // ==========================================
@@ -100,34 +103,78 @@ class AuthController extends Controller
         // 1. Bersihkan ID
         $clean_id = trim($id);
 
+        // --- RATE LIMITING MANUAL ---
+        $throttleKey = 'otp-verify:' . $clean_id . '|' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            $minutes = ceil($seconds / 60);
+            return view('auth.verify-otp', ['id' => $id])
+                ->withErrors(['otp' => "Terlalu banyak percobaan. Tunggu $minutes menit ($seconds detik) lagi."]);
+        }
+
+        // DEBUG: Cek Data Masuk
+        \Illuminate\Support\Facades\Log::info("Verifikasi OTP. ID: $clean_id, Input: " . $request->otp);
+
         // 2. Cari user
         $user = Pengguna::where('id_pengguna', $clean_id)->first();
 
         // Jika user tidak ada / URL ngaco
         if (!$user) {
-            return redirect('/login')->with('error', 'User tidak ditemukan atau Link tidak valid.');
+            \Illuminate\Support\Facades\Log::warning("Verifikasi Gagal: User tidak ditemukan. ID: $clean_id");
+            return redirect()->route('login')->with('error', 'User tidak ditemukan atau Link tidak valid.');
         }
 
         // Cek 2: OTP cocok gak?
-        if ($user->otp_code != $request->otp) {
-            return back()->with('error', 'Kode OTP salah!');
+        if (strval($user->otp_code) !== strval($request->otp)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+            return view('auth.verify-otp', ['id' => $id])->withErrors(['otp' => 'Kode OTP salah!']);
         }
 
         // Cek 3: OTP kadaluarsa gak?
-        if (Carbon::now()->gt($user->otp_expires_at)) {
-            return back()->with('error', 'Kode OTP sudah kadaluarsa. Silakan daftar ulang.');
+        if ($user->otp_expires_at && Carbon::now()->gt($user->otp_expires_at)) {
+            return view('auth.verify-otp', ['id' => $id])->withErrors(['otp' => 'Kode OTP sudah kadaluarsa. Silakan minta kode baru.']);
         }
 
         // Jika Sukses:
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+
+        // Gunakan forceFill / save untuk memastikan update terjadi
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+
+        // PENTING: Matikan timestamp update jika perlu, tapi save() aman
+        if ($user->save()) {
+            \Illuminate\Support\Facades\Log::info("Verifikasi Sukses. OTP dihapus untuk user: $clean_id");
+        } else {
+            \Illuminate\Support\Facades\Log::error("Verifikasi Gagal Save DB. User: $clean_id");
+        }
+
+        return redirect()->route('login')->with('success', 'Verifikasi berhasil! Silahkan lakukan login kembali.');
+    }
+
+    // Kirim Ulang OTP
+    public function resendOtp($id)
+    {
+        $user = Pengguna::where('id_pengguna', $id)->firstOrFail();
+
+        // Cek batasan waktu (Opsional: Cegah spamming tombol resend)
+        // Disini kita langsung generate baru saja
+
+        $otp = rand(100000, 999999);
         $user->update([
-            'otp_code' => null,
-            'otp_expires_at' => null
+            'otp_code' => $otp,
+            'otp_expires_at' => Carbon::now()->addMinutes(10)
         ]);
 
-        // BARU DISINI KITA LOGIN  USER
-        Auth::login($user);
+        try {
+            Mail::raw("Halo $user->nama, Kode OTP Baru Anda: $otp.", function ($msg) use ($user) {
+                $msg->to($user->email)->subject('Kode OTP Baru Perpustakaan');
+            });
+        } catch (\Exception $e) {
+        }
 
-        return redirect()->route('dashboard')->with('success', 'Verifikasi berhasil! Selamat datang.');
+        return back()->with('success', 'Kode OTP baru telah dikirim. Cek email Anda.');
     }
 
     // ==========================================
@@ -151,6 +198,12 @@ class AuthController extends Controller
                 $minutes = ceil($seconds / 60);
                 return back()->withErrors(['email' => "Tunggu $minutes menit lagi."])->onlyInput('email');
             }
+
+            // CEK 3: Apakah User sudah verifikasi OTP?
+            if (!empty($user->otp_code)) {
+                return redirect()->route('otp.verify', ['id' => $user->id_pengguna])
+                    ->with('error', 'Akun belum diverifikasi. Silakan masukkan kode OTP yang dikirim ke email.');
+            }
         }
 
         if (Auth::attempt($credentials)) {
@@ -164,9 +217,10 @@ class AuthController extends Controller
         // Logic Lockout
         if ($user) {
             $user->increment('login_attempts');
-        
+
             if ($user->login_attempts >= 3) {
-            
+                $user->update(['lockout_time' => now()->addMinutes(5)]);
+
             }
         }
 

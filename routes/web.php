@@ -12,7 +12,7 @@ Route::get('/', function () {
 
 // 2. Rute Guest - Hanya bisa diakses jika BELUM login
 Route::middleware('guest')->group(function () {
-    
+
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])
@@ -25,7 +25,14 @@ Route::middleware('guest')->group(function () {
 
     // OTP Routes
     Route::get('/verify-otp/{id}', [AuthController::class, 'showVerifyOtp'])->name('otp.verify');
-    Route::post('/verify-otp/{id}', [AuthController::class, 'verifyOtp'])->name('otp.action');
+    Route::post('/verify-otp/{id}', [AuthController::class, 'verifyOtp'])
+        // ->middleware('throttle:5,1')  <-- Handled manually in Controller now
+        ->name('otp.action');
+
+    // Resend OTP
+    Route::post('/resend-otp/{id}', [AuthController::class, 'resendOtp'])
+        ->middleware('throttle:3,1') // Limit 3 kali per menit
+        ->name('otp.resend');
 
     // === INI YANG TADI KURANG (PEMICU ERROR ANDA) ===
     Route::get('/forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
