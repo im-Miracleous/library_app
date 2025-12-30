@@ -1,5 +1,7 @@
 import './bootstrap';
+import './bootstrap';
 import './global-search';
+import './system-status';
 
 document.addEventListener('DOMContentLoaded', () => {
 

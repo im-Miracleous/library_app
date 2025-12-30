@@ -33,6 +33,29 @@
     <!-- Scrollable Content -->
     <!-- Scrollable Content -->
     <div class="flex-1 overflow-y-auto px-4 py-4">
+        <!-- System Status (Sidebar) -->
+        <div
+            class="mb-6 px-4 py-3 bg-primary/5 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-white/5">
+            <p class="text-[10px] font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest mb-2">
+                Status Sistem</p>
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between group cursor-help" title="Status Koneksi Database">
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Database</span>
+                    <div class="flex items-center gap-2">
+                        <span id="sidebar-db-text" class="text-[10px] font-bold text-slate-400">Checking...</span>
+                        <div id="sidebar-db-dot" class="size-2 rounded-full bg-slate-300"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between group cursor-help" title="Status Koneksi Server">
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Server</span>
+                    <div class="flex items-center gap-2">
+                        <span id="sidebar-server-text" class="text-[10px] font-bold text-slate-400">Checking...</span>
+                        <div id="sidebar-server-dot" class="size-2 rounded-full bg-slate-300"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <nav class="flex flex-col gap-2">
 
             <!-- Menu Utama (Dashboard) -->
