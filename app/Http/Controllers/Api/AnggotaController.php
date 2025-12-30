@@ -8,9 +8,9 @@ use App\Models\Pengguna;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class PenggunaController extends Controller
+class AnggotaController extends Controller
 {
-    // GET /api/pengguna
+    // GET /api/anggota
     public function index(Request $request)
     {
         // Fitur search sederhana untuk anggota, urutkan terbaru
@@ -36,7 +36,7 @@ class PenggunaController extends Controller
         ]);
     }
 
-    // GET /api/pengguna/{id}
+    // GET /api/anggota/{id}
     public function show($id)
     {
         $pengguna = Pengguna::find($id);
@@ -51,7 +51,7 @@ class PenggunaController extends Controller
         ]);
     }
 
-    // POST /api/pengguna
+    // POST /api/anggota
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -85,7 +85,7 @@ class PenggunaController extends Controller
         ], 201);
     }
 
-    // PUT /api/pengguna/{id}
+    // PUT /api/anggota/{id}
     public function update(Request $request, $id)
     {
         $pengguna = Pengguna::find($id);
@@ -121,7 +121,7 @@ class PenggunaController extends Controller
         ]);
     }
 
-    // DELETE /api/pengguna/{id}
+    // DELETE /api/anggota/{id}
     public function destroy($id)
     {
         $pengguna = Pengguna::find($id);

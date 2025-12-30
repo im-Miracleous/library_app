@@ -23,7 +23,7 @@
         rel="stylesheet" />
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js', 'resources/js/live-search-sirkulasi-peminjaman.js'])
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-slate-700 dark:text-white font-display">
@@ -38,13 +38,7 @@
             <div class="p-4 sm:p-8">
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60">
-                        <span class="material-symbols-outlined text-base">home</span>
-                        <span>/</span>
-                        <span>Sirkulasi</span>
-                        <span>/</span>
-                        <span class="font-bold text-primary dark:text-white">Peminjaman</span>
-                    </div>
+                    <x-breadcrumb-component parent="Sirkulasi" current="Peminjaman" />
 
                     <a href="{{ route('peminjaman.create') }}"
                         class="flex items-center gap-2 px-4 py-2.5 bg-surface dark:bg-accent text-primary-dark hover:bg-amber-300 dark:hover:bg-amber-500 rounded-xl font-bold text-sm transition-all shadow-sm hover:translate-y-[-2px]">
@@ -64,103 +58,95 @@
                 <div
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm">
                     <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
-                        <div class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <span class="material-symbols-outlined text-slate-400">sync_alt</span>
-                            Riwayat Transaksi
+                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
+                            <div class="relative">
+                                <select
+                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <div
+                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
+                                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                                </div>
+                            </div>
+                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
                         </div>
-                        <form method="GET" action="{{ route('peminjaman.index') }}" class="flex gap-2 w-full sm:w-auto">
-                            <select name="status" onchange="this.form.submit()"
-                                class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-3 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
+
+                        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            <select id="statusFilter"
+                                class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-3 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
                                 <option value="">Semua Status</option>
-                                <option value="berjalan" {{ request('status') == 'berjalan' ? 'selected' : '' }}>Berjalan
-                                </option>
-                                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai
-                                </option>
+                                <option value="berjalan">Berjalan</option>
+                                <option value="selesai">Selesai</option>
                             </select>
                             <div class="relative w-full sm:w-64">
                                 <span
                                     class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                                <input type="text" name="search" value="{{ request('search') }}"
-                                    placeholder="Cari Kode atau Peminjam..."
-                                    class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40">
+                                <input type="text" id="searchInput" placeholder="Cari Kode atau Peminjam..."
+                                    class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40">
                             </div>
-                        </form>
+                        </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto relative min-h-[300px]">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr
-                                    class="border-b border-primary/20 dark:border-border-dark text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <th class="p-4 pl-6 font-medium w-32">Kode</th>
-                                    <th class="p-4 font-medium">Peminjam</th>
+                                    class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
+                                    <th class="p-4 pl-6 font-medium w-32 cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=id_peminjaman&direction=desc'"
+                                        data-sort="id_peminjaman">
+                                        <div class="flex items-center gap-1">Kode <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
+                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
+                                        data-sort="nama_anggota">
+                                        <div class="flex items-center gap-1">Peminjam <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
                                     <th class="p-4 font-medium">Buku</th>
-                                    <th class="p-4 font-medium">Tgl Pinjam</th>
+                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=tanggal_pinjam&direction=desc'"
+                                        data-sort="tanggal_pinjam">
+                                        <div class="flex items-center gap-1">Tgl Pinjam <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
                                     <th class="p-4 font-medium">Jatuh Tempo</th>
-                                    <th class="p-4 font-medium">Status</th>
+                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=status_transaksi&direction=asc'"
+                                        data-sort="status_transaksi">
+                                        <div class="flex items-center gap-1">Status <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
                                     <th class="p-4 font-medium text-right pr-6">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody
                                 class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($peminjaman as $item)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono font-bold text-primary dark:text-accent">
-                                            {{ $item->kode_peminjaman }}
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="font-bold text-slate-800 dark:text-white">
-                                                {{ $item->pengguna->nama ?? 'Unknown' }}</div>
-                                            <div class="text-xs text-slate-500">{{ $item->pengguna->email ?? '-' }}</div>
-                                        </td>
-                                        <td class="p-4">
-                                            @foreach($item->details as $detail)
-                                                <div
-                                                    class="text-xs py-1 border-b border-dashed border-slate-200 dark:border-white/10 last:border-0">
-                                                    {{ $detail->buku->judul ?? 'Deleted Book' }}
-                                                </div>
-                                            @endforeach
-                                        </td>
-                                        <td class="p-4 text-slate-500 dark:text-white/60">
-                                            {{ \Carbon\Carbon::parse($item->tanggal_pinjam)->translatedFormat('d M Y') }}
-                                        </td>
-                                        <td class="p-4">
-                                            @php
-                                                $jatuhTempo = \Carbon\Carbon::parse($item->tanggal_jatuh_tempo);
-                                                $isLate = $item->status_transaksi == 'berjalan' && now()->gt($jatuhTempo);
-                                            @endphp
-                                            <span
-                                                class="{{ $isLate ? 'text-red-600 font-bold animate-pulse' : 'text-slate-500 dark:text-white/60' }}">
-                                                {{ $jatuhTempo->translatedFormat('d M Y') }}
-                                            </span>
-                                        </td>
-                                        <td class="p-4">
-                                            <span
-                                                class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide {{ $item->status_transaksi == 'berjalan' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' }}">
-                                                {{ $item->status_transaksi }}
-                                            </span>
-                                        </td>
-                                        <td class="p-4 text-right pr-6">
-                                            <a href="{{ route('peminjaman.show', $item->id_peminjaman) }}"
-                                                class="inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                                                title="Detail">
-                                                <span class="material-symbols-outlined text-lg">visibility</span>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="p-12 text-center text-slate-400 dark:text-white/40">
-                                            Belum ada transaksi peminjaman.
-                                        </td>
-                                    </tr>
-                                @endforelse
+                                <!-- JS Populated -->
                             </tbody>
                         </table>
                     </div>
-                    <div class="p-4 border-t border-slate-200 dark:border-border-dark">
-                        {{ $peminjaman->links() }}
+                    <!-- Custom Pagination -->
+                    <div
+                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
+                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
+                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
+                                class="font-bold">0</span> entries
+                        </div>
+                        <div id="paginationContainer" class="flex gap-2">
+                            <!-- Pagination Generated by JS -->
+                        </div>
                     </div>
                 </div>
             </div>

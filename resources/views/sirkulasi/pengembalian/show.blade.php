@@ -36,16 +36,7 @@
             <x-header-component title="Proses Pengembalian" />
 
             <div class="p-4 sm:p-8">
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60 mb-6 animate-enter">
-                    <span class="material-symbols-outlined text-base">home</span>
-                    <span>/</span>
-                    <span>Sirkulasi</span>
-                    <span>/</span>
-                    <a href="{{ route('pengembalian.index') }}"
-                        class="hover:text-primary dark:hover:text-white transition-colors">Pengembalian</a>
-                    <span>/</span>
-                    <span class="font-bold text-primary dark:text-white">Proses</span>
-                </div>
+                <x-breadcrumb-component parent="Sirkulasi" middle="Pengembalian" :middleLink="route('pengembalian.index')" current="Proses" class="mb-6 animate-enter" />
 
                 @if ($errors->any())
                     <div

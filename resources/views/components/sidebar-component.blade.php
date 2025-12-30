@@ -50,13 +50,13 @@
                         class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
                         Administrator</div>
 
-                    <a href="{{ route('pengguna.index') }}"
-                        class="{{ request()->routeIs('pengguna*')
+                    <a href="{{ route('anggota.index') }}"
+                        class="{{ request()->routeIs('anggota*')
                 ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
                 : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
                         <span
-                            class="material-symbols-outlined {{ request()->routeIs('pengguna*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">group</span>
-                        <p class="text-sm {{ request()->routeIs('pengguna*') ? 'font-bold' : 'font-medium' }}">Data Anggota
+                            class="material-symbols-outlined {{ request()->routeIs('anggota*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">group</span>
+                        <p class="text-sm {{ request()->routeIs('anggota*') ? 'font-bold' : 'font-medium' }}">Data Anggota
                         </p>
                     </a>
 

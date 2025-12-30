@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Laporan Denda - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
     <script>
@@ -22,7 +23,7 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js', 'resources/js/live-search-laporan-denda.js'])
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-slate-700 dark:text-white font-display">
@@ -38,13 +39,7 @@
                 <!-- Header & Breadcrumb -->
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60">
-                        <span class="material-symbols-outlined text-base">home</span>
-                        <span>/</span>
-                        <span>Laporan</span>
-                        <span>/</span>
-                        <span class="font-bold text-primary dark:text-white">Denda</span>
-                    </div>
+                    <x-breadcrumb-component parent="Laporan" current="Denda" />
                 </div>
 
                 <!-- Filters -->
@@ -123,24 +118,57 @@
                     </div>
                 </div>
 
-                <!-- Table -->
+                <!-- Table Container -->
                 <div
                     class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden shadow-sm animate-enter delay-300">
                     <div
-                        class="p-4 border-b border-primary/20 dark:border-white/10 flex justify-between items-center bg-surface dark:bg-[#1A1410]">
-                        <h3 class="font-bold text-slate-800 dark:text-white">Riwayat Denda</h3>
-                        <div class="text-xs text-slate-500 dark:text-white/60">
-                            Periode: {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} -
-                            {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
+                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
+                            <div class="relative">
+                                <select
+                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <div
+                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
+                                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                                </div>
+                            </div>
+                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
+                        </div>
+
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="searchDendaInput" placeholder="Cari nama atau buku..."
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder:text-slate-400">
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
+                                <span class="material-symbols-outlined text-lg">search</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
+
+                    <div class="overflow-x-auto relative min-h-[300px]">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr
                                     class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 font-medium">Tanggal</th>
-                                    <th class="p-4 font-medium">Peminjam</th>
+                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=created_at&direction=desc'"
+                                        data-sort="created_at">
+                                        <div class="flex items-center gap-1">Tanggal <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
+                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                        onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
+                                        data-sort="nama_anggota">
+                                        <div class="flex items-center gap-1">Peminjam <span
+                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                        </div>
+                                    </th>
                                     <th class="p-4 font-medium">Jenis Denda</th>
                                     <th class="p-4 font-medium">Buku</th>
                                     <th class="p-4 font-medium text-right">Nominal</th>
@@ -150,54 +178,23 @@
                             </thead>
                             <tbody
                                 class="divide-y divide-slate-100 dark:divide-white/10 text-sm text-slate-600 dark:text-white/80">
-                                @forelse ($denda as $item)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors">
-                                        <td class="p-4">{{ $item->created_at->format('d/m/Y') }}</td>
-                                        <td class="p-4">
-                                            <div class="font-bold">{{ $item->detail->peminjaman->pengguna->nama ?? '-' }}
-                                            </div>
-                                            <div class="text-xs text-slate-400">
-                                                {{ $item->detail->peminjaman->kode_peminjaman ?? '-' }}
-                                            </div>
-                                        </td>
-                                        <td class="p-4 capitalize">{{ $item->jenis_denda }}</td>
-                                        <td class="p-4">{{ $item->detail->buku->judul ?? '-' }}</td>
-                                        <td class="p-4 text-right font-mono font-bold">
-                                            Rp {{ number_format($item->jumlah_denda, 0, ',', '.') }}
-                                        </td>
-                                        <td class="p-4 text-center">
-                                            <span
-                                                class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide {{ $item->status_bayar == 'lunas' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' }}">
-                                                {{ $item->status_bayar == 'lunas' ? 'LUNAS' : 'BELUM BAYAR' }}
-                                            </span>
-                                        </td>
-                                        <td class="p-4 text-center">
-                                            @if ($item->status_bayar == 'belum_bayar')
-                                                <form action="{{ route('denda.update', $item->id_denda) }}" method="POST"
-                                                    onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan pembayaran ini? Status akan berubah menjadi Lunas.')">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit"
-                                                        class="px-3 py-1 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-md text-xs font-bold shadow-sm hover:brightness-110 transition-all">
-                                                        Bayar
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="text-xs text-slate-400 dark:text-white/40">-</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="p-8 text-center text-slate-400 dark:text-white/40 italic">
-                                            Tidak ada catatan denda pada periode ini.</td>
-                                    </tr>
-                                @endforelse
+                                <!-- JS Populated -->
                             </tbody>
                         </table>
                     </div>
-                </div>
 
+                    <!-- Custom Pagination -->
+                    <div
+                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
+                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
+                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
+                                class="font-bold">0</span> entries
+                        </div>
+                        <div id="paginationContainer" class="flex gap-2">
+                            <!-- JS Populated -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

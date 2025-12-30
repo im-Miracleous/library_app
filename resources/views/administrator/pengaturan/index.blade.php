@@ -40,6 +40,7 @@
             <x-header-component title="Pengaturan" />
 
             <div class="p-4 sm:p-8 flex flex-col gap-6 max-w-[1000px] mx-auto w-full">
+                <x-breadcrumb-component parent="Administrator" current="Pengaturan" class="animate-enter" />
 
                 <div class="animate-enter">
                     <h1 class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white">Pengaturan Sistem</h1>

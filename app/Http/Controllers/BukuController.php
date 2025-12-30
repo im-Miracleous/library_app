@@ -10,36 +10,51 @@ class BukuController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Buku::with('kategori');
+        // Parameter Default
+        $search = $request->input('search', '');
+        $sortCol = $request->input('sort', 'created_at');
+        $sortDir = $request->input('direction', 'desc');
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $limit;
 
-        // Fitur Pencarian
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('judul', 'like', "%$search%")
-                    ->orWhere('penulis', 'like', "%$search%")
-                    ->orWhere('isbn', 'like', "%$search%");
-            });
-        }
+        // Panggil Stored Procedure
+        $results = \Illuminate\Support\Facades\DB::select(
+            'CALL sp_get_buku(?, ?, ?, ?, ?, @total)',
+            [$search, $sortCol, $sortDir, $limit, $offset]
+        );
 
-        $buku = $query->orderBy('id_buku', 'desc')->paginate(10);
-        $buku->appends($request->all());
+        // Ambil Total Data
+        $totalResult = \Illuminate\Support\Facades\DB::select('SELECT @total as total');
+        $total = $totalResult[0]->total ?? 0;
 
-        // Helper untuk API Search (AJAX) - Digunakan di Peminjaman
+        // Hydrate
+        $items = Buku::hydrate($results);
+
+        // Manual Paginator
+        $buku = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // API Response (AJAX)
         if ($request->ajax()) {
-            // Re-query with limit for autocomplete
             return response()->json([
                 'status' => 'success',
-                'data' => $query->orderBy('id_buku', 'desc')->limit(20)->get()
+                'data' => $items,
+                'total' => $total,
+                'links' => (string) $buku->links()
             ]);
         }
 
         $kategoriList = Kategori::all();
-
         $totalBuku = Buku::count();
         $totalStok = Buku::sum('stok_total');
 
-        return view('buku.index', compact('buku', 'kategoriList', 'totalBuku', 'totalStok'));
+        return view('administrator.buku.index', compact('buku', 'kategoriList', 'totalBuku', 'totalStok'));
     }
 
     public function store(Request $request)

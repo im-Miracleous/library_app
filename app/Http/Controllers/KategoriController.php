@@ -9,20 +9,50 @@ class KategoriController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Kategori::query();
+        // Parameter Default
+        $search = $request->input('search', '');
+        $sortCol = $request->input('sort', 'created_at');
+        $sortDir = $request->input('direction', 'desc');
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $limit;
 
-        if ($request->has('search') && $request->search != '') {
-            $query->where('nama_kategori', 'like', '%' . $request->search . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $request->search . '%');
+        // Panggil Stored Procedure
+        $results = \Illuminate\Support\Facades\DB::select(
+            'CALL sp_get_kategori(?, ?, ?, ?, ?, @total)',
+            [$search, $sortCol, $sortDir, $limit, $offset]
+        );
+
+        // Ambil Total Data
+        $totalResult = \Illuminate\Support\Facades\DB::select('SELECT @total as total');
+        $total = $totalResult[0]->total ?? 0;
+
+        // Hydrate
+        $items = Kategori::hydrate($results);
+
+        // Manual Paginator
+        $kategori = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // API Response (AJAX)
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $items,
+                'total' => $total,
+                'links' => (string) $kategori->links()
+            ]);
         }
-
-        $kategori = $query->orderBy('id_kategori', 'desc')->paginate(10);
-        $kategori->appends($request->all());
 
         $totalKategori = Kategori::count();
         $kategoriBaru = Kategori::whereMonth('created_at', date('m'))->count();
 
-        return view('kategori.index', compact('kategori', 'totalKategori', 'kategoriBaru'));
+        return view('administrator.kategori.index', compact('kategori', 'totalKategori', 'kategoriBaru'));
     }
 
     public function store(Request $request)
@@ -66,7 +96,7 @@ class KategoriController extends Controller
     public function destroy($id)
     {
         $kategori = Kategori::findOrFail($id);
-        
+
         // Cek apakah kategori ini dipakai di tabel Buku?
         // Jika ya, sebaiknya dicegah hapus (Opsional, tapi aman)
         if ($kategori->buku()->count() > 0) {

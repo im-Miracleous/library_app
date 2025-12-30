@@ -155,7 +155,7 @@
                                     <span class="material-symbols-outlined">add</span>
                                     Transaksi Baru
                                 </button>
-                                <a href="{{ route('pengguna.index') }}"
+                                <a href="{{ route('anggota.index') }}"
                                     class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md btn-animated">
                                     <span class="material-symbols-outlined">person_add</span>
                                     Tambah Anggota

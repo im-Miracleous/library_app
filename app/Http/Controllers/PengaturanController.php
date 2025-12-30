@@ -24,7 +24,7 @@ class PengaturanController extends Controller
             ]);
         }
 
-        return view('pengaturan.index', compact('pengaturan'));
+        return view('administrator.pengaturan.index', compact('pengaturan'));
     }
 
     /**

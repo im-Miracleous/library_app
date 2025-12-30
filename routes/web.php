@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('buku', \App\Http\Controllers\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
-        Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+        Route::resource('anggota', \App\Http\Controllers\AnggotaController::class);
 
         // Modul Laporan
         Route::prefix('laporan')->name('laporan.')->group(function () {

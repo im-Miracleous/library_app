@@ -36,16 +36,8 @@
 
             <div class="p-4 sm:p-8">
                 <!-- Breadcrumbs -->
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60 mb-6 animate-enter">
-                    <span class="material-symbols-outlined text-base">home</span>
-                    <span>/</span>
-                    <span>Sirkulasi</span>
-                    <span>/</span>
-                    <a href="{{ route('peminjaman.index') }}"
-                        class="hover:text-primary dark:hover:text-white transition-colors">Peminjaman</a>
-                    <span>/</span>
-                    <span class="font-bold text-primary dark:text-white">Detail</span>
-                </div>
+                <x-breadcrumb-component parent="Sirkulasi" middle="Peminjaman" :middleLink="route('peminjaman.index')"
+                    current="Detail" class="mb-6 animate-enter" />
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-enter delay-100">
 

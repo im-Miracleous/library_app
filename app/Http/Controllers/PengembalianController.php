@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Pengaturan;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PengembalianController extends Controller
 {
@@ -18,22 +19,45 @@ class PengembalianController extends Controller
      */
     public function index(Request $request)
     {
-        // Hanya tampilkan yang STATUS = 'berjalan'
-        $query = Peminjaman::with(['pengguna', 'details.buku'])
-            ->where('status_transaksi', 'berjalan')
-            ->orderBy('tanggal_jatuh_tempo', 'asc'); // Prioritaskan yang mau jatuh tempo
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'tanggal_jatuh_tempo');
+        $direction = $request->input('direction', 'asc');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('id_peminjaman', 'like', "%{$search}%")
-                    ->orWhereHas('pengguna', function ($subQ) use ($search) {
-                        $subQ->where('nama', 'like', "%{$search}%");
-                    });
-            });
+        // Call SP (Implicitly filters status='berjalan')
+        $data = DB::select('CALL sp_get_pengembalian_list(?, ?, ?, ?, ?, @total)', [
+            $search,
+            $sort,
+            $direction,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'links' => (string) (new LengthAwarePaginator(
+                    [],
+                    $total,
+                    $limit,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                ))->links()
+            ]);
         }
 
-        $peminjaman = $query->paginate(10)->withQueryString();
+        // Manual Pagination for View
+        $peminjaman = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('sirkulasi.pengembalian.index', compact('peminjaman'));
     }

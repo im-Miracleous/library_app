@@ -16,40 +16,51 @@ class KepegawaianController extends Controller
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
-        $query = Pengguna::whereIn('peran', ['admin', 'petugas']);
+        // Parameter Default
+        $search = $request->input('search', '');
+        $sortCol = $request->input('sort', 'created_at');
+        $sortDir = $request->input('direction', 'desc');
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $limit;
+        $peran = $request->input('peran', ''); // Add peran filter
 
-        // Filter Status
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
+        // Panggil Stored Procedure
+        $results = \Illuminate\Support\Facades\DB::select(
+            'CALL sp_get_kepegawaian(?, ?, ?, ?, ?, ?, @total)',
+            [$search, $sortCol, $sortDir, $limit, $offset, $peran]
+        );
 
-        // Filter Search
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
+        // Ambil Total Data
+        $totalResult = \Illuminate\Support\Facades\DB::select('SELECT @total as total');
+        $total = $totalResult[0]->total ?? 0;
 
-        // Helper untuk API Search (AJAX)
+        // Buat Paginator
+        $items = Pengguna::hydrate($results);
+        $pegawai = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // API Response (AJAX)
         if ($request->ajax()) {
             return response()->json([
                 'status' => 'success',
-                'data' => $query->orderBy('id_pengguna', 'desc')->get()
+                'data' => $items,
+                'total' => $total,
+                'links' => (string) $pegawai->links()
             ]);
         }
-
-        // Pagination
-        $pegawai = $query->orderBy('id_pengguna', 'desc')->paginate(10);
-        $pegawai->appends($request->all());
 
         // Statistik
         $totalPegawai = Pengguna::whereIn('peran', ['admin', 'petugas'])->count();
         $totalAdmin = Pengguna::where('peran', 'admin')->count();
         $totalPetugas = Pengguna::where('peran', 'petugas')->count();
 
-        return view('kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalAdmin', 'totalPetugas'));
+        return view('administrator.kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalAdmin', 'totalPetugas'));
     }
 
     public function store(Request $request)

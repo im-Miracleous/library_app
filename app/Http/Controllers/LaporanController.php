@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Peminjaman;
 use App\Models\Denda;
+use App\Models\DetailPeminjaman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -27,25 +28,47 @@ class LaporanController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $status = $request->input('status');
 
-        $query = Peminjaman::with(['pengguna', 'details.buku'])
-            ->whereBetween('tanggal_pinjam', [$startDate, $endDate]);
+        if ($request->ajax()) {
+            $page = $request->input('page', 1);
+            $limit = $request->input('limit', 10);
+            $offset = ($page - 1) * $limit;
+            $search = $request->input('search');
 
+            // Call SP
+            $data = DB::select('CALL sp_get_laporan_transaksi(?, ?, ?, ?, ?, ?, @total)', [
+                $startDate,
+                $endDate,
+                $status,
+                $search,
+                $limit,
+                $offset
+            ]);
+            $total = DB::select('SELECT @total as total')[0]->total;
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total
+            ]);
+        }
+
+        // Summary Calculations (Using simple Eloquent queries for stats)
+        $query = Peminjaman::whereBetween('tanggal_pinjam', [$startDate, $endDate]);
         if ($status) {
             $query->where('status_transaksi', $status);
         }
 
-        $peminjaman = $query->latest()->get();
+        $totalTransaksi = $query->count();
 
-        // Calculations for Summary Cards
-        $totalTransaksi = $peminjaman->count();
-        $totalBukuDipinjam = $peminjaman->sum(function ($t) {
-            return $t->details->count();
-        });
-        $transaksiSelesai = $peminjaman->where('status_transaksi', 'selesai')->count();
-        $transaksiBerjalan = $peminjaman->where('status_transaksi', 'berjalan')->count();
+        // Use View or specialized query for book count if performance is critical. 
+        // For now: sum relation count.
+        // Optimization: Get IDs first, then count details
+        $peminjamanIds = $query->pluck('id_peminjaman');
+        $totalBukuDipinjam = DetailPeminjaman::whereIn('id_peminjaman', $peminjamanIds)->count();
+
+        $transaksiSelesai = $query->clone()->where('status_transaksi', 'selesai')->count();
+        $transaksiBerjalan = $query->clone()->where('status_transaksi', 'berjalan')->count();
 
         return view('laporan.peminjaman', compact(
-            'peminjaman',
             'startDate',
             'endDate',
             'status',
@@ -65,22 +88,40 @@ class LaporanController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $statusBayar = $request->input('status_bayar');
 
-        $query = Denda::with(['detail.peminjaman.pengguna', 'detail.buku'])
-            ->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
+        if ($request->ajax()) {
+            $page = $request->input('page', 1);
+            $limit = $request->input('limit', 10);
+            $offset = ($page - 1) * $limit;
+            $search = $request->input('search');
 
+            // Call SP
+            $data = DB::select('CALL sp_get_laporan_denda(?, ?, ?, ?, ?, ?, @total)', [
+                $startDate,
+                $endDate,
+                $statusBayar,
+                $search,
+                $limit,
+                $offset
+            ]);
+            $total = DB::select('SELECT @total as total')[0]->total;
+
+            return response()->json([
+                'data' => $data,
+                'total' => $total
+            ]);
+        }
+
+        // Summary Calculations
+        $query = Denda::whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
         if ($statusBayar) {
             $query->where('status_bayar', $statusBayar);
         }
 
-        $denda = $query->latest()->get();
-
-        // Calculations
-        $totalDenda = $denda->sum('jumlah_denda');
-        $totalDibayar = $denda->where('status_bayar', 'lunas')->sum('jumlah_denda');
-        $totalBelumBayar = $denda->where('status_bayar', 'belum_bayar')->sum('jumlah_denda');
+        $totalDenda = $query->sum('jumlah_denda');
+        $totalDibayar = $query->clone()->where('status_bayar', 'lunas')->sum('jumlah_denda');
+        $totalBelumBayar = $query->clone()->where('status_bayar', 'belum_bayar')->sum('jumlah_denda');
 
         return view('laporan.denda', compact(
-            'denda',
             'startDate',
             'endDate',
             'statusBayar',
