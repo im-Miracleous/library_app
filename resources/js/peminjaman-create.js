@@ -35,13 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Check Max Books
         // Total = (User's Current Active Loans) + (Books in Basket)
-        const currentActiveInfo = currentUser ? (currentUser.active_books_count || 0) : 0;
+        const currentActiveInfo = currentUser ? (currentUser.active_loans || 0) : 0;
         const basketCount = selectedBooks.length;
         const totalBooks = currentActiveInfo + basketCount;
 
-        if (currentUser && totalBooks > MAX_BOOKS) {
-            warnings.push(`Melampaui batas peminjaman! User ini sedang meminjam <strong>${currentActiveInfo}</strong> buku. Ditambah <strong>${basketCount}</strong> buku baru, total menjadi <strong>${totalBooks}</strong> (Maksimal: ${MAX_BOOKS}).`);
-            hasError = true;
+        if (currentUser) {
+            if (totalBooks > MAX_BOOKS) {
+                warnings.push(`Melampaui batas peminjaman! User ini sedang meminjam <strong>${currentActiveInfo}</strong> buku. Ditambah <strong>${basketCount}</strong> buku baru, total menjadi <strong>${totalBooks}</strong> (Maksimal: ${MAX_BOOKS}).`);
+                hasError = true;
+            } else if (totalBooks === MAX_BOOKS) {
+                warnings.push(`Batas peminjaman tercapai (${totalBooks}/${MAX_BOOKS} buku). Tidak dapat menambah buku lagi.`);
+            }
         } else if (!currentUser && basketCount > MAX_BOOKS) {
             // Fallback if user not selected yet but bucket full (unlikely but possible)
             warnings.push(`Jumlah buku yang dipilih (${basketCount}) melebihi batas maksimal (${MAX_BOOKS}).`);
@@ -250,7 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
 
-                if (hasStock) {
+                // Calculate quota status
+                const currentLoans = currentUser ? (currentUser.active_loans || 0) : 0;
+                const basketCount = selectedBooks.length;
+                const remainingQuota = MAX_BOOKS - currentLoans - basketCount;
+
+                if (remainingQuota <= 0) {
+                    div.className = 'p-3 border-b border-slate-100 dark:border-white/5 last:border-0 flex items-center justify-between group opacity-50 cursor-not-allowed bg-slate-50 dark:bg-white/5';
+                    div.onclick = null; // Remove click handler
+                } else if (hasStock) {
                     div.onclick = () => selectBuku(book);
                 }
 

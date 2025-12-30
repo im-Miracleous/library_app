@@ -7,6 +7,7 @@ use App\Models\DetailPeminjaman;
 use App\Models\Pengguna;
 use App\Models\Buku;
 use App\Models\Denda; // Import Model Denda
+use App\Models\Pengaturan;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -102,8 +103,30 @@ class PeminjamanSeeder extends Seeder
 
             // Jadi Header Peminjaman tidak nyimpan tanggal kembali.
 
-            // Create Detail (1-3 buku acak)
-            $bookCount = rand(1, 3);
+            // Pengecekan Limit untuk Peminjaman Berjalan
+            if ($statusTrans == 'berjalan') {
+                // Hitung jumlah buku yang SEDANG dipinjam user ini (active)
+                $currentActiveBooks = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($member) {
+                    $q->where('id_pengguna', $member->id_pengguna)
+                        ->where('status_transaksi', 'berjalan');
+                })->where('status_buku', 'dipinjam')->count();
+
+                $maxLoan = Pengaturan::first()->maksimal_buku_pinjam;
+                $remainingQuota = $maxLoan - $currentActiveBooks;
+
+                if ($remainingQuota <= 0) {
+                    // Limit habis, batalkan pembuatan dummy transaction ini untuk user ini
+                    // Atau bisa `return` saja agar tidak error
+                    return;
+                }
+
+                // Sesuaikan jumlah buku yang akan dipinjam dengan sisa kuota
+                $bookCount = rand(1, min(3, $remainingQuota));
+            } else {
+                // Untuk status 'selesai', tidak memakan kuota aktif, jadi bebas 1-3
+                $bookCount = rand(1, 3);
+            }
+
             $randomBooks = $books->random($bookCount);
 
             foreach ($randomBooks as $book) {
