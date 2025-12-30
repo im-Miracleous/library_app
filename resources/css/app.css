@@ -33,8 +33,13 @@
 /* HAPUS GLOBAL TRANSITION YANG BERBAHAYA (Causes flickering & performance issues) */
 /* body, div, ... { ... }  <-- DIHAPUS */
 
-button, a, input[type="submit"], input[type="button"], input[type="reset"], label[for], select, .cursor-pointer {
+button:not(:disabled), a, input[type="submit"], input[type="button"], input[type="reset"], label[for], select, .cursor-pointer {
     cursor: pointer;
+}
+
+button:disabled, input:disabled, select:disabled, textarea:disabled, .cursor-not-allowed {
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
 }
 
 /* Transisi Fade Background (Hanya aktif saat class theme-animating ada) */

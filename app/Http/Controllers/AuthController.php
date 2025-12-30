@@ -191,8 +191,12 @@ class AuthController extends Controller
         $user = Pengguna::where('email', $request->email)->first();
 
         if ($user) {
+            // CEK STATUS: Nonaktif
+            if ($user->status === 'nonaktif') {
+                return back()->withErrors(['email' => 'Akun Anda dinonaktifkan. Silahkan hubungi Administrator.'])->onlyInput('email');
+            }
             if ($user->is_locked) {
-                return back()->withErrors(['email' => 'Akun terkunci. Hubungi Admin.'])->onlyInput('email');
+                return back()->withErrors(['email' => 'Akun terkunci. Hubungi Administrator untuk membuka akses.'])->onlyInput('email');
             }
             if ($user->lockout_time && now()->lessThan($user->lockout_time)) {
                 $seconds = now()->diffInSeconds($user->lockout_time);

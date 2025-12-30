@@ -108,6 +108,21 @@ class KepegawaianController extends Controller
 
         $user = Pengguna::findOrFail($id);
 
+        // PROTEKSI ADMIN: Tidak boleh edit sesama Admin (kecuali diri sendiri)
+        if ($user->peran === 'admin' && $user->id_pengguna !== auth()->user()->id_pengguna) {
+            abort(403, 'Anda tidak dapat mengubah data sesama Admin.');
+        }
+
+        // UNLOCK ACCOUNT FEATURE
+        if ($request->boolean('unlock_account')) {
+            $user->update([
+                'is_locked' => false,
+                'login_attempts' => 0,
+                'lockout_time' => null
+            ]);
+            return redirect()->back()->with('success', 'Akun berhasil dibuka kuncinya.');
+        }
+
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
             'email' => [
@@ -124,15 +139,28 @@ class KepegawaianController extends Controller
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
+        // PROTEKSI DIRI SENDIRI: Admin tidak boleh ubah Role & Status diri sendiri
+        if ($user->id_pengguna === auth()->user()->id_pengguna) {
+            unset($validatedData['peran']);
+            unset($validatedData['status']);
+        }
+
         $user->nama = $validatedData['nama'];
         $user->email = $validatedData['email'];
         if ($request->filled('password')) {
             $user->password = Hash::make($validatedData['password']);
         }
-        $user->peran = $validatedData['peran'];
+
+        // Update peran & status hanya jika key masih ada (tidak di-unset)
+        if (isset($validatedData['peran'])) {
+            $user->peran = $validatedData['peran'];
+        }
         $user->telepon = $validatedData['telepon'];
         $user->alamat = $validatedData['alamat'];
-        $user->status = $validatedData['status'];
+
+        if (isset($validatedData['status'])) {
+            $user->status = $validatedData['status'];
+        }
 
         $user->save();
 
@@ -150,6 +178,11 @@ class KepegawaianController extends Controller
         // Prevent deleting self
         if ($user->id_pengguna == auth()->id()) {
             return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        // PROTEKSI: Tidak boleh hapus Admin
+        if ($user->peran === 'admin') {
+            abort(403, 'Anda tidak dapat menghapus akun Admin.');
         }
 
         $user->delete();

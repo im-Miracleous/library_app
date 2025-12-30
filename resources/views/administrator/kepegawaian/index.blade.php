@@ -199,20 +199,39 @@
                                     </span>
                                 </td>
                                 <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                    <button onclick="openEditPegawai({{ $user->toJson() }})"
-                                        class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                                        title="Edit">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                    <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
-                                        onsubmit="return confirm('Yakin hapus?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                            title="Hapus">
+                                    {{-- PROTEKSI: Edit --}}
+                                    @if($user->peran == 'admin' && $user->id_pengguna != auth()->user()->id_pengguna)
+                                        <button disabled
+                                            class="p-2 rounded-lg text-blue-300 dark:text-blue-800 cursor-not-allowed opacity-70"
+                                            title="Edit (Dilindungi)">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                    @else
+                                        <button onclick="openEditPegawai({{ $user->toJson() }})"
+                                            class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                            title="Edit">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+                                    @endif
+
+                                    {{-- PROTEKSI: Delete --}}
+                                    @if($user->peran === 'admin')
+                                        <button disabled
+                                            class="p-2 rounded-lg text-red-300 dark:text-red-800 cursor-not-allowed opacity-70"
+                                            title="Hapus (Dilindungi)">
                                             <span class="material-symbols-outlined text-lg">delete</span>
                                         </button>
-                                    </form>
+                                    @else
+                                        <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
+                                            onsubmit="return confirm('Yakin hapus?');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                                title="Hapus">
+                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -396,6 +415,18 @@
                                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
                         </div>
 
+                        <div id="unlockContainer"
+                            class="hidden p-3 bg-red-50 dark:bg-red-500/10 rounded-lg border border-red-200 dark:border-red-500/20 mt-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-red-700 dark:text-red-400">
+                                <span class="material-symbols-outlined text-xl">lock</span>
+                                <span class="text-xs font-bold uppercase">Akun Terkunci Permanen</span>
+                            </div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="unlock_account" id="unlock_account" value="1"
+                                    class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-bold text-slate-700 dark:text-white">Buka Kunci</span>
+                            </label>
+                        </div>
                         <div
                             class="p-3 bg-yellow-50 dark:bg-yellow-500/5 rounded-lg border border-yellow-200 dark:border-yellow-500/10 mt-2">
                             <p
@@ -432,6 +463,32 @@
             document.getElementById('edit_alamat').value = user.alamat;
             document.getElementById('edit_status').value = user.status;
             document.getElementById('edit_peran').value = user.peran;
+
+            // PROTEKSI DIRI: Disable Role & Status jika edit diri sendiri
+            const currentUserId = '{{ auth()->user()->id_pengguna }}';
+            const statusSelect = document.getElementById('edit_status');
+            const peranSelect = document.getElementById('edit_peran');
+
+            if (user.id_pengguna === currentUserId) {
+                statusSelect.disabled = true;
+                peranSelect.disabled = true;
+                statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+                peranSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            } else {
+                statusSelect.disabled = false;
+                peranSelect.disabled = false;
+                statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+                peranSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            }
+
+            // UNLOCK ACCOUNT UI
+            const unlockContainer = document.getElementById('unlockContainer');
+            if (user.is_locked) {
+                unlockContainer.classList.remove('hidden');
+            } else {
+                unlockContainer.classList.add('hidden');
+                document.getElementById('unlock_account').checked = false;
+            }
 
             // Set action url
             document.getElementById('editForm').action = `{{ url('kepegawaian') }}/${user.id_pengguna}`;
