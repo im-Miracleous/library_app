@@ -80,14 +80,22 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div
                         class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter delay-300 shadow-sm dark:shadow-none transition-colors">
-                        <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-6">Peminjaman Terbaru</h3>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-primary-dark dark:text-white">Peminjaman Terbaru</h3>
+                            <a href="{{ route('peminjaman.index') }}"
+                                class="text-sm font-semibold text-primary hover:text-primary-dark dark:text-accent dark:hover:text-white transition-colors flex items-center gap-1 group">
+                                Lihat Semua
+                                <span
+                                    class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                            </a>
+                        </div>
                         <div class="flex flex-col gap-4">
                             @forelse($peminjamanTerbaru as $pinjam)
-                                <div
-                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-colors hover:bg-primary/10 dark:hover:bg-[#4D3A2F] hover:border-primary/20 cursor-default">
+                                <a href="{{ route('peminjaman.show', $pinjam->id_peminjaman) }}"
+                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-all hover:bg-primary/10 dark:hover:bg-[#4D3A2F] hover:border-primary/20 hover:scale-[1.02] cursor-pointer group">
                                     <div class="flex items-center gap-4">
                                         <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold">
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold group-hover:bg-primary group-hover:text-white dark:group-hover:bg-accent dark:group-hover:text-primary-dark transition-colors">
                                             {{ substr($pinjam->pengguna->nama, 0, 1) }}
                                         </div>
                                         <div>
@@ -103,7 +111,7 @@
                                         class="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 text-xs font-bold uppercase">
                                         {{ $pinjam->status_transaksi }}
                                     </span>
-                                </div>
+                                </a>
                             @empty
                                 <p class="text-primary-mid dark:text-white/40 text-center py-8">Belum ada data peminjaman.
                                 </p>
@@ -115,16 +123,33 @@
                         class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter delay-300 shadow-sm dark:shadow-none transition-colors flex flex-col justify-between">
                         <div>
                             <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4">Akses Cepat</h3>
-                            <div class="flex flex-col gap-3">
-                                <button
-                                    class="w-full py-3 px-4 bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md">
-                                    <span class="material-symbols-outlined">add</span>
+                            <div class="grid grid-cols-1 gap-3">
+                                {{-- 1. Transaksi Baru --}}
+                                <a href="{{ route('peminjaman.create') }}"
+                                    class="w-full py-3 px-4 bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">add_circle</span>
                                     Transaksi Baru
-                                </button>
-                                <a href="{{ route('anggota.index') }}"
-                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md btn-animated">
+                                </a>
+
+                                {{-- 2. Tambah Anggota --}}
+                                <a href="{{ route('anggota.index', ['action' => 'create']) }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
                                     <span class="material-symbols-outlined">person_add</span>
                                     Tambah Anggota
+                                </a>
+
+                                {{-- 3. Tambah Buku --}}
+                                <a href="{{ route('buku.index', ['action' => 'create']) }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                    Tambah Buku
+                                </a>
+
+                                {{-- 4. Lihat Pengunjung --}}
+                                <a href="{{ route('pengunjung.index') }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                    Lihat Pengunjung
                                 </a>
                             </div>
                         </div>

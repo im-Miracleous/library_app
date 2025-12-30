@@ -24,7 +24,7 @@ class DashboardController extends Controller
 
             $peminjamanTerbaru = Peminjaman::with('pengguna')
                 ->orderBy('created_at', 'desc')
-                ->take(5)
+                ->take(3)
                 ->get();
         } catch (\Exception $e) {
             $stats = [

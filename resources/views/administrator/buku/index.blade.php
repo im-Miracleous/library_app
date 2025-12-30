@@ -441,6 +441,18 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'create') {
+                openModal('createModal');
+
+                // Clean URL without reloading
+                const newUrl = window.location.pathname + window.location.search.replace(/[\?&]action=create/, '') + window.location.hash;
+                window.history.replaceState({}, '', newUrl);
+            }
+        });
+    </script>
 </body>
 
 </html>
