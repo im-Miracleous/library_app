@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             users.forEach(user => {
                 // Determine badge color based on active loans?
-                const loanCount = user.active_books_count || 0;
+                const loanCount = user.active_loans || 0;
 
                 const div = document.createElement('div');
                 div.className = 'p-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 flex items-center justify-between group';
