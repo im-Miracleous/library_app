@@ -32,7 +32,7 @@
 
     <!-- Scrollable Content -->
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto flex flex-col justify-between px-4 py-4">
+    <div class="flex-1 overflow-y-auto px-4 py-4">
         <nav class="flex flex-col gap-2">
 
             <!-- Menu Utama (Dashboard) -->
@@ -46,8 +46,9 @@
             </a>
 
             @if(Auth::user()->peran == 'admin')
+                    <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
-                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
                         Administrator</div>
 
                     <a href="{{ route('anggota.index') }}"
@@ -126,8 +127,9 @@
             @endif
 
             @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
+                    <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
-                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
                         Sirkulasi</div>
 
                     <a href="{{ route('peminjaman.index') }}"
@@ -180,9 +182,11 @@
             @endif
 
         </nav>
+    </div>
 
-        <div
-            class="flex flex-col gap-4 flex-shrink-0 pt-4 pb-4 border-t border-primary/20 dark:border-border-dark mt-4">
+    <!-- Fixed Bottom Section -->
+    <div class="flex-none px-4 pb-4 border-t border-primary/20 dark:border-border-dark">
+        <div class="flex flex-col gap-4 pt-4">
             <div
                 class="bg-white/50 dark:bg-surface-dark p-4 rounded-xl flex items-center gap-3 border border-primary/10 dark:border-border-dark cursor-default transition-colors">
                 <div
