@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Set initial value from URL
             Array.from(limitSelect.options).forEach(opt => {
-                // Handle complex values if any, otherwise simple
-                if (opt.value === state.limit || opt.value.includes(`limit=${state.limit}`)) {
-                    limitSelect.value = opt.value;
+                const optVal = opt.value;
+                if (optVal === state.limit || new RegExp(`[?&]limit=${state.limit}(?:&|$)`).test(optVal)) {
+                    limitSelect.value = optVal;
                 }
             });
 

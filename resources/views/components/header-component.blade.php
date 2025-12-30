@@ -50,9 +50,15 @@
                     class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-primary-mid dark:text-accent">
                     <span class="material-symbols-outlined">search</span>
                 </div>
-                <input
+                <input id="global-search-input"
                     class="block w-full p-3 pl-12 text-sm text-primary-dark dark:text-white bg-white dark:bg-surface-dark border-none rounded-full placeholder-primary-mid/60 dark:placeholder-white/40 focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:bg-white dark:focus:bg-[#36271F] transition-all shadow-sm dark:shadow-none"
-                    placeholder="Cari buku, ISBN, atau anggota..." type="text" />
+                    placeholder="Cari buku, ISBN, atau anggota..." type="text" autocomplete="off" />
+
+                <!-- Global Search Results Container -->
+                <div id="global-search-results"
+                    class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-surface-dark rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden z-50 hidden max-h-[400px] overflow-y-auto">
+                    <!-- Results injected via JS -->
+                </div>
             </div>
         @endif
     </div>

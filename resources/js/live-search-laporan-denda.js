@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
         search: new URLSearchParams(window.location.search).get('search') || '',
         page: new URLSearchParams(window.location.search).get('page') || 1,
         limit: new URLSearchParams(window.location.search).get('limit') || 10,
-        sort: new URLSearchParams(window.location.search).get('sort') || 'created_at',
-        direction: new URLSearchParams(window.location.search).get('direction') || 'desc',
+        sort: new URLSearchParams(window.location.search).get('sort') || '',
+        direction: new URLSearchParams(window.location.search).get('direction') || '',
         start_date: new URLSearchParams(window.location.search).get('start_date') || '',
         end_date: new URLSearchParams(window.location.search).get('end_date') || '',
         status_bayar: new URLSearchParams(window.location.search).get('status_bayar') || ''
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         data.forEach(item => {
-            const date = new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); // Note: controller select might return created_at or tanggal_denda
+            const date = new Date(item.tanggal_denda).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
             // Format Currency
             const amount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.jumlah_denda);
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             row.innerHTML = `
-                <td class="p-4 pl-6 font-mono text-xs text-slate-500 dark:text-white/50">${date}</td>
+                <td class="p-4 text-left font-mono text-xs text-slate-500 dark:text-white/50">${date}</td>
                 <td class="p-4 font-mono font-bold text-primary dark:text-accent">${refHighlight}</td>
                 <td class="p-4 max-w-[200px] truncate" title="${item.nama_anggota}">
                     <span class="font-bold text-slate-800 dark:text-white">${nameHighlight}</span>
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="p-4 text-center">
                     <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${badgeClass}">${statusLabel}</span>
                 </td>
-                <td class="p-4 text-center">
+                <td class="p-4 pr-6 text-center">
                     ${actionBtn}
                 </td>
             `;

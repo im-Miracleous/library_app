@@ -30,10 +30,9 @@ class PeminjamanSeeder extends Seeder
 
         // Helper untuk generate ID Peminjaman
         // P-[YYYY]-[MM]-[DD][NNN] (Simplified for seeder)
-        $dateCode = Carbon::now()->format('Ymd');
         $counter = 1;
-
-        $generateId = function () use ($dateCode, &$counter) {
+        $generateId = function ($date) use (&$counter) {
+            $dateCode = $date->format('Ymd');
             $id = 'P-' . $dateCode . '-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
             $counter++;
             return $id;
@@ -71,7 +70,7 @@ class PeminjamanSeeder extends Seeder
                 }
             }
 
-            $newId = $generateId();
+            $newId = $generateId($tglPinjam);
 
             // Create Header Peminjaman (Tanpa kolom denda dan tanggal_kembali)
             $peminjaman = Peminjaman::create([

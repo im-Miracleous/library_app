@@ -49,6 +49,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // --- AREA BEBAS ---
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/global-search', [\App\Http\Controllers\Api\GlobalSearchController::class, 'search'])->name('global.search');
+
     // --- AREA KHUSUS ADMIN ---
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
@@ -64,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
             Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
             Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
+            Route::post('/denda/{id}/bayar', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.bayar');
         });
 
         // Route Update Status Denda (Outside Laporan Prefix)

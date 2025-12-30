@@ -25,8 +25,8 @@ class PeminjamanController extends Controller
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
         $status = $request->input('status');
-        $sort = $request->input('sort', 'created_at');
-        $direction = $request->input('direction', 'desc');
+        $sort = $request->input('sort') ?: 'created_at';
+        $direction = $request->input('direction') ?: 'desc';
 
         // Call SP
         $data = DB::select('CALL sp_get_peminjaman_list(?, ?, ?, ?, ?, ?, @total)', [

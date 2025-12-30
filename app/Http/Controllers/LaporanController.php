@@ -36,12 +36,17 @@ class LaporanController extends Controller
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
 
+        $sort = $request->input('sort');
+        $direction = $request->input('direction');
+
         // Fetch Data (used for both Ajax and Initial View)
-        $data = DB::select('CALL sp_get_laporan_transaksi(?, ?, ?, ?, ?, ?, @total)', [
+        $data = DB::select('CALL sp_get_laporan_transaksi(?, ?, ?, ?, ?, ?, ?, ?, @total)', [
             $startDate,
             $endDate,
             $status,
             $search,
+            $sort,
+            $direction,
             $limit,
             $offset
         ]);
@@ -105,12 +110,17 @@ class LaporanController extends Controller
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
 
+        $sort = $request->input('sort');
+        $direction = $request->input('direction');
+
         // Fetch Data (used for both Ajax and Initial View)
-        $data = DB::select('CALL sp_get_laporan_denda(?, ?, ?, ?, ?, ?, @total)', [
+        $data = DB::select('CALL sp_get_laporan_denda(?, ?, ?, ?, ?, ?, ?, ?, @total)', [
             $startDate,
             $endDate,
             $statusBayar,
             $search,
+            $sort,
+            $direction,
             $limit,
             $offset
         ]);

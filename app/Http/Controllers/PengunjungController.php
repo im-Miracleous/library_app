@@ -18,8 +18,8 @@ class PengunjungController extends Controller
         $limit = $request->input('limit', 10);
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
-        $sort = $request->input('sort', 'created_at');
-        $direction = $request->input('direction', 'desc');
+        $sort = $request->input('sort') ?: 'created_at';
+        $direction = $request->input('direction') ?: 'desc';
 
         // Call SP 
         $data = DB::select('CALL sp_get_pengunjung(?, ?, ?, ?, ?, @total)', [

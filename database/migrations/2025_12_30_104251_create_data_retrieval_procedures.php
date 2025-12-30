@@ -215,6 +215,8 @@ CREATE PROCEDURE sp_get_laporan_denda(
     IN p_end_date DATE,
     IN p_status_bayar VARCHAR(20),
     IN p_search VARCHAR(255),
+    IN p_sort_col VARCHAR(50),
+    IN p_sort_dir VARCHAR(10),
     IN p_limit INT,
     IN p_offset INT,
     OUT p_total INT
@@ -253,7 +255,10 @@ BEGIN
     SET @sql = CONCAT(@sql, 'JOIN pengguna u ON p.id_pengguna = u.id_pengguna ');
     SET @sql = CONCAT(@sql, 'JOIN buku b ON dp.id_buku = b.id_buku ');
     SET @sql = CONCAT(@sql, @where_clause);
-    SET @sql = CONCAT(@sql, ' ORDER BY d.created_at DESC LIMIT ', p_limit, ' OFFSET ', p_offset);
+    IF p_sort_col IS NULL OR p_sort_col = '' THEN SET p_sort_col = 'tanggal_denda'; END IF;
+    IF p_sort_dir IS NULL OR p_sort_dir = '' THEN SET p_sort_dir = 'DESC'; END IF;
+
+    SET @sql = CONCAT(@sql, ' ORDER BY ', p_sort_col, ' ', p_sort_dir, ' LIMIT ', p_limit, ' OFFSET ', p_offset);
 
     PREPARE stmt FROM @sql;
     EXECUTE stmt USING @start_date, @end_date, @search_param, @search_param, @search_param;
@@ -270,6 +275,8 @@ CREATE PROCEDURE sp_get_laporan_transaksi(
     IN p_end_date DATE,
     IN p_status VARCHAR(20),
     IN p_search VARCHAR(255),
+    IN p_sort_col VARCHAR(50),
+    IN p_sort_dir VARCHAR(10),
     IN p_limit INT,
     IN p_offset INT,
     OUT p_total INT
@@ -303,7 +310,10 @@ BEGIN
     SET @sql = CONCAT(@sql, 'FROM peminjaman p ');
     SET @sql = CONCAT(@sql, 'JOIN pengguna u ON p.id_pengguna = u.id_pengguna ');
     SET @sql = CONCAT(@sql, @where_clause);
-    SET @sql = CONCAT(@sql, ' ORDER BY p.tanggal_pinjam DESC LIMIT ', p_limit, ' OFFSET ', p_offset);
+    IF p_sort_col IS NULL OR p_sort_col = '' THEN SET p_sort_col = 'tanggal_pinjam'; END IF;
+    IF p_sort_dir IS NULL OR p_sort_dir = '' THEN SET p_sort_dir = 'DESC'; END IF;
+
+    SET @sql = CONCAT(@sql, ' ORDER BY ', p_sort_col, ' ', p_sort_dir, ' LIMIT ', p_limit, ' OFFSET ', p_offset);
 
     PREPARE stmt FROM @sql;
     EXECUTE stmt USING @start_date, @end_date, @search_param, @search_param;

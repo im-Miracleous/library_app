@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function () {
         search: new URLSearchParams(window.location.search).get('search') || '',
         page: new URLSearchParams(window.location.search).get('page') || 1,
         limit: new URLSearchParams(window.location.search).get('limit') || 10,
-        sort: new URLSearchParams(window.location.search).get('sort') || 'tanggal_jatuh_tempo',
-        direction: new URLSearchParams(window.location.search).get('direction') || 'asc'
+        sort: new URLSearchParams(window.location.search).get('sort') || '',
+        direction: new URLSearchParams(window.location.search).get('direction') || ''
     };
 
     // Elements
@@ -23,8 +23,9 @@ document.addEventListener('DOMContentLoaded', function () {
             limitSelect.removeAttribute('onchange');
 
             Array.from(limitSelect.options).forEach(opt => {
-                if (opt.value === state.limit || opt.value.includes(`limit=${state.limit}`)) {
-                    limitSelect.value = opt.value;
+                const optVal = opt.value;
+                if (optVal === state.limit || new RegExp(`[?&]limit=${state.limit}(?:&|$)`).test(optVal)) {
+                    limitSelect.value = optVal;
                 }
             });
 

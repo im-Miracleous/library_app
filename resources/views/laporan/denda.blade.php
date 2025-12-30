@@ -124,10 +124,10 @@
                     :search-value="request('search')">
                     <x-slot:header>
                         <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('direction') == 'desc' ? 'asc' : 'desc']) }}'">
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_denda', 'direction' => request('direction') == 'desc' ? 'asc' : 'desc']) }}'">
                             <div class="flex items-center gap-1">
                                 Tanggal
-                                @if(request('sort') == 'created_at' || !request('sort'))
+                                @if(request('sort') == 'tanggal_denda')
                                     <span
                                         class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
                                 @else
@@ -152,14 +152,14 @@
                         <th class="p-4 font-medium">Jenis Denda</th>
                         <th class="p-4 font-medium text-right">Nominal</th>
                         <th class="p-4 font-medium text-center">Status</th>
-                        <th class="p-4 font-medium text-center">Aksi</th>
+                        <th class="p-4 pr-6 font-medium text-center">Aksi</th>
                     </x-slot:header>
 
                     <x-slot:body>
                         @forelse($denda as $item)
                             <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                                <td class="p-4 pl-6 font-mono text-xs text-slate-500 dark:text-white/50">
-                                    {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d M Y') }}
+                                <td class="p-4 text-left font-mono text-xs text-slate-500 dark:text-white/50">
+                                    {{ \Carbon\Carbon::parse($item->tanggal_denda)->translatedFormat('d M Y') }}
                                 </td>
                                 <td class="p-4 font-mono font-bold text-primary dark:text-accent">
                                     {{ $item->id_peminjaman }}

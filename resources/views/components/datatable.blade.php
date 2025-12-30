@@ -15,7 +15,7 @@
             <select onchange="window.location.href = this.value"
                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] text-xs rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent dark:text-white cursor-pointer">
                 @foreach([10, 25, 50, 100] as $limit)
-                    <option value="{{ request()->fullUrlWithQuery(['limit' => $limit]) }}" {{ request('limit') == $limit ? 'selected' : '' }}>{{ $limit }}</option>
+                    <option value="{{ request()->fullUrlWithQuery(['limit' => $limit]) }}" {{ (request('limit') == $limit) || (!request()->has('limit') && $limit == 10) ? 'selected' : '' }}>{{ $limit }}</option>
                 @endforeach
             </select>
             <label class="text-xs font-bold text-slate-500 dark:text-white/60">entries</label>
