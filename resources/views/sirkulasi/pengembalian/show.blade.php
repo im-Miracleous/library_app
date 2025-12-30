@@ -36,16 +36,7 @@
             <x-header-component title="Proses Pengembalian" />
 
             <div class="p-4 sm:p-8">
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60 mb-6 animate-enter">
-                    <span class="material-symbols-outlined text-base">home</span>
-                    <span>/</span>
-                    <span>Sirkulasi</span>
-                    <span>/</span>
-                    <a href="{{ route('pengembalian.index') }}"
-                        class="hover:text-primary dark:hover:text-white transition-colors">Pengembalian</a>
-                    <span>/</span>
-                    <span class="font-bold text-primary dark:text-white">Proses</span>
-                </div>
+                <x-breadcrumb-component parent="Sirkulasi" middle="Pengembalian" :middleLink="route('pengembalian.index')" current="Proses" class="mb-6 animate-enter" />
 
                 @if ($errors->any())
                     <div
@@ -86,7 +77,7 @@
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Kode Transaksi</div>
                                     <div class="font-mono font-bold text-lg text-primary dark:text-accent">
-                                        {{ $peminjaman->kode_peminjaman }}</div>
+                                        {{ $peminjaman->id_peminjaman }}</div>
                                 </div>
                                 <div
                                     class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
@@ -154,6 +145,7 @@
                                                         class="rounded border-slate-300 text-primary focus:ring-primary">
                                                 </th>
                                                 <th class="p-3">Judul Buku</th>
+                                                <th class="p-3">Kondisi Buku</th>
                                                 <th class="p-3">Status Saat Ini</th>
                                             </tr>
                                         </thead>
@@ -174,6 +166,15 @@
                                                             </div>
                                                         </td>
                                                         <td class="p-3">
+                                                            <select
+                                                                name="kondisi[{{ $detail->id_detail_peminjaman }}]"
+                                                                class="w-full p-2 text-sm rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                                <option value="baik">Baik</option>
+                                                                <option value="rusak">Rusak</option>
+                                                                <option value="hilang">Hilang</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="p-3">
                                                             <span
                                                                 class="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase">Dipinjam</span>
                                                         </td>
@@ -187,6 +188,10 @@
                                                         <td class="p-3">
                                                             <div class="font-bold text-slate-800 dark:text-white">
                                                                 {{ $detail->buku->judul }}</div>
+                                                        </td>
+                                                        <td class="p-3">
+                                                            <!-- Empty cell for condition or show saved condition if available -->
+                                                            <span class="text-xs text-slate-400">-</span>
                                                         </td>
                                                         <td class="p-3">
                                                             <span
@@ -251,7 +256,10 @@
     </div>
 
     <!-- Inject JS for Pengembalian Logic -->
-    <script id="pengembalian-script" data-terlambat-hari="{{ $terlambatHari }}"></script>
+    <script id="pengembalian-script"
+        data-terlambat-hari="{{ $terlambatHari }}"
+        data-denda-rusak="{{ $pengaturan->denda_rusak ?? 0 }}"
+        data-denda-hilang="{{ $pengaturan->denda_hilang ?? 0 }}"></script>
     @vite('resources/js/pengembalian.js')
 </body>
 

@@ -34,8 +34,18 @@
             <x-header-component title="Data Buku" />
 
             <div class="p-4 sm:p-8">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <!-- Indikator Statistik Compact (Moved here) -->
+                <x-breadcrumb-component parent="Administrator" current="Buku" class="mb-6 animate-enter" />
+                <!-- Action Bar & Stats -->
+                <div
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
+                    <!-- Tombol Tambah (Left Aligned below Title) -->
+                    <button onclick="openModal('createModal')"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Buku
+                    </button>
+
+                    <!-- Indikator Statistik Compact (Right Aligned) -->
                     <div class="flex flex-wrap gap-3">
                         <div
                             class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
@@ -50,12 +60,6 @@
                             <span class="text-sm font-bold text-green-700 dark:text-green-400">{{ $totalStok }}</span>
                         </div>
                     </div>
-
-                    <button onclick="openModal('createModal')"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
-                        <span class="material-symbols-outlined text-lg">add</span>
-                        Tambah Buku
-                    </button>
                 </div>
 
                 @if (session('success'))
@@ -67,88 +71,111 @@
                 @endif
 
                 <!-- Tabel Data -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
-                        
-                        <!-- Form Search AJAX -->
-                        <div class="relative w-full sm:w-64">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" id="searchInput"
-                                placeholder="Cari judul, penulis..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </div>
-                    </div>
+                <x-datatable :data="$buku" search-placeholder="Cari ID, judul, atau penulis..." search-id="searchInput"
+                    :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-24 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_buku', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                ID
+                                @if(request('sort') == 'id_buku')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium w-1/3 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'judul', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Judul Buku
+                                @if(request('sort') == 'judul')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Kategori
+                                @if(request('sort') == 'kategori')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'penulis', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Penulis
+                                @if(request('sort') == 'penulis')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium text-center">Stok</th>
+                        <th class="p-4 font-medium">Status</th>
+                        <th class="p-4 pr-6 font-medium text-right">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[900px]">
-                            <thead>
-                                <tr
-                                    class="border-b border-primary/20 dark:border-[#36271F] text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <th class="p-4 pl-6 font-medium w-24">ID</th>
-                                    <th class="p-4 font-medium w-1/3">Judul Buku</th>
-                                    <th class="p-4 font-medium">Kategori</th>
-                                    <th class="p-4 font-medium">Penulis</th>
-                                    <th class="p-4 font-medium text-center">Stok</th>
-                                    <th class="p-4 font-medium">Status</th>
-                                    <th class="p-4 pr-6 font-medium text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($buku as $item)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono text-primary dark:text-accent text-xs font-bold">
-                                            {{ $item->id_buku }}</td>
-                                        <td class="p-4">
-                                            <div
-                                                class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
-                                                {{ $item->judul }}</div>
-                                            <div class="text-xs text-slate-500 dark:text-white/40">
-                                                {{ $item->isbn ?? 'No ISBN' }}</div>
-                                        </td>
-                                        <td class="p-4"><span
-                                                class="px-2 py-1 bg-primary/10 dark:bg-white/5 rounded text-xs font-semibold text-primary-dark dark:text-white/80">{{ $item->kategori->nama_kategori ?? '-' }}</span>
-                                        </td>
-                                        <td class="p-4">{{ $item->penulis }}</td>
-                                        <td class="p-4 text-center">
-                                            <span
-                                                class="font-bold {{ $item->stok_tersedia > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $item->stok_tersedia }}</span>
-                                            <span
-                                                class="text-slate-400 dark:text-white/30 text-xs">/{{ $item->stok_total }}</span>
-                                        </td>
-                                        <td class="p-4"><span
-                                                class="px-2 py-1 rounded text-xs font-bold uppercase {{ $item->status == 'tersedia' ? 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10' }}">{{ $item->status }}</span>
-                                        </td>
-                                        <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditBuku('{{ $item->id_buku }}')"
-                                                class="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
-                                                title="Edit"><span
-                                                    class="material-symbols-outlined text-lg">edit</span></button>
-                                            <form action="{{ route('buku.destroy', $item->id_buku) }}" method="POST"
-                                                onsubmit="return confirm('Yakin hapus buku ini?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-                                                    title="Hapus"><span
-                                                        class="material-symbols-outlined text-lg">delete</span></button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada
-                                            data buku.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="p-4 border-t border-primary/20 dark:border-[#36271F] text-slate-600 dark:text-white/60">
-                        {{ $buku->links() }}</div>
-                </div>
+                    <x-slot:body>
+                        @forelse($buku as $item)
+                            <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-primary dark:text-accent text-xs font-bold">
+                                    {{ $item->id_buku }}
+                                </td>
+                                <td class="p-4">
+                                    <div
+                                        class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
+                                        {{ $item->judul }}
+                                    </div>
+                                    <div class="text-xs text-slate-500 dark:text-white/40">
+                                        {{ $item->isbn ?? 'No ISBN' }}
+                                    </div>
+                                </td>
+                                <td class="p-4"><span
+                                        class="px-2 py-1 bg-primary/10 dark:bg-white/5 rounded text-xs font-semibold text-primary-dark dark:text-white/80">{{ $item->kategori->nama_kategori ?? '-' }}</span>
+                                </td>
+                                <td class="p-4">{{ $item->penulis }}</td>
+                                <td class="p-4 text-center">
+                                    <span
+                                        class="font-bold {{ $item->stok_tersedia > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $item->stok_tersedia }}</span>
+                                    <span class="text-slate-400 dark:text-white/30 text-xs">/{{ $item->stok_total }}</span>
+                                </td>
+                                <td class="p-4"><span
+                                        class="px-2 py-1 rounded text-xs font-bold uppercase {{ $item->status == 'tersedia' ? 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10' }}">{{ $item->status }}</span>
+                                </td>
+                                <td class="p-4 pr-6 text-right flex justify-end gap-2">
+                                    <button onclick="openEditBuku('{{ $item->id_buku }}')"
+                                        class="p-2 rounded-lg hover:bg-blue-500/20 text-blue-600 transition-colors"
+                                        title="Edit"><span class="material-symbols-outlined text-lg">edit</span></button>
+                                    <form action="{{ route('buku.destroy', $item->id_buku) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus buku ini?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                            class="p-2 rounded-lg hover:bg-red-500/20 text-red-600 transition-colors"
+                                            title="Hapus"><span
+                                                class="material-symbols-outlined text-lg">delete</span></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada data
+                                    buku.</td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>
@@ -162,9 +189,11 @@
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <div
                     class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-surface-dark border border-primary/20 dark:border-[#36271F] text-left shadow-2xl transition-all duration-300 scale-95 sm:my-8 sm:w-full sm:max-w-3xl">
-                    <div class="px-6 py-4 border-b border-primary/20 dark:border-[#36271F] flex justify-between items-center bg-surface dark:bg-[#1A1410]">
+                    <div
+                        class="px-6 py-4 border-b border-primary/20 dark:border-[#36271F] flex justify-between items-center bg-surface dark:bg-[#1A1410]">
                         <h3 class="text-lg font-bold text-primary-dark dark:text-white flex items-center gap-2"><span
-                                class="material-symbols-outlined text-primary dark:text-accent">add_circle</span> Tambah Buku</h3>
+                                class="material-symbols-outlined text-primary dark:text-accent">add_circle</span> Tambah
+                            Buku</h3>
                         <button onclick="closeModal('createModal')"
                             class="text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white transition-colors"><span
                                 class="material-symbols-outlined">close</span></button>
@@ -175,7 +204,8 @@
                         <!-- Kiri -->
                         <div class="flex flex-col gap-4">
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
                                     Buku</label>
                                 <input type="text" name="judul"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
@@ -184,7 +214,8 @@
 
                             <!-- BAGIAN KATEGORI (UPDATED) -->
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kategori</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kategori</label>
                                 <div class="relative">
                                     <select name="id_kategori"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer"
@@ -203,13 +234,15 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
                                 <input type="text" name="penulis"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                     required>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
                                 <input type="text" name="penerbit"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
@@ -218,14 +251,16 @@
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun
                                         Terbit</label>
                                     <input type="number" name="tahun_terbit"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                         required>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Stok
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Stok
                                         Total</label>
                                     <input type="number" name="stok_total"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
@@ -233,25 +268,30 @@
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
                                 <input type="text" name="isbn"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kode Dewey
-                                    (Opsional)</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kode
+                                    Dewey
+                                </label>
                                 <input type="text" name="kode_dewey"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
                                     Singkat</label>
                                 <textarea name="deskripsi" rows="2"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
                             </div>
                         </div>
 
-                        <div class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
+                        <div
+                            class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
                             <button type="button" onclick="closeModal('createModal')"
                                 class="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold">Batal</button>
                             <button type="submit"
@@ -273,9 +313,11 @@
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
                 <div
                     class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-surface-dark border border-primary/20 dark:border-[#36271F] text-left shadow-2xl transition-all duration-300 scale-95 sm:my-8 sm:w-full sm:max-w-3xl">
-                    <div class="px-6 py-4 border-b border-primary/20 dark:border-[#36271F] flex justify-between items-center bg-surface dark:bg-[#1A1410]">
+                    <div
+                        class="px-6 py-4 border-b border-primary/20 dark:border-[#36271F] flex justify-between items-center bg-surface dark:bg-[#1A1410]">
                         <h3 class="text-lg font-bold text-primary-dark dark:text-white flex items-center gap-2"><span
-                                class="material-symbols-outlined text-blue-500 dark:text-blue-400">edit</span> Edit Buku</h3>
+                                class="material-symbols-outlined text-blue-500 dark:text-blue-400">edit</span> Edit Buku
+                        </h3>
                         <button onclick="closeModal('editModal')"
                             class="text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white transition-colors"><span
                                 class="material-symbols-outlined">close</span></button>
@@ -285,7 +327,8 @@
                         <!-- Kiri -->
                         <div class="flex flex-col gap-4">
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
                                     Buku</label>
                                 <input type="text" id="edit_judul" name="judul"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
@@ -294,7 +337,8 @@
 
                             <!-- BAGIAN KATEGORI EDIT (UPDATED) -->
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kategori</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kategori</label>
                                 <div class="relative">
                                     <select id="edit_kategori" name="id_kategori"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer"
@@ -311,20 +355,23 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
                                 <input type="text" id="edit_penulis" name="penulis"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                     required>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
                                 <input type="text" id="edit_penerbit" name="penerbit"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
 
                             <!-- STATUS EDIT (UPDATED) -->
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
                                 <div class="relative">
                                     <select id="edit_status" name="status"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer">
@@ -343,14 +390,16 @@
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun
                                         Terbit</label>
                                     <input type="number" id="edit_tahun" name="tahun_terbit"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                         required>
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Stok
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Stok
                                         Total</label>
                                     <input type="number" id="edit_stok" name="stok_total"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
@@ -358,25 +407,29 @@
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
                                 <input type="text" id="edit_isbn" name="isbn"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kode
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kode
                                     Dewey</label>
                                 <input type="text" id="edit_dewey" name="kode_dewey"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
                                     Singkat</label>
                                 <textarea id="edit_deskripsi" name="deskripsi" rows="2"
                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
                             </div>
                         </div>
 
-                        <div class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
+                        <div
+                            class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
                             <button type="button" onclick="closeModal('editModal')"
                                 class="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold">Batal</button>
                             <button type="submit"
@@ -388,6 +441,18 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'create') {
+                openModal('createModal');
+
+                // Clean URL without reloading
+                const newUrl = window.location.pathname + window.location.search.replace(/[\?&]action=create/, '') + window.location.hash;
+                window.history.replaceState({}, '', newUrl);
+            }
+        });
+    </script>
 </body>
 
 </html>

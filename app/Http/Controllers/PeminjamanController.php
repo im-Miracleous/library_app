@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pengaturan;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PeminjamanController extends Controller
 {
@@ -19,22 +20,47 @@ class PeminjamanController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Peminjaman::with(['pengguna', 'details.buku'])->latest();
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $sort = $request->input('sort') ?: 'created_at';
+        $direction = $request->input('direction') ?: 'desc';
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $search = $request->search;
-            $query->where('id_peminjaman', 'like', "%{$search}%")
-                ->orWhereHas('pengguna', function ($q) use ($search) {
-                    $q->where('nama', 'like', "%{$search}%");
-                });
+        // Call SP
+        $data = DB::select('CALL sp_get_peminjaman_list(?, ?, ?, ?, ?, ?, @total)', [
+            $search,
+            $status,
+            $sort,
+            $direction,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'links' => (string) (new LengthAwarePaginator(
+                    [],
+                    $total,
+                    $limit,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                ))->links()
+            ]);
         }
 
-        if ($request->filled('status')) {
-            $query->where('status_transaksi', $request->status);
-        }
-
-        $peminjaman = $query->paginate(10)->withQueryString();
+        // Manual Pagination for View
+        $peminjaman = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('sirkulasi.peminjaman.index', compact('peminjaman'));
     }

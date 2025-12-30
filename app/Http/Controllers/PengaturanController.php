@@ -19,12 +19,14 @@ class PengaturanController extends Controller
             $pengaturan = Pengaturan::create([
                 'nama_perpustakaan' => 'Perpustakaan Digital',
                 'denda_per_hari' => 1000,
+                'denda_rusak' => 50000,
+                'denda_hilang' => 100000,
                 'batas_peminjaman_hari' => 7,
                 'maksimal_buku_pinjam' => 3,
             ]);
         }
 
-        return view('pengaturan.index', compact('pengaturan'));
+        return view('administrator.pengaturan.index', compact('pengaturan'));
     }
 
     /**
@@ -36,6 +38,8 @@ class PengaturanController extends Controller
             'nama_perpustakaan' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'denda_per_hari' => 'required|numeric|min:0',
+            'denda_rusak' => 'required|numeric|min:0',
+            'denda_hilang' => 'required|numeric|min:0',
             'batas_peminjaman_hari' => 'required|integer|min:1',
             'maksimal_buku_pinjam' => 'required|integer|min:1',
         ]);

@@ -24,10 +24,10 @@ class Pengguna extends Authenticatable
     // Kita pakai $fillable supaya aman dan jelas kolom apa saja yang boleh diisi
     protected $fillable = [
         'id_pengguna',
-        'nama',     
+        'nama',
         'email',
         'password',
-        'peran',     
+        'peran',
         'telepon',
         'alamat',
         'otp_code',       // <--- KOLOM BARU
@@ -44,17 +44,18 @@ class Pengguna extends Authenticatable
         'password' => 'hashed',
         'lockout_time' => 'datetime',
         'is_locked' => 'boolean',
-        'otp_expires_at' => 'datetime', 
+        'otp_expires_at' => 'datetime',
     ];
 
-    
+
     public function peminjaman()
     {
         return $this->hasMany(Peminjaman::class, 'id_pengguna', 'id_pengguna');
     }
 
-    public function notifikasi()
-    {
-        return $this->hasMany(Notifikasi::class, 'id_pengguna', 'id_pengguna');
-    }
+    // Legacy notifikasi relationship removed in favor of standard Laravel Notifications
+    // public function notifikasi()
+    // {
+    //     return $this->hasMany(Notifikasi::class, 'id_pengguna', 'id_pengguna');
+    // }
 }

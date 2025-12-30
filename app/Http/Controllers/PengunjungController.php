@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengunjung;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PengunjungController extends Controller
 {
@@ -12,16 +14,45 @@ class PengunjungController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pengunjung::latest();
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+        $sort = $request->input('sort') ?: 'created_at';
+        $direction = $request->input('direction') ?: 'desc';
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('nama_pengunjung', 'like', "%{$search}%")
-                ->orWhere('keperluan', 'like', "%{$search}%")
-                ->orWhere('jenis_pengunjung', 'like', "%{$search}%");
+        // Call SP 
+        $data = DB::select('CALL sp_get_pengunjung(?, ?, ?, ?, ?, @total)', [
+            $search,
+            $sort,
+            $direction,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'links' => (string) (new LengthAwarePaginator(
+                    [],
+                    $total,
+                    $limit,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                ))->links()
+            ]);
         }
 
-        $pengunjung = $query->paginate(10)->withQueryString();
+        // Manual Pagination for View
+        $pengunjung = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('sirkulasi.pengunjung.index', compact('pengunjung'));
     }

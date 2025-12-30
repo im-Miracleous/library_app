@@ -7,54 +7,65 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class PenggunaController extends Controller
+class AnggotaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pengguna::where('peran', 'anggota');
+        // Parameter Default
+        $search = $request->input('search', '');
+        $sortCol = $request->input('sort', 'created_at');
+        $sortDir = $request->input('direction', 'desc');
+        $limit = $request->input('limit', 10);
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $limit;
+        $status = $request->input('status', ''); // Add status filter
 
-        // LOGIKA FILTER: Jika ada request 'status' di URL (misal ?status=aktif)
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
+        // Panggil Stored Procedure
+        $results = \Illuminate\Support\Facades\DB::select(
+            'CALL sp_get_anggota(?, ?, ?, ?, ?, ?, @total)',
+            [$search, $sortCol, $sortDir, $limit, $offset, $status]
+        );
 
-        // Ambil data dengan pagination
-        $pengguna = $query->orderBy('id_pengguna', 'desc')->paginate(10);
+        // Ambil Total Data
+        $totalResult = \Illuminate\Support\Facades\DB::select('SELECT @total as total');
+        $total = $totalResult[0]->total ?? 0;
 
-        // Append query string ke pagination links (supaya saat pindah halaman, filter tidak hilang)
-        $pengguna->appends($request->all());
+        // Buat Paginator Manual
+        // Kita hydrate ke model supaya fitur aksesors/mutators tetap jalan jika ada (opsional)
+        // Tapi stdClass pun bisa, cukup cast ke Array atau Object.
+        // Untuk amannya kita hydrate jika hasil tidak kosong.
+        $items = Pengguna::hydrate($results);
 
-        // Helper untuk API Search (AJAX) - Digunakan di Peminjaman
+        $pengguna = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // API Response (untuk Live Search AJAX dll)
         if ($request->ajax()) {
-            $users = $query->orderBy('id_pengguna', 'desc')->limit(20)->get();
-
-            // Append info jumlah buku yang sedang dipinjam
-            foreach ($users as $user) {
-                $user->active_books_count = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
-                    ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
-                    ->where('peminjaman.id_pengguna', $user->id_pengguna)
-                    ->where('peminjaman.status_transaksi', 'berjalan')
-                    ->where('detail_peminjaman.status_buku', 'dipinjam')
-                    ->count();
-            }
-
             return response()->json([
                 'status' => 'success',
-                'data' => $users
+                'data' => $items,
+                'total' => $total,
+                'links' => (string) $pengguna->links() // Render pagination links jika perlu
             ]);
         }
 
-        // HITUNG STATISTIK UNTUK SIDEBAR
+        // Stats (Bisa juga dibuatkan SP terpisah jika ingin full SP, tapi Eloquent simple count ok)
+        // Atau buat query simple count agar konsisten
         $totalAnggota = Pengguna::where('peran', 'anggota')->count();
         $totalAktif = Pengguna::where('peran', 'anggota')->where('status', 'aktif')->count();
         $totalNonaktif = Pengguna::where('peran', 'anggota')->where('status', 'nonaktif')->count();
 
-        return view('pengguna.index', compact('pengguna', 'totalAnggota', 'totalAktif', 'totalNonaktif'));
+        return view('administrator.anggota.index', compact('pengguna', 'totalAnggota', 'totalAktif', 'totalNonaktif'));
     }
 
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('PenggunaController::store triggered', $request->all());
+        \Illuminate\Support\Facades\Log::info('AnggotaController::store triggered', $request->all());
 
         try {
             $validatedData = $request->validate([
@@ -127,7 +138,7 @@ class PenggunaController extends Controller
 
     public function destroy($id)
     {
-        \Illuminate\Support\Facades\Log::info('PenggunaController::destroy triggered for ID: ' . $id);
+        \Illuminate\Support\Facades\Log::info('AnggotaController::destroy triggered for ID: ' . $id);
         try {
             $user = Pengguna::findOrFail($id);
             $user->delete();

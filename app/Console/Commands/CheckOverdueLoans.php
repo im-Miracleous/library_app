@@ -26,13 +26,24 @@ class CheckOverdueLoans extends Command
      */
     public function handle()
     {
-        $this->info('Running Stored Procedure: sp_cek_keterlambatan...');
+        $this->info('Checking for overdue loans...');
 
-        try {
-            DB::statement("CALL sp_cek_keterlambatan()");
-            $this->info('Success! Notifications generated for overdue loans.');
-        } catch (\Exception $e) {
-            $this->error('Failed: ' . $e->getMessage());
+        $overdueLoans = \App\Models\Peminjaman::where('status_transaksi', 'berjalan')
+            ->where('tanggal_jatuh_tempo', '<', now()->toDateString())
+            ->with('pengguna')
+            ->get();
+
+        $count = 0;
+        foreach ($overdueLoans as $loan) {
+            if ($loan->pengguna) {
+                // Check if already notified recently to avoid spam (Simple check: looked at unread notifications)
+                // For now, we will just notify. In prod, maybe check if notification already exists for today.
+
+                $loan->pengguna->notify(new \App\Notifications\PeminjamanJatuhTempo($loan));
+                $count++;
+            }
         }
+
+        $this->info("Success! Sent {$count} notifications for overdue loans.");
     }
 }

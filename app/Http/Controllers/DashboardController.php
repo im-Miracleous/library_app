@@ -12,14 +12,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $dbStatus = false;
-        $serverStatus = true; // Asumsi server web berjalan jika kode ini dieksekusi
-
         try {
-            // Cek koneksi database eksplisit
-            \Illuminate\Support\Facades\DB::connection()->getPdo();
-            $dbStatus = true;
-
             $stats = [
                 'total_buku' => Buku::count(),
                 'total_anggota' => Pengguna::where('peran', 'anggota')->count(),
@@ -31,11 +24,9 @@ class DashboardController extends Controller
 
             $peminjamanTerbaru = Peminjaman::with('pengguna')
                 ->orderBy('created_at', 'desc')
-                ->take(5)
+                ->take(3)
                 ->get();
         } catch (\Exception $e) {
-            // Fallback jika database mati/error
-            $dbStatus = false;
             $stats = [
                 'total_buku' => 0,
                 'total_anggota' => 0,
@@ -43,9 +34,8 @@ class DashboardController extends Controller
                 'total_denda' => 0,
             ];
             $peminjamanTerbaru = [];
-            // Opsional: Log error message
         }
 
-        return view('dashboard', compact('stats', 'peminjamanTerbaru', 'dbStatus', 'serverStatus'));
+        return view('dashboard', compact('stats', 'peminjamanTerbaru'));
     }
 }

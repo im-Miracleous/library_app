@@ -32,7 +32,30 @@
 
     <!-- Scrollable Content -->
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto flex flex-col justify-between px-4 py-4">
+    <div class="flex-1 overflow-y-auto px-4 py-4">
+        <!-- System Status (Sidebar) -->
+        <div
+            class="mb-6 px-4 py-3 bg-primary/5 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-white/5">
+            <p class="text-[10px] font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest mb-2">
+                Status Sistem</p>
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between group cursor-help" title="Status Koneksi Database">
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Database</span>
+                    <div class="flex items-center gap-2">
+                        <span id="sidebar-db-text" class="text-[10px] font-bold text-slate-400">Checking...</span>
+                        <div id="sidebar-db-dot" class="size-2 rounded-full bg-slate-300"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between group cursor-help" title="Status Koneksi Server">
+                    <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Server</span>
+                    <div class="flex items-center gap-2">
+                        <span id="sidebar-server-text" class="text-[10px] font-bold text-slate-400">Checking...</span>
+                        <div id="sidebar-server-dot" class="size-2 rounded-full bg-slate-300"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <nav class="flex flex-col gap-2">
 
             <!-- Menu Utama (Dashboard) -->
@@ -46,17 +69,18 @@
             </a>
 
             @if(Auth::user()->peran == 'admin')
+                    <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
-                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
                         Administrator</div>
 
-                    <a href="{{ route('pengguna.index') }}"
-                        class="{{ request()->routeIs('pengguna*')
+                    <a href="{{ route('anggota.index') }}"
+                        class="{{ request()->routeIs('anggota*')
                 ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
                 : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
                         <span
-                            class="material-symbols-outlined {{ request()->routeIs('pengguna*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">group</span>
-                        <p class="text-sm {{ request()->routeIs('pengguna*') ? 'font-bold' : 'font-medium' }}">Data Anggota
+                            class="material-symbols-outlined {{ request()->routeIs('anggota*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">group</span>
+                        <p class="text-sm {{ request()->routeIs('anggota*') ? 'font-bold' : 'font-medium' }}">Data Anggota
                         </p>
                     </a>
 
@@ -126,8 +150,9 @@
             @endif
 
             @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
+                    <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
-                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
                         Sirkulasi</div>
 
                     <a href="{{ route('peminjaman.index') }}"
@@ -180,9 +205,11 @@
             @endif
 
         </nav>
+    </div>
 
-        <div
-            class="flex flex-col gap-4 flex-shrink-0 pt-4 pb-4 border-t border-primary/20 dark:border-border-dark mt-4">
+    <!-- Fixed Bottom Section -->
+    <div class="flex-none px-4 pb-4 border-t border-primary/20 dark:border-border-dark">
+        <div class="flex flex-col gap-4 pt-4">
             <div
                 class="bg-white/50 dark:bg-surface-dark p-4 rounded-xl flex items-center gap-3 border border-primary/10 dark:border-border-dark cursor-default transition-colors">
                 <div

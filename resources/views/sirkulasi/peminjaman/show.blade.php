@@ -36,16 +36,8 @@
 
             <div class="p-4 sm:p-8">
                 <!-- Breadcrumbs -->
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/60 mb-6 animate-enter">
-                    <span class="material-symbols-outlined text-base">home</span>
-                    <span>/</span>
-                    <span>Sirkulasi</span>
-                    <span>/</span>
-                    <a href="{{ route('peminjaman.index') }}"
-                        class="hover:text-primary dark:hover:text-white transition-colors">Peminjaman</a>
-                    <span>/</span>
-                    <span class="font-bold text-primary dark:text-white">Detail</span>
-                </div>
+                <x-breadcrumb-component parent="Sirkulasi" middle="Peminjaman" :middleLink="route('peminjaman.index')"
+                    current="Detail" class="mb-6 animate-enter" />
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-enter delay-100">
 
@@ -75,7 +67,7 @@
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Kode Transaksi</div>
                                     <div class="font-mono font-bold text-lg text-primary dark:text-accent">
-                                        {{ $peminjaman->kode_peminjaman }}
+                                        {{ $peminjaman->id_peminjaman }}
                                     </div>
                                 </div>
                                 <div
@@ -102,8 +94,16 @@
                                     <div
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Jatuh Tempo</div>
-                                    <div class="font-bold text-slate-800 dark:text-white">
+                                    @php
+                                        $isOverdue = \Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)) && $peminjaman->status_transaksi == 'berjalan';
+                                    @endphp
+                                    <div
+                                        class="font-bold {{ $isOverdue ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-slate-800 dark:text-white' }} flex items-center gap-2">
                                         {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
+                                        @if($isOverdue)
+                                            <span
+                                                class="text-[10px] uppercase bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-500/30 animate-none">Terlambat</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +164,22 @@
                                                     @endif
                                                 </td>
                                                 <td class="p-3 text-right pr-4 font-mono text-xs">
-                                                    {{ $detail->tanggal_kembali_aktual ? \Carbon\Carbon::parse($detail->tanggal_kembali_aktual)->format('d/m/Y') : '-' }}
+                                                    @if($detail->tanggal_kembali_aktual)
+                                                        @php
+                                                            $tglKembali = \Carbon\Carbon::parse($detail->tanggal_kembali_aktual);
+                                                            $jatuhTempo = \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo);
+                                                            $isLateReturn = $tglKembali->startOfDay()->gt($jatuhTempo->startOfDay());
+                                                        @endphp
+                                                        <span
+                                                            class="{{ $isLateReturn ? 'text-red-600 dark:text-red-400 font-bold' : '' }}">
+                                                            {{ $tglKembali->format('d/m/Y') }}
+                                                        </span>
+                                                        @if($isLateReturn)
+                                                            <div class="text-[10px] text-red-500 dark:text-red-400/80">Terlambat</div>
+                                                        @endif
+                                                    @else
+                                                        -
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach

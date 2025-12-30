@@ -39,14 +39,23 @@
             <x-header-component title="Data Kepegawaian" />
 
             <div class="p-4 sm:p-8">
+                <x-breadcrumb-component parent="Administrator" current="Kepegawaian" class="mb-6 animate-enter" />
+                <!-- Action Bar & Stats -->
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <!-- Statistik Bar -->
+                    <!-- Tombol Tambah (Left Aligned below Title) -->
+                    <button onclick="openModal('createModal')"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Pegawai
+                    </button>
+
+                    <!-- Statistik Bar (Right Aligned) -->
                     <div class="flex flex-wrap gap-3">
                         <div
                             class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
                             <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total Pegawai:</span>
+                            <span class="text-xs font-medium text-blue-700 dark:text-blue-400">Total:</span>
                             <span class="text-sm font-bold text-blue-700 dark:text-blue-400">{{ $totalPegawai }}</span>
                         </div>
                         <div
@@ -64,12 +73,6 @@
                                 class="text-sm font-bold text-orange-700 dark:text-orange-400">{{ $totalPetugas }}</span>
                         </div>
                     </div>
-
-                    <button onclick="openModal('createModal')"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
-                        <span class="material-symbols-outlined text-lg">add</span>
-                        Tambah Pegawai
-                    </button>
                 </div>
 
                 @if (session('success'))
@@ -98,178 +101,128 @@
                     </div>
                 @endif
 
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none transition-colors">
-
-                    <!-- Table Header & Filter -->
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
-                        <!-- Filter Tabs -->
-                        <div
-                            class="relative bg-slate-100 dark:bg-black/20 rounded-xl p-1 grid grid-cols-3 w-full sm:w-[320px]">
-                            <div id="filter-pill"
-                                class="absolute top-1 bottom-1 shadow-sm dark:shadow-md rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0 box-border"
-                                style="width: calc(33.33% - 0.4rem); left: 0.2rem;">
-                            </div>
-
-                            <a href="{{ route('kepegawaian.index') }}" onclick="movePill(this, 'all')" data-color="all"
-                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ !request('status') ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
-                                Semua
-                            </a>
-                            <a href="{{ route('kepegawaian.index', ['status' => 'aktif']) }}"
-                                onclick="movePill(this, 'active')" data-color="active"
-                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'aktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
-                                Aktif
-                            </a>
-                            <a href="{{ route('kepegawaian.index', ['status' => 'nonaktif']) }}"
-                                onclick="movePill(this, 'inactive')" data-color="inactive"
-                                class="filter-tab relative z-10 flex items-center justify-center py-2 text-xs font-bold rounded-lg transition-colors duration-300 cursor-pointer {{ request('status') == 'nonaktif' ? 'text-white active' : 'text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80' }}">
-                                Nonaktif
-                            </a>
+                <x-datatable :data="$pegawai" search-placeholder="Cari ID, nama, atau email..."
+                    search-id="searchPegawaiInput" :search-value="request('search')">
+                    <x-slot:filters>
+                        <div class="flex bg-slate-100 dark:bg-black/20 rounded-lg p-1">
+                            <a href="#" data-filter-peran=""
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ !request('peran') ? 'bg-white shadow-sm text-primary' : 'text-slate-500' }}">Semua</a>
+                            <a href="#" data-filter-peran="admin"
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ request('peran') == 'admin' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-slate-500' }}">Admin</a>
+                            <a href="#" data-filter-peran="petugas"
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ request('peran') == 'petugas' ? 'bg-orange-100 text-orange-700 shadow-sm' : 'text-slate-500' }}">Petugas</a>
                         </div>
+                    </x-slot:filters>
 
-                        <script>
-                            function initPill() {
-                                const pill = document.getElementById('filter-pill');
-                                let activeTab = document.querySelector('.filter-tab.active');
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_pengguna', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                ID
+                                @if(request('sort') == 'id_pengguna')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Nama Pegawai
+                                @if(request('sort') == 'nama')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium">Role</th>
+                        <th class="p-4 font-medium">Telepon</th>
+                        <th class="p-4 font-medium">Alamat</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Status
+                                @if(request('sort') == 'status')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 pr-6 font-medium text-right">Aksi</th>
+                    </x-slot:header>
 
-                                if (activeTab && pill) {
-                                    setPillColor(pill, activeTab.dataset.color);
-                                    positionPill(activeTab, pill);
-                                } else if (pill) {
-                                    setPillColor(pill, 'all');
-                                }
-                            }
-
-                            function movePill(el, colorType) {
-                                const pill = document.getElementById('filter-pill');
-                                document.querySelectorAll('.filter-tab').forEach(t => {
-                                    t.classList.remove('active', 'text-white');
-                                    t.classList.add('text-slate-500', 'dark:text-white/50');
-                                });
-                                el.classList.remove('text-slate-500', 'dark:text-white/50');
-                                el.classList.add('active', 'text-white');
-                                setPillColor(pill, colorType);
-                                positionPill(el, pill);
-                            }
-
-                            function setPillColor(pill, type) {
-                                pill.classList.remove('bg-primary', 'dark:bg-accent', 'bg-green-500', 'bg-red-500');
-                                if (type === 'active') {
-                                    pill.classList.add('bg-green-500');
-                                } else if (type === 'inactive') {
-                                    pill.classList.add('bg-red-500');
-                                } else {
-                                    pill.classList.add('bg-primary', 'dark:bg-accent');
-                                }
-                            }
-
-                            function positionPill(element, pill) {
-                                const parentRect = element.parentElement.getBoundingClientRect();
-                                const rect = element.getBoundingClientRect();
-                                const left = rect.left - parentRect.left;
-                                pill.style.width = `${rect.width}px`;
-                                pill.style.transform = `translateX(${left}px)`;
-                                pill.style.left = '0';
-                            }
-
-                            document.addEventListener('DOMContentLoaded', initPill);
-                        </script>
-
-                        <!-- Search Bar Server Side -->
-                        <form method="GET" action="{{ route('kepegawaian.index') }}" class="relative w-full sm:w-64">
-                            @if(request('status'))
-                                <input type="hidden" name="status" value="{{ request('status') }}">
-                            @endif
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" id="searchPegawaiInput" name="search" value="{{ request('search') }}"
-                                placeholder="Cari pegawai atau email..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </form>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                <tr
-                                    class="border-b border-primary/20 dark:border-border-dark text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <th class="p-4 pl-6 font-medium">ID</th>
-                                    <th class="p-4 font-medium">Nama Pegawai</th>
-                                    <th class="p-4 font-medium">Role</th>
-                                    <th class="p-4 font-medium">Telepon</th>
-                                    <th class="p-4 font-medium">Alamat</th>
-                                    <th class="p-4 font-medium">Status</th>
-                                    <th class="p-4 pr-6 font-medium text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($pegawai as $user)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
-                                            {{ $user->id_pengguna }}
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                                    {{ substr($user->nama, 0, 1) }}
-                                                </div>
-                                                <div class="flex flex-col max-w-[220px]">
-                                                    <span
-                                                        class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight" title="{{ $user->nama }}">{{ $user->nama }}</span>
-                                                    <span
-                                                        class="text-xs text-slate-500 dark:text-white/60 truncate" title="{{ $user->email }}">{{ $user->email }}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4">
+                    <x-slot:body>
+                        @forelse($pegawai as $user)
+                            <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
+                                    {{ $user->id_pengguna }}
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
+                                            {{ substr($user->nama, 0, 1) }}
+                                        </div>
+                                        <div class="flex flex-col max-w-[220px]">
                                             <span
-                                                class="px-2 py-1 rounded text-xs font-bold {{ $user->peran == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700' }} uppercase">
-                                                {{ $user->peran }}
+                                                class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight"
+                                                title="{{ $user->nama }}">
+                                                {{ $user->nama }}
                                             </span>
-                                        </td>
-                                        <td class="p-4">{{ $user->telepon ?? '-' }}</td>
-                                        <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
-                                            {{ $user->alamat ?? '-' }}
-                                        </td>
-                                        <td class="p-4">
-                                            <span
-                                                class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
-                                                {{ ucfirst($user->status) }}
+                                            <span class="text-xs text-slate-500 dark:text-white/60 truncate"
+                                                title="{{ $user->email }}">
+                                                {{ $user->email }}
                                             </span>
-                                        </td>
-                                        <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditPegawai({{ $user->toJson() }})"
-                                                class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                                                title="Edit">
-                                                <span class="material-symbols-outlined text-lg">edit</span>
-                                            </button>
-                                            <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}"
-                                                method="POST" onsubmit="return confirm('Yakin hapus?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                                    title="Hapus">
-                                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="p-8 text-center text-slate-400 dark:text-white/40">Belum ada
-                                            data pegawai.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="p-4 border-t border-slate-200 dark:border-border-dark">
-                        {{ $pegawai->links() }}
-                    </div>
-                </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="px-2 py-1 rounded text-xs font-bold {{ $user->peran == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700' }} uppercase">
+                                        {{ $user->peran }}
+                                    </span>
+                                </td>
+                                <td class="p-4">{{ $user->telepon ?? '-' }}</td>
+                                <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
+                                    {{ $user->alamat ?? '-' }}
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
+                                        {{ ucfirst($user->status) }}
+                                    </span>
+                                </td>
+                                <td class="p-4 pr-6 text-right flex justify-end gap-2">
+                                    <button onclick="openEditPegawai({{ $user->toJson() }})"
+                                        class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                        title="Edit">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </button>
+                                    <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                            class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                            title="Hapus">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-slate-400 dark:text-white/40">Belum ada
+                                    data pegawai.</td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

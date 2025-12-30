@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Pengaturan;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PengembalianController extends Controller
 {
@@ -18,22 +19,45 @@ class PengembalianController extends Controller
      */
     public function index(Request $request)
     {
-        // Hanya tampilkan yang STATUS = 'berjalan'
-        $query = Peminjaman::with(['pengguna', 'details.buku'])
-            ->where('status_transaksi', 'berjalan')
-            ->orderBy('tanggal_jatuh_tempo', 'asc'); // Prioritaskan yang mau jatuh tempo
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+        $sort = $request->input('sort') ?: 'tanggal_jatuh_tempo';
+        $direction = $request->input('direction') ?: 'asc';
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('id_peminjaman', 'like', "%{$search}%")
-                    ->orWhereHas('pengguna', function ($subQ) use ($search) {
-                        $subQ->where('nama', 'like', "%{$search}%");
-                    });
-            });
+        // Call SP (Implicitly filters status='berjalan')
+        $data = DB::select('CALL sp_get_pengembalian_list(?, ?, ?, ?, ?, @total)', [
+            $search,
+            $sort,
+            $direction,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'links' => (string) (new LengthAwarePaginator(
+                    [],
+                    $total,
+                    $limit,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                ))->links()
+            ]);
         }
 
-        $peminjaman = $query->paginate(10)->withQueryString();
+        // Manual Pagination for View
+        $peminjaman = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('sirkulasi.pengembalian.index', compact('peminjaman'));
     }
@@ -50,6 +74,7 @@ class PengembalianController extends Controller
         $hariIni = Carbon::now();
         $terlambatHari = 0;
         $estimasiDenda = 0;
+        $pengaturan = Pengaturan::first();
 
         if ($peminjaman->status_transaksi == 'berjalan') {
             // Gunakan startOfDay agar jam tidak mempengaruhi perhitungan hari
@@ -62,7 +87,6 @@ class PengembalianController extends Controller
                 $terlambatHari = $jatuhTempo->diffInDays($hariIni);
 
                 // Ambil tarif denda dari pengaturan
-                $pengaturan = Pengaturan::first();
                 $tarifDenda = $pengaturan->denda_per_hari ?? 0;
 
                 $jumlahBukuDipinjam = $peminjaman->details->where('status_buku', 'dipinjam')->count();
@@ -70,7 +94,7 @@ class PengembalianController extends Controller
             }
         }
 
-        return view('sirkulasi.pengembalian.show', compact('peminjaman', 'terlambatHari', 'estimasiDenda'));
+        return view('sirkulasi.pengembalian.show', compact('peminjaman', 'terlambatHari', 'estimasiDenda', 'pengaturan'));
     }
 
     /**
@@ -117,7 +141,30 @@ class PengembalianController extends Controller
                 // $buku = Buku::find($detail->id_buku);
                 // $buku->increment('stok_tersedia');
 
-                // Calculate Fine for THIS book using DB Function
+                // Calculate Fine for THIS book
+                $condition = $request->input("kondisi.{$detailId}", 'baik');
+                $dendaConditionAmount = 0;
+                $conditionNote = '';
+
+                if ($condition === 'rusak') {
+                    $dendaConditionAmount = $pengaturan->denda_rusak ?? 0;
+                    $conditionNote = 'Kondisi: Rusak';
+                } elseif ($condition === 'hilang') {
+                    $dendaConditionAmount = $pengaturan->denda_hilang ?? 0;
+                    $conditionNote = 'Kondisi: Hilang';
+                }
+
+                if ($dendaConditionAmount > 0) {
+                    $totalDenda += $dendaConditionAmount;
+                    Denda::create([
+                        'id_detail_peminjaman' => $detail->id_detail_peminjaman,
+                        'jenis_denda' => $condition, // 'rusak' or 'hilang'
+                        'jumlah_denda' => $dendaConditionAmount,
+                        'status_bayar' => 'belum_bayar',
+                        'keterangan' => $conditionNote
+                    ]);
+                }
+
                 if ($isLate) {
                     // Use DB Select for calculation (Example usage of Stored Function)
                     // Note: In high throughput, calculating in PHP is faster than Round Trip.
@@ -128,16 +175,16 @@ class PengembalianController extends Controller
                         $hariIni->format('Y-m-d'),
                         $dendaPerBukuPerHari
                     ]);
-                    $dendaAmount = $resultDenda[0]->denda;
+                    $dendaLateAmount = $resultDenda[0]->denda;
 
-                    $totalDenda += $dendaAmount;
+                    $totalDenda += $dendaLateAmount;
 
                     Denda::create([
                         'id_detail_peminjaman' => $detail->id_detail_peminjaman,
                         'jenis_denda' => 'terlambat',
-                        'jumlah_denda' => $dendaAmount,
+                        'jumlah_denda' => $dendaLateAmount,
                         'status_bayar' => 'belum_bayar',
-                        'keterangan' => "Terlambat $lateDays hari (Calc by DB Function)"
+                        'keterangan' => "Terlambat $lateDays hari"
                     ]);
                 }
             }

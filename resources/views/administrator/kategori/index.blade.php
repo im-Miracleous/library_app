@@ -37,10 +37,19 @@
             <x-header-component title="Data Kategori" />
 
             <div class="p-4 sm:p-8">
+                <x-breadcrumb-component parent="Administrator" current="Kategori" class="mb-6 animate-enter" />
                 <!-- Header & Action -->
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <!-- Stats moved here -->
+
+                    <!-- Tombol Tambah (Left Aligned) -->
+                    <button onclick="openModal('createModal')"
+                        class="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary-dark rounded-xl font-bold text-sm transition-all shadow-sm dark:shadow-lg shadow-accent/10 w-full sm:w-auto justify-center hover:scale-105 active:scale-95 duration-200">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                        Tambah Kategori
+                    </button>
+
+                    <!-- Stats -->
                     <div class="flex flex-wrap gap-3">
                         <div
                             class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
@@ -58,12 +67,6 @@
                                 class="text-sm font-bold text-green-700 dark:text-green-400">{{ $kategoriBaru }}</span>
                         </div>
                     </div>
-
-                    <button onclick="openModal('createModal')"
-                        class="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-surface dark:bg-accent text-primary-dark rounded-xl font-bold text-sm transition-all shadow-sm dark:shadow-lg shadow-accent/10 w-full sm:w-auto justify-center hover:scale-105 active:scale-95 duration-200">
-                        <span class="material-symbols-outlined text-lg">add</span>
-                        Tambah Kategori
-                    </button>
                 </div>
 
                 <!-- Pesan Sukses / Error -->
@@ -83,73 +86,74 @@
                 @endif
 
                 <!-- Tabel Data -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
-                    <!-- Search Bar Sederhana -->
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 bg-surface dark:bg-[#1A1410]">
-                        <div class="relative w-full sm:w-64">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" id="searchKategoriInput" placeholder="Cari kategori..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </div>
-                    </div>
+                <x-datatable :data="$kategori" search-placeholder="Cari ID atau kategori..."
+                    search-id="searchKategoriInput" :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-20 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                ID
+                                @if(request('sort') == 'id_kategori')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium w-1/4 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Nama Kategori
+                                @if(request('sort') == 'nama_kategori')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium">Deskripsi</th>
+                        <th class="p-4 pr-6 font-medium text-right w-32">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead>
-                                <tr
-                                    class="border-b border-primary/20 dark:border-[#36271F] text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <th class="p-4 pl-6 font-medium w-20">ID</th>
-                                    <th class="p-4 font-medium w-1/4">Nama Kategori</th>
-                                    <th class="p-4 font-medium">Deskripsi</th>
-                                    <th class="p-4 pr-6 font-medium text-right w-32">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($kategori as $item)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
-                                            #{{ $item->id_kategori }}</td>
-                                        <td
-                                            class="p-4 font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
-                                            {{ $item->nama_kategori }}
-                                        </td>
-                                        <td class="p-4 text-slate-500 dark:text-white/60 truncate max-w-xs">
-                                            {{ $item->deskripsi ?? '-' }}
-                                        </td>
-                                        <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditKategori('{{ $item->id_kategori }}')"
-                                                class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
-                                                title="Edit">
-                                                <span class="material-symbols-outlined text-lg">edit</span>
-                                            </button>
-                                            <form action="{{ route('kategori.destroy', $item->id_kategori) }}" method="POST"
-                                                onsubmit="return confirm('Yakin hapus kategori ini?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-                                                    title="Hapus">
-                                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada
-                                            kategori buku.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="p-4 border-t border-primary/20 dark:border-[#36271F] text-slate-600 dark:text-white/60">
-                        {{ $kategori->links() }}
-                    </div>
-                </div>
+                    <x-slot:body>
+                        @forelse($kategori as $item)
+                            <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
+                                    #{{ $item->id_kategori }}</td>
+                                <td
+                                    class="p-4 font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
+                                    {{ $item->nama_kategori }}
+                                </td>
+                                <td class="p-4 text-slate-500 dark:text-white/60 truncate max-w-xs">
+                                    {{ $item->deskripsi ?? '-' }}
+                                </td>
+                                <td class="p-4 pr-6 text-right flex justify-end gap-2">
+                                    <button onclick="openEditKategori('{{ $item->id_kategori }}')"
+                                        class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-600 transition-colors"
+                                        title="Edit">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </button>
+                                    <form action="{{ route('kategori.destroy', $item->id_kategori) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus kategori ini?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                            class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-600 transition-colors"
+                                            title="Hapus">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada kategori
+                                    buku.</td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

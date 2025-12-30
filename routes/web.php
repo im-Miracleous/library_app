@@ -49,6 +49,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // --- AREA BEBAS ---
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/global-search', [\App\Http\Controllers\Api\GlobalSearchController::class, 'search'])->name('global.search');
+
+    // Notifikasi Routes
+    Route::get('/notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markAsRead'])->name('notifikasi.read');
+    Route::post('/notifikasi/read-all', [\App\Http\Controllers\NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.readAll');
+
     // --- AREA KHUSUS ADMIN ---
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
@@ -57,13 +67,14 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('buku', \App\Http\Controllers\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
-        Route::resource('pengguna', \App\Http\Controllers\PenggunaController::class);
+        Route::resource('anggota', \App\Http\Controllers\AnggotaController::class);
 
         // Modul Laporan
         Route::prefix('laporan')->name('laporan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
             Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
             Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
+            Route::post('/denda/{id}/bayar', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.bayar');
         });
 
         // Route Update Status Denda (Outside Laporan Prefix)

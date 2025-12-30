@@ -60,40 +60,6 @@
                             perpustakaan
                             hari ini.</p>
                     </div>
-
-                    <!-- Status Sistem (Desktop Only) -->
-                    <div class="hidden lg:flex flex-col items-end gap-2 mb-1">
-                        <p class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mr-1">
-                            Status Sistem</p>
-                        <div class="flex items-center gap-3">
-                            <!-- DB Status (JS Monitor) -->
-                            <div
-                                class="sys-db-container flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-colors duration-300 bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
-                                <span class="relative flex size-2">
-                                    <span
-                                        class="sys-db-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
-                                    <span
-                                        class="sys-db-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
-                                </span>
-                                <span class="sys-db-text text-xs font-bold text-green-700 dark:text-green-400">
-                                    Checking...
-                                </span>
-                            </div>
-
-                            <!-- Server Status (JS Monitor) -->
-                            <div
-                                class="sys-server-container flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-colors duration-300 bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
-                                <span class="relative flex size-2">
-                                    <span
-                                        class="sys-server-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
-                                    <span
-                                        class="sys-server-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
-                                </span>
-                                <span
-                                    class="sys-server-text text-xs font-bold text-green-700 dark:text-green-400">Checking...</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -114,14 +80,22 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div
                         class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter delay-300 shadow-sm dark:shadow-none transition-colors">
-                        <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-6">Peminjaman Terbaru</h3>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-primary-dark dark:text-white">Peminjaman Terbaru</h3>
+                            <a href="{{ route('peminjaman.index') }}"
+                                class="text-sm font-semibold text-primary hover:text-primary-dark dark:text-accent dark:hover:text-white transition-colors flex items-center gap-1 group">
+                                Lihat Semua
+                                <span
+                                    class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                            </a>
+                        </div>
                         <div class="flex flex-col gap-4">
                             @forelse($peminjamanTerbaru as $pinjam)
-                                <div
-                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-colors hover:bg-primary/10 dark:hover:bg-[#4D3A2F] hover:border-primary/20 cursor-default">
+                                <a href="{{ route('peminjaman.show', $pinjam->id_peminjaman) }}"
+                                    class="flex items-center justify-between p-4 bg-background-light dark:bg-[#261C16] rounded-xl border border-primary/10 dark:border-white/5 transition-all hover:bg-primary/10 dark:hover:bg-[#4D3A2F] hover:border-primary/20 hover:scale-[1.02] cursor-pointer group">
                                     <div class="flex items-center gap-4">
                                         <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold">
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold group-hover:bg-primary group-hover:text-white dark:group-hover:bg-accent dark:group-hover:text-primary-dark transition-colors">
                                             {{ substr($pinjam->pengguna->nama, 0, 1) }}
                                         </div>
                                         <div>
@@ -137,7 +111,7 @@
                                         class="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 text-xs font-bold uppercase">
                                         {{ $pinjam->status_transaksi }}
                                     </span>
-                                </div>
+                                </a>
                             @empty
                                 <p class="text-primary-mid dark:text-white/40 text-center py-8">Belum ada data peminjaman.
                                 </p>
@@ -149,44 +123,39 @@
                         class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter delay-300 shadow-sm dark:shadow-none transition-colors flex flex-col justify-between">
                         <div>
                             <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4">Akses Cepat</h3>
-                            <div class="flex flex-col gap-3">
-                                <button
-                                    class="w-full py-3 px-4 bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md">
-                                    <span class="material-symbols-outlined">add</span>
+                            <div class="grid grid-cols-1 gap-3">
+                                {{-- 1. Transaksi Baru --}}
+                                <a href="{{ route('peminjaman.create') }}"
+                                    class="w-full py-3 px-4 bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark rounded-xl font-bold text-sm hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">add_circle</span>
                                     Transaksi Baru
-                                </button>
-                                <a href="{{ route('pengguna.index') }}"
-                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md btn-animated">
+                                </a>
+
+                                {{-- 2. Tambah Anggota --}}
+                                <a href="{{ route('anggota.index', ['action' => 'create']) }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
                                     <span class="material-symbols-outlined">person_add</span>
                                     Tambah Anggota
+                                </a>
+
+                                {{-- 3. Tambah Buku --}}
+                                <a href="{{ route('buku.index', ['action' => 'create']) }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                    Tambah Buku
+                                </a>
+
+                                {{-- 4. Lihat Pengunjung --}}
+                                <a href="{{ route('pengunjung.index') }}"
+                                    class="w-full py-3 px-4 bg-background-light dark:bg-[#36271F] text-primary-dark dark:text-white border border-primary/10 dark:border-transparent rounded-xl font-bold text-sm hover:bg-primary/10 dark:hover:bg-[#4D3A2F] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                    Lihat Pengunjung
                                 </a>
                             </div>
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-primary/10 dark:border-white/5 lg:hidden">
-                            <p
-                                class="text-xs font-bold text-primary-mid dark:text-white/40 uppercase tracking-widest mb-3 select-none">
-                                Status Sistem</p>
-                            <div
-                                class="sys-db-text-mobile flex items-center gap-2 text-sm font-bold text-primary-dark dark:text-white cursor-default">
-                                <span class="relative flex size-2">
-                                    <span
-                                        class="sys-db-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
-                                    <span
-                                        class="sys-db-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
-                                </span>
-                                <span class="sys-db-label-mobile">Checking...</span>
-                            </div>
-                            <div
-                                class="sys-server-text-mobile flex items-center gap-2 text-sm text-primary-dark dark:text-white mt-2 cursor-default font-bold">
-                                <span class="relative flex size-2">
-                                    <span
-                                        class="sys-server-dot-animate animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400"></span>
-                                    <span
-                                        class="sys-server-dot-static relative inline-flex rounded-full size-2 bg-green-500"></span>
-                                </span>
-                                <span class="sys-server-label-mobile">Checking...</span>
-                            </div>
+                            <!-- Mobile status removed, moved to sidebar -->
                         </div>
                     </div>
                 </div>
@@ -196,169 +165,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Function to update DB status UI
-            function updateDbStatus(isOnline) {
-                // Desktop Elements
-                const containers = document.querySelectorAll('.sys-db-container');
-                const texts = document.querySelectorAll('.sys-db-text');
-                const dotsAnimate = document.querySelectorAll('.sys-db-dot-animate');
-                const dotsStatic = document.querySelectorAll('.sys-db-dot-static');
-
-                // Mobile Elements
-                const mobileTexts = document.querySelectorAll('.sys-db-text-mobile');
-                const mobileLabels = document.querySelectorAll('.sys-db-label-mobile');
-
-                if (isOnline) {
-                    // Update Desktop
-                    containers.forEach(el => {
-                        el.classList.remove('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
-                        el.classList.add('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
-                    });
-                    texts.forEach(el => {
-                        el.classList.remove('text-red-700', 'dark:text-red-400');
-                        el.classList.add('text-green-700', 'dark:text-green-400');
-                        el.textContent = 'Database Terhubung';
-                    });
-                    dotsAnimate.forEach(el => {
-                        el.classList.remove('bg-red-400');
-                        el.classList.add('bg-green-400');
-                    });
-                    dotsStatic.forEach(el => {
-                        el.classList.remove('bg-red-500');
-                        el.classList.add('bg-green-500');
-                    });
-
-                    // Update Mobile
-                    mobileTexts.forEach(el => {
-                        el.classList.remove('text-red-600', 'dark:text-red-400');
-                        el.classList.add('text-primary-dark', 'dark:text-white');
-                    });
-                    mobileLabels.forEach(el => el.textContent = 'Database Terhubung');
-
-                } else {
-                    // Update Desktop (Offline)
-                    containers.forEach(el => {
-                        el.classList.remove('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
-                        el.classList.add('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
-                    });
-                    texts.forEach(el => {
-                        el.classList.remove('text-green-700', 'dark:text-green-400');
-                        el.classList.add('text-red-700', 'dark:text-red-400');
-                        el.textContent = 'Koneksi DB Gagal';
-                    });
-                    dotsAnimate.forEach(el => {
-                        el.classList.remove('bg-green-400');
-                        el.classList.add('bg-red-400');
-                    });
-                    dotsStatic.forEach(el => {
-                        el.classList.remove('bg-green-500');
-                        el.classList.add('bg-red-500');
-                    });
-
-                    // Update Mobile (Offline)
-                    mobileTexts.forEach(el => {
-                        el.classList.remove('text-primary-dark', 'dark:text-white');
-                        el.classList.add('text-red-600', 'dark:text-red-400');
-                    });
-                    mobileLabels.forEach(el => el.textContent = 'Koneksi DB Gagal');
-                }
-            }
-
-            // Function to update Server status UI
-            function updateServerStatus(isOnline) {
-                const containers = document.querySelectorAll('.sys-server-container');
-                const texts = document.querySelectorAll('.sys-server-text');
-                const dotsAnimate = document.querySelectorAll('.sys-server-dot-animate');
-                const dotsStatic = document.querySelectorAll('.sys-server-dot-static');
-
-                const mobileTexts = document.querySelectorAll('.sys-server-text-mobile');
-                const mobileLabels = document.querySelectorAll('.sys-server-label-mobile');
-
-                if (isOnline) {
-                    // Desktop
-                    containers.forEach(el => {
-                        el.classList.remove('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
-                        el.classList.add('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
-                    });
-                    texts.forEach(el => {
-                        el.classList.remove('text-red-700', 'dark:text-red-400');
-                        el.classList.add('text-green-700', 'dark:text-green-400');
-                        el.textContent = 'Server Normal';
-                    });
-                    dotsAnimate.forEach(el => {
-                        el.classList.remove('bg-red-400');
-                        el.classList.add('bg-green-400');
-                    });
-                    dotsStatic.forEach(el => {
-                        el.classList.remove('bg-red-500');
-                        el.classList.add('bg-green-500');
-                    });
-                    // Mobile
-                    mobileTexts.forEach(el => {
-                        el.classList.remove('text-red-600', 'dark:text-red-400');
-                        el.classList.add('text-primary-dark', 'dark:text-white');
-                    });
-                    mobileLabels.forEach(el => el.textContent = 'Server Normal');
-
-                } else {
-                    // Desktop (Offline)
-                    containers.forEach(el => {
-                        el.classList.remove('bg-green-100', 'border-green-200', 'dark:bg-green-500/10', 'dark:border-green-500/20');
-                        el.classList.add('bg-red-100', 'border-red-200', 'dark:bg-red-500/10', 'dark:border-red-500/20');
-                    });
-                    texts.forEach(el => {
-                        el.classList.remove('text-green-700', 'dark:text-green-400');
-                        el.classList.add('text-red-700', 'dark:text-red-400');
-                        el.textContent = 'Server Down';
-                    });
-                    dotsAnimate.forEach(el => {
-                        el.classList.remove('bg-green-400');
-                        el.classList.add('bg-red-400');
-                    });
-                    dotsStatic.forEach(el => {
-                        el.classList.remove('bg-green-500');
-                        el.classList.add('bg-red-500');
-                    });
-                    // Mobile
-                    mobileTexts.forEach(el => {
-                        el.classList.remove('text-primary-dark', 'dark:text-white');
-                        el.classList.add('text-red-600', 'dark:text-red-400');
-                    });
-                    mobileLabels.forEach(el => el.textContent = 'Server Down');
-                }
-            }
-
-            // Polling Function
-            function checkSystemStatus() {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout 5 detik
-
-                fetch('/api/system-status', { signal: controller.signal })
-                    .then(response => {
-                        clearTimeout(timeoutId); // Clear timeout jika sukses
-                        if (!response.ok) {
-                            throw new Error('Network error');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateDbStatus(data.db_status);
-                        updateServerStatus(true);
-                    })
-                    .catch(error => {
-                        // Error bisa karena Network Error (Server Mati) atau Timeout (Abort)
-                        updateDbStatus(false);
-                        updateServerStatus(false);
-                    });
-            }
-
-            // Initial Check
-            checkSystemStatus();
-
-            // Interval Check (every 5s)
-            setInterval(checkSystemStatus, 5000);
-        });
+        // System status moved to global script (resources/js/system-status.js)
     </script>
 
 </html>

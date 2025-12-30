@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BukuController;
 use App\Http\Controllers\Api\KategoriController;
-use App\Http\Controllers\Api\PenggunaController;
+use App\Http\Controllers\Api\AnggotaController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -31,7 +31,7 @@ Route::get('/system-status', function () {
 Route::get('/buku', [BukuController::class, 'index']);
 Route::get('/buku/{id}', [BukuController::class, 'show']);
 Route::get('/kategori', [KategoriController::class, 'index']);
-Route::get('/pengguna', [PenggunaController::class, 'index']); // Public List User
+Route::get('/anggota', [AnggotaController::class, 'index']); // Public List User
 
 
 // --- PROTECTED ROUTES ---
@@ -42,13 +42,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     // KELOLA PENGGUNA (Otomatis buat route store, show, update, destroy. Index sudah di public)
-    Route::apiResource('pengguna', PenggunaController::class)
-        ->except(['index'])
+    Route::apiResource('anggota', AnggotaController::class)
         ->names([
-            'store' => 'api.pengguna.store',
-            'show' => 'api.pengguna.show',
-            'update' => 'api.pengguna.update',
-            'destroy' => 'api.pengguna.destroy',
+            'index' => 'api.anggota.index',
+            'store' => 'api.anggota.store',
+            'show' => 'api.anggota.show',
+            'update' => 'api.anggota.update',
+            'destroy' => 'api.anggota.destroy',
         ]);
 
     // KELOLA BUKU (Create, Update, Delete)

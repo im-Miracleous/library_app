@@ -1,4 +1,6 @@
 import './bootstrap';
+import './global-search';
+import './system-status';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -102,122 +104,97 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openSidebarBtn) openSidebarBtn.addEventListener('click', toggleSidebar);
     if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', toggleSidebar);
     if (overlay) overlay.addEventListener('click', toggleSidebar);
-
-    // --- 5. LOGIKA MODAL GLOBAL ---
-    window.openModal = function (modalId) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        const panel = modal.querySelector('div[class*="relative transform"]');
-
-        // Hapus class hidden jika ada (untuk safety)
-        modal.classList.remove('hidden');
-        modal.classList.remove('pointer-events-none');
-
-        // Trigger reflow agar browser sadar state awal sebelum transisi
-        void modal.offsetWidth;
-
-        modal.classList.remove('opacity-0');
-
-        if (panel) {
-            panel.classList.remove('scale-95');
-            panel.classList.add('scale-100');
-        }
-    };
-
-    window.closeModal = function (modalId) {
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-        const panel = modal.querySelector('div[class*="relative transform"]');
-
-        modal.classList.add('opacity-0');
-
-        if (panel) {
-            panel.classList.remove('scale-100');
-            panel.classList.add('scale-95');
-        }
-
-        // Tunggu transisi selesai baru set pointer-events-none
-        setTimeout(() => {
-            modal.classList.add('pointer-events-none');
-        }, 300);
-    };
-
-    // --- 6. LOGIKA EDIT KATEGORI ---
-    window.openEditKategori = function (id) {
-        // Ganti URL action form
-        const form = document.getElementById('editForm');
-        form.action = `/kategori/${id}`;
-
-        // Fetch data kategori
-        fetch(`/kategori/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('edit_nama').value = data.nama_kategori;
-                document.getElementById('edit_deskripsi').value = data.deskripsi || '';
-                window.openModal('editModal');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal mengambil data kategori.');
-            });
-    };
-
-    // --- 7. LOGIKA EDIT PENGGUNA ---
-    window.openEditPengguna = function (id) {
-        const form = document.getElementById('editForm');
-        form.action = `/pengguna/${id}`;
-
-        fetch(`/pengguna/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('edit_nama').value = data.nama;
-                document.getElementById('edit_email').value = data.email;
-                document.getElementById('edit_telepon').value = data.telepon || '';
-                document.getElementById('edit_alamat').value = data.alamat || '';
-
-                // Set select status
-                const statusSelect = document.getElementById('edit_status');
-                if (statusSelect) statusSelect.value = data.status;
-
-                window.openModal('editModal');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal mengambil data pengguna.');
-            });
-    };
-
-    // --- 8. LOGIKA EDIT BUKU ---
-    window.openEditBuku = function (id) {
-        const form = document.getElementById('editForm');
-        form.action = `/buku/${id}`;
-
-        fetch(`/buku/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('edit_judul').value = data.judul;
-
-                // Select Kategori
-                const katSelect = document.getElementById('edit_kategori');
-                if (katSelect) katSelect.value = data.id_kategori;
-
-                document.getElementById('edit_penulis').value = data.penulis;
-                document.getElementById('edit_penerbit').value = data.penerbit || '';
-                document.getElementById('edit_tahun').value = data.tahun_terbit;
-                document.getElementById('edit_stok').value = data.stok_total;
-                document.getElementById('edit_isbn').value = data.isbn || '';
-                document.getElementById('edit_dewey').value = data.kode_dewey || '';
-                document.getElementById('edit_deskripsi').value = data.deskripsi || '';
-
-                // Select Status
-                const statusSelect = document.getElementById('edit_status');
-                if (statusSelect) statusSelect.value = data.status;
-
-                window.openModal('editModal');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal mengambil data buku.');
-            });
-    };
 });
+
+// --- 5. LOGIKA MODAL GLOBAL ---
+window.openModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const panel = modal.querySelector('div[class*="relative transform"]');
+
+    // Hapus class hidden jika ada (untuk safety)
+    modal.classList.remove('hidden');
+    modal.classList.remove('pointer-events-none');
+
+    // Trigger reflow agar browser sadar state awal sebelum transisi
+    void modal.offsetWidth;
+
+    modal.classList.remove('opacity-0');
+
+    if (panel) {
+        panel.classList.remove('scale-95');
+        panel.classList.add('scale-100');
+    }
+};
+
+window.closeModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const panel = modal.querySelector('div[class*="relative transform"]');
+
+    modal.classList.add('opacity-0');
+
+    if (panel) {
+        panel.classList.remove('scale-100');
+        panel.classList.add('scale-95');
+    }
+
+    // Tunggu transisi selesai baru set pointer-events-none
+    setTimeout(() => {
+        modal.classList.add('pointer-events-none');
+    }, 300);
+};
+
+// --- 6. LOGIKA EDIT KATEGORI ---
+window.openEditKategori = function (id) {
+    // Ganti URL action form
+    const form = document.getElementById('editForm');
+    form.action = `/kategori/${id}`;
+
+    // Fetch data kategori
+    fetch(`/kategori/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_nama').value = data.nama_kategori;
+            document.getElementById('edit_deskripsi').value = data.deskripsi || '';
+            window.openModal('editModal');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal mengambil data kategori.');
+        });
+};
+
+// --- 8. LOGIKA EDIT BUKU ---
+window.openEditBuku = function (id) {
+    const form = document.getElementById('editForm');
+    form.action = `/buku/${id}`;
+
+    fetch(`/buku/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_judul').value = data.judul;
+
+            // Select Kategori
+            const katSelect = document.getElementById('edit_kategori');
+            if (katSelect) katSelect.value = data.id_kategori;
+
+            document.getElementById('edit_penulis').value = data.penulis;
+            document.getElementById('edit_penerbit').value = data.penerbit || '';
+            document.getElementById('edit_tahun').value = data.tahun_terbit;
+            document.getElementById('edit_stok').value = data.stok_total;
+            document.getElementById('edit_isbn').value = data.isbn || '';
+            document.getElementById('edit_dewey').value = data.kode_dewey || '';
+            document.getElementById('edit_deskripsi').value = data.deskripsi || '';
+
+            // Select Status
+            const statusSelect = document.getElementById('edit_status');
+            if (statusSelect) statusSelect.value = data.status;
+
+            window.openModal('editModal');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Gagal mengambil data buku.');
+        });
+};
