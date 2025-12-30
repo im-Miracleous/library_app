@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             anggotaTimeout = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/pengguna?search=${encodeURIComponent(query)}&status=aktif`, {
+                    const response = await fetch(`/anggota?search=${encodeURIComponent(query)}&status=aktif`, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const json = await response.json();

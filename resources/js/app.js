@@ -162,31 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
-    // --- 7. LOGIKA EDIT PENGGUNA ---
-    window.openEditPengguna = function (id) {
-        const form = document.getElementById('editForm');
-        form.action = `/pengguna/${id}`;
-
-        fetch(`/pengguna/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('edit_nama').value = data.nama;
-                document.getElementById('edit_email').value = data.email;
-                document.getElementById('edit_telepon').value = data.telepon || '';
-                document.getElementById('edit_alamat').value = data.alamat || '';
-
-                // Set select status
-                const statusSelect = document.getElementById('edit_status');
-                if (statusSelect) statusSelect.value = data.status;
-
-                window.openModal('editModal');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Gagal mengambil data pengguna.');
-            });
-    };
-
     // --- 8. LOGIKA EDIT BUKU ---
     window.openEditBuku = function (id) {
         const form = document.getElementById('editForm');
