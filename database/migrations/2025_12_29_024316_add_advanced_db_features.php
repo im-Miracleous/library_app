@@ -16,7 +16,6 @@ return new class extends Migration {
             CREATE OR REPLACE VIEW v_peminjaman_aktif AS
             SELECT 
                 p.id_peminjaman,
-                p.kode_peminjaman,
                 u.nama AS nama_peminjam,
                 p.tanggal_pinjam,
                 p.tanggal_jatuh_tempo,
@@ -124,17 +123,17 @@ return new class extends Migration {
                 START TRANSACTION;
 
                     -- 1. Generate ID (Logic similar to Trigger)
-                    SET v_date_code = DATE_FORMAT(NOW(), '%Y-%m-%d');
+                    SET v_date_code = DATE_FORMAT(NOW(), '%Y%m%d');
                     SET v_next_no = (
                         SELECT IFNULL(MAX(CAST(RIGHT(id_peminjaman, 3) AS UNSIGNED)), 0) + 1 
                         FROM peminjaman 
                         WHERE DATE(created_at) = CURDATE()
                     );
-                    SET v_id_peminjaman = CONCAT('P-', v_date_code, LPAD(v_next_no, 3, '0'));
+                    SET v_id_peminjaman = CONCAT('P-', v_date_code, '-', LPAD(v_next_no, 3, '0'));
 
                     -- 2. Insert Header
-                    INSERT INTO peminjaman (id_peminjaman, kode_peminjaman, id_pengguna, tanggal_pinjam, tanggal_jatuh_tempo, status_transaksi, keterangan, created_at, updated_at)
-                    VALUES (v_id_peminjaman, v_id_peminjaman, p_id_pengguna, p_tgl_pinjam, p_tgl_jatuh_tempo, 'berjalan', p_keterangan, NOW(), NOW());
+                    INSERT INTO peminjaman (id_peminjaman, id_pengguna, tanggal_pinjam, tanggal_jatuh_tempo, status_transaksi, keterangan, created_at, updated_at)
+                    VALUES (v_id_peminjaman, p_id_pengguna, p_tgl_pinjam, p_tgl_jatuh_tempo, 'berjalan', p_keterangan, NOW(), NOW());
 
                     -- 3. Extract JSON length
                     SET v_book_count = JSON_LENGTH(p_json_buku);

@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.className = 'hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group';
 
             row.innerHTML = `
-                <td class="p-4 pl-6 font-mono text-primary font-bold dark:text-accent">${highlightText(item.kode_peminjaman, query)}</td>
+                <td class="p-4 pl-6 font-mono text-primary font-bold dark:text-accent">${highlightText(item.id_peminjaman, query)}</td>
                 <td class="p-4">
                     <div class="flex flex-col">
                         <span class="font-bold text-slate-800 dark:text-white">${highlightText(item.nama_anggota, query)}</span>

@@ -77,7 +77,7 @@
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Kode Transaksi</div>
                                     <div class="font-mono font-bold text-lg text-primary dark:text-accent">
-                                        {{ $peminjaman->kode_peminjaman }}</div>
+                                        {{ $peminjaman->id_peminjaman }}</div>
                                 </div>
                                 <div
                                     class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">

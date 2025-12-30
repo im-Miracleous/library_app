@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const badgeClass = badges[item.status_bayar] || 'bg-slate-100 text-slate-600';
 
             // Highlight
-            const refHighlight = highlightText(item.kode_peminjaman, query);
+            const refHighlight = highlightText(item.id_peminjaman, query);
             const nameHighlight = highlightText(item.nama_anggota, query);
             const titleHighlight = highlightText(item.judul_buku, query);
 
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </form>
                 `;
             } else {
-                actionBtn = `<span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1 font-bold"><span class="material-symbols-outlined text-sm">check_circle</span>Lunas</span>`;
+                actionBtn = `<span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1 font-bold"><span class="material-symbols-outlined text-sm">check_circle</span>Lunas</span>`;
             }
 
             row.innerHTML = `
@@ -134,11 +134,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 </td>
                 <td class="p-4 text-xs font-bold uppercase text-slate-500 dark:text-white/50">${item.jenis_denda}</td>
                 <td class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right">${amount}</td>
-                <td class="p-4 text-right pr-6">
-                    <div class="flex flex-col items-end gap-2">
-                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${badgeClass}">${item.status_bayar.replace('_', ' ')}</span>
-                        ${actionBtn}
-                    </div>
+                <td class="p-4 text-center">
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${badgeClass}">${item.status_bayar.replace('_', ' ')}</span>
+                </td>
+                <td class="p-4 text-center">
+                    ${actionBtn}
                 </td>
             `;
             tableBody.appendChild(row);

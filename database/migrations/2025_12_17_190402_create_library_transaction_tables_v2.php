@@ -11,7 +11,6 @@ return new class extends Migration {
         // TABEL PEMINJAMAN
         Schema::create('peminjaman', function (Blueprint $table) {
             $table->string('id_peminjaman', 30)->primary(); // PK: id_peminjaman
-            $table->string('kode_peminjaman')->unique();
 
             $table->string('id_pengguna', 20);
             $table->foreign('id_pengguna')->references('id_pengguna')->on('pengguna')->onDelete('cascade');
@@ -34,7 +33,7 @@ return new class extends Migration {
 
                 -- Logic: Only generate ID if it is passed as NULL or empty string
                 IF NEW.id_peminjaman IS NULL OR NEW.id_peminjaman = '' THEN
-                    SET date_code = DATE_FORMAT(NOW(), '%Y-%m-%d');
+                    SET date_code = DATE_FORMAT(NOW(), '%Y%m%d');
 
                     SET next_no = (
                         SELECT IFNULL(MAX(CAST(RIGHT(id_peminjaman, 3) AS UNSIGNED)), 0) + 1 
@@ -42,12 +41,7 @@ return new class extends Migration {
                         WHERE DATE(created_at) = CURDATE()
                     );
 
-                    SET NEW.id_peminjaman = CONCAT('P-', date_code, LPAD(next_no, 3, '0'));
-                END IF;
-                
-                -- Ensure kode_peminjaman is set
-                IF NEW.kode_peminjaman IS NULL OR NEW.kode_peminjaman = '' THEN
-                    SET NEW.kode_peminjaman = NEW.id_peminjaman;
+                    SET NEW.id_peminjaman = CONCAT('P-', date_code, '-', LPAD(next_no, 3, '0'));
                 END IF;
             END
         ");

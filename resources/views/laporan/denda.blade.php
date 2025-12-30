@@ -162,6 +162,7 @@
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
+                                    <th class="p-4 font-medium">Kode</th>
                                     <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
                                         data-sort="nama_anggota">
@@ -169,8 +170,8 @@
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
-                                    <th class="p-4 font-medium">Jenis Denda</th>
                                     <th class="p-4 font-medium">Buku</th>
+                                    <th class="p-4 font-medium">Jenis Denda</th>
                                     <th class="p-4 font-medium text-right">Nominal</th>
                                     <th class="p-4 font-medium text-center">Status</th>
                                     <th class="p-4 font-medium text-center">Aksi</th>

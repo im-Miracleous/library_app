@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PenggunaSeeder::class,
             BukuSeeder::class,
             PeminjamanSeeder::class,
+            // PengunjungSeeder::class // Dikosongkan sesuai request
         ]);
     }
 }

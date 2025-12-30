@@ -5,53 +5,98 @@ namespace Database\Seeders;
 use App\Models\Pengguna;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Faker\Factory as Faker;
 
 class PenggunaSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Buat ADMIN
-        // Ekspektasi ID: U-A25001 (Jika tahun 2025)
+        // 1. ADMIN (2 Orang)
+        // Convention: [name]@admin.library.com
         Pengguna::create([
             'nama' => 'Super Admin',
-            'email' => 'admin@library.com',
+            'email' => 'super@admin.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'admin',
             'telepon' => '081234567890',
-            'alamat' => 'Ruang Server Lt. 1'
+            'alamat' => 'Ruang Server Lt. 1',
+            'status' => 'aktif'
         ]);
 
-        // 2. Buat PETUGAS (Staff)
-        // Ekspektasi ID: U-S25001
+        Pengguna::create([
+            'nama' => 'Admin Cadangan',
+            'email' => 'backup@admin.library.com',
+            'password' => Hash::make('password123'),
+            'peran' => 'admin',
+            'telepon' => '081234567891',
+            'alamat' => 'Ruang IT',
+            'status' => 'aktif'
+        ]);
+
+        // 2. PETUGAS (3 Orang)
+        // Convention: [name]@petugas.library.com
         Pengguna::create([
             'nama' => 'Budi Pustakawan',
-            'email' => 'budi@library.com',
+            'email' => 'budi@petugas.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'petugas',
             'telepon' => '089876543210',
-            'alamat' => 'Meja Resepsionis'
+            'alamat' => 'Meja Resepsionis A',
+            'status' => 'aktif'
         ]);
 
-        // 3. Buat ANGGOTA (Member) - User 1
-        // Ekspektasi ID: U-M25001
         Pengguna::create([
-            'nama' => 'Siti Mahasiswa',
-            'email' => 'siti@student.com',
+            'nama' => 'Ani Staff',
+            'email' => 'ani@petugas.library.com',
             'password' => Hash::make('password123'),
-            'peran' => 'anggota',
-            'telepon' => '085555555555',
-            'alamat' => 'Jl. Kampus No. 5'
+            'peran' => 'petugas',
+            'telepon' => '089876543211',
+            'alamat' => 'Meja Resepsionis B',
+            'status' => 'aktif'
         ]);
 
-        // 4. Buat ANGGOTA (Member) - User 2
-        // Ekspektasi ID: U-M25002 (Nomor urut bertambah)
         Pengguna::create([
-            'nama' => 'Ahmad Anggota',
-            'email' => 'ahmad@gmail.com',
+            'nama' => 'Citra Nonaktif',
+            'email' => 'citra@petugas.library.com',
             'password' => Hash::make('password123'),
-            'peran' => 'anggota',
-            'telepon' => '087777777777',
-            'alamat' => 'Asrama Putra'
+            'peran' => 'petugas',
+            'telepon' => '089876543212',
+            'alamat' => 'Cuti Panjang',
+            'status' => 'nonaktif' // Sesuai request ada status nonaktif
         ]);
+
+        // 3. ANGGOTA (15 Orang)
+        // Convention: [name]@[domain]
+        // 5 Nonaktif, 10 Aktif
+        $faker = Faker::create('id_ID');
+        $domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
+
+        // 5 Anggota Nonaktif
+        for ($i = 1; $i <= 5; $i++) {
+            $firstName = $faker->firstName;
+            Pengguna::create([
+                'nama' => "$firstName (Nonaktif)",
+                'email' => strtolower($firstName) . $i . '@' . $faker->randomElement($domains),
+                'password' => Hash::make('password123'),
+                'peran' => 'anggota',
+                'telepon' => $faker->phoneNumber,
+                'alamat' => $faker->address,
+                'status' => 'nonaktif'
+            ]);
+        }
+
+        // 10 Anggota Aktif
+        for ($i = 1; $i <= 10; $i++) {
+            $firstName = $faker->firstName; // e.g Eko
+            Pengguna::create([
+                'nama' => $firstName . " Anggota",
+                'email' => strtolower($firstName) . $i . '@' . $faker->randomElement($domains),
+                'password' => Hash::make('password123'),
+                'peran' => 'anggota',
+                'telepon' => $faker->phoneNumber,
+                'alamat' => $faker->address,
+                'status' => 'aktif'
+            ]);
+        }
     }
 }

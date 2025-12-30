@@ -67,7 +67,7 @@
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Kode Transaksi</div>
                                     <div class="font-mono font-bold text-lg text-primary dark:text-accent">
-                                        {{ $peminjaman->kode_peminjaman }}
+                                        {{ $peminjaman->id_peminjaman }}
                                     </div>
                                 </div>
                                 <div
@@ -94,8 +94,16 @@
                                     <div
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Jatuh Tempo</div>
-                                    <div class="font-bold text-slate-800 dark:text-white">
+                                    @php
+                                        $isOverdue = \Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)) && $peminjaman->status_transaksi == 'berjalan';
+                                    @endphp
+                                    <div
+                                        class="font-bold {{ $isOverdue ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-slate-800 dark:text-white' }} flex items-center gap-2">
                                         {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
+                                        @if($isOverdue)
+                                            <span
+                                                class="text-[10px] uppercase bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-500/30 animate-none">Terlambat</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

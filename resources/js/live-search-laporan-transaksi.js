@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const badgeClass = badges[item.status_transaksi] || 'bg-slate-100 text-slate-600';
 
             // Highlight
-            const codeHighlight = highlightText(item.kode_peminjaman, query);
+            const codeHighlight = highlightText(item.id_peminjaman, query);
             const nameHighlight = highlightText(item.nama_anggota, query);
 
             const row = document.createElement('tr');

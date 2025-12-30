@@ -73,7 +73,7 @@
                                         <label
                                             class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1 block">Kode
                                             Transaksi</label>
-                                        <input type="text" value="{{ $peminjaman->kode_peminjaman }}" disabled
+                                        <input type="text" value="{{ $peminjaman->id_peminjaman }}" disabled
                                             class="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-slate-500 dark:text-white/50 cursor-not-allowed">
                                     </div>
                                     <div>
