@@ -89,16 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Update active tab styling
                 filterTabs.forEach(t => {
-                    t.classList.remove('bg-white', 'shadow', 'text-primary', 'bg-purple-100', 'text-purple-700', 'bg-orange-100', 'text-orange-700');
+                    t.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'bg-purple-100', 'text-purple-700', 'bg-orange-100', 'text-orange-700');
                     t.classList.add('text-slate-500');
                 });
 
                 if (!state.peran) {
-                    tab.classList.add('bg-white', 'shadow', 'text-primary');
+                    tab.classList.add('bg-white', 'shadow-sm', 'text-primary');
                 } else if (state.peran === 'admin') {
-                    tab.classList.add('bg-purple-100', 'text-purple-700');
+                    tab.classList.add('bg-purple-100', 'text-purple-700', 'shadow-sm');
                 } else if (state.peran === 'petugas') {
-                    tab.classList.add('bg-orange-100', 'text-orange-700');
+                    tab.classList.add('bg-orange-100', 'text-orange-700', 'shadow-sm');
                 }
                 tab.classList.remove('text-slate-500');
             });
@@ -226,6 +226,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     </td>
                     <td class="p-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${item.peran === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'} uppercase">
+                            ${item.peran}
+                        </span>
+                    </td>
+                    <td class="p-4">
                         ${item.telepon || '-'}
                     </td>
                     <td class="p-4 max-w-[200px] truncate" title="${item.alamat || '-'}">
@@ -237,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </span>
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                        <button onclick="openEditPegawai('${item.id_pengguna}')" 
+                        <button onclick="openEditPegawai(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
                             class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
                             title="Edit">
                             <span class="material-symbols-outlined text-lg">edit</span>

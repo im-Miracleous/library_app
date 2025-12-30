@@ -1,116 +1,187 @@
-
 document.addEventListener('DOMContentLoaded', function () {
+    // State
+    let state = {
+        search: new URLSearchParams(window.location.search).get('search') || '',
+        page: new URLSearchParams(window.location.search).get('page') || 1,
+        limit: new URLSearchParams(window.location.search).get('limit') || 10,
+        sort: new URLSearchParams(window.location.search).get('sort') || 'id_peminjaman',
+        direction: new URLSearchParams(window.location.search).get('direction') || 'desc',
+        status: new URLSearchParams(window.location.search).get('status') || ''
+    };
+
+    // Elements
     const searchInput = document.getElementById('searchInput');
     const tableBody = document.querySelector('tbody');
-    const paginationContainer = document.getElementById('paginationContainer');
-    const showingText = document.querySelector('.text-xs.font-medium');
-    const limitSelect = document.querySelector('select.appearance-none');
+    const statusFilter = document.getElementById('statusFilter');
+    let timeout = null;
 
-    let debounceTimer;
-    let sortColumn = 'created_at';
-    let sortDirection = 'desc';
+    // Initialize Controls
+    setupControls();
 
-    if (!searchInput || !tableBody) return;
+    function setupControls() {
+        // LIMIT SELECT
+        const limitSelect = document.querySelector('select:not(#statusFilter)');
+        if (limitSelect) {
+            limitSelect.removeAttribute('onchange');
 
-    // Highlight Helper
-    function highlightText(text, query) {
-        if (!query) return text;
-        const regex = new RegExp(`(${query})`, 'gi');
-        return String(text).replace(regex, '<span class="bg-yellow-200 text-slate-800 font-bold px-0.5 rounded">$1</span>');
-    }
+            Array.from(limitSelect.options).forEach(opt => {
+                if (opt.value === state.limit || opt.value.includes(`limit=${state.limit}`)) {
+                    limitSelect.value = opt.value;
+                }
+            });
 
-    // Default Filters
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('sort')) sortColumn = urlParams.get('sort');
-    if (urlParams.has('direction')) sortDirection = urlParams.get('direction');
+            limitSelect.addEventListener('change', (e) => {
+                const val = e.target.value;
+                const match = val.match(/limit=(\d+)/);
+                state.limit = match ? match[1] : val;
 
-    fetchData();
+                state.page = 1;
+                fetchData();
+            });
+        }
 
-    searchInput.addEventListener('input', function () {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => fetchData(1), 500);
-    });
+        // STATUS FILTER
+        if (statusFilter) {
+            statusFilter.value = state.status;
+            statusFilter.addEventListener('change', (e) => {
+                state.status = e.target.value;
+                state.page = 1;
+                fetchData();
+            });
+        }
 
-    limitSelect.addEventListener('change', () => fetchData(1));
+        // SORT HEADERS
+        const headers = document.querySelectorAll('th[onclick]');
+        headers.forEach(th => {
+            const originalOnclick = th.getAttribute('onclick');
+            th.removeAttribute('onclick');
+            th.style.cursor = 'pointer';
 
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', function (e) {
-            e.preventDefault();
-            const col = this.getAttribute('data-sort');
-            if (sortColumn === col) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = col;
-                sortDirection = 'asc';
+            const matchSort = originalOnclick.match(/sort=([^&']+)/);
+            if (matchSort) {
+                th.dataset.sort = matchSort[1];
+
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sort;
+                    if (state.sort === col) {
+                        state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sort = col;
+                        state.direction = 'asc';
+                    }
+                    state.page = 1;
+                    fetchData();
+                });
             }
-            fetchData(1);
-            updateSortIcons();
         });
-    });
 
-    function updateSortIcons() {
-        document.querySelectorAll('th[data-sort] .material-symbols-outlined').forEach(icon => {
-            icon.textContent = 'unfold_more';
-            icon.style.opacity = '0.3';
-        });
-        const activeTh = document.querySelector(`th[data-sort="${sortColumn}"]`);
-        if (activeTh) {
-            const icon = activeTh.querySelector('.material-symbols-outlined');
-            icon.textContent = sortDirection === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down';
-            icon.style.opacity = '1';
+        // PAGINATION
+        setupPaginationDelegation();
+
+        // SEARCH INPUT
+        if (searchInput) {
+            searchInput.value = state.search;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    state.search = e.target.value;
+                    state.page = 1;
+                    fetchData();
+                }, 300);
+            });
         }
     }
-    updateSortIcons();
 
-    function fetchData(page = 1) {
-        const query = searchInput.value;
-        const limit = limitSelect.value;
+    function setupPaginationDelegation() {
+        const paginationContainer = document.querySelector('.p-4.border-t');
+        if (!paginationContainer) return;
 
-        const params = new URLSearchParams({
-            page: page,
-            limit: limit,
-            search: query,
-            sort: sortColumn,
-            direction: sortDirection
+        paginationContainer.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (!link) return;
+
+            e.preventDefault();
+
+            try {
+                const url = new URL(link.href);
+                const page = url.searchParams.get('page');
+                if (page) {
+                    state.page = page;
+                    fetchData();
+                }
+            } catch (err) {
+                console.error('Invalid Pagination URL', link.href);
+            }
         });
-
-        tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-primary/50">progress_activity</span></td></tr>';
-
-        fetch(`${window.location.pathname}?${params.toString()}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(response => response.json())
-            .then(response => {
-                renderTable(response.data, query);
-                renderPagination(response.total, response.data.length, page, limit);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">Gagal memuat data.</td></tr>';
-            });
     }
 
-    function renderTable(data, query) {
+    async function fetchData() {
+        const params = new URLSearchParams();
+        Object.keys(state).forEach(key => {
+            if (state[key]) params.set(key, state[key]);
+        });
+
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({}, '', newUrl);
+
+        tableBody.style.opacity = '0.5';
+
+        try {
+            const response = await fetch(newUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            const json = await response.json();
+
+            if (json.data) {
+                renderTable(json.data);
+                updatePagination(json);
+                updateSortIcons();
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">Gagal memuat data.</td></tr>`;
+        } finally {
+            tableBody.style.opacity = '1';
+        }
+    }
+
+    function highlightText(text, query) {
+        if (!query || !text) return text;
+        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${safeQuery})`, 'gi');
+        return String(text).replace(regex, '<span class="bg-yellow-200 dark:bg-yellow-600/50 text-slate-900 dark:text-white rounded px-0.5">$1</span>');
+    }
+
+    function renderTable(data) {
         tableBody.innerHTML = '';
+        const searchQuery = searchInput ? searchInput.value.trim() : '';
 
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="p-12 text-center text-slate-400 dark:text-white/40"><div class="flex flex-col items-center justify-center gap-2"><span class="material-symbols-outlined text-4xl opacity-50">event_busy</span><span>Tidak ada peminjaman yang sedang berjalan.</span></div></td></tr>';
+            tableBody.innerHTML = `<tr>
+                <td colspan="7" class="p-12 text-center text-slate-400 dark:text-white/40">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-4xl opacity-50">data_loss_prevention</span>
+                        <span>Tidak ada data peminjaman ditemukan.</span>
+                    </div>
+                </td>
+            </tr>`;
             return;
         }
 
-        data.forEach((item, index) => {
-            const date = new Date(item.tanggal_pinjam);
-            const dateStr = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            const due = new Date(item.tanggal_jatuh_tempo);
-            const dueStr = due.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        data.forEach(item => {
+            const datePinjam = new Date(item.tanggal_pinjam).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-            // Due Date Logic
+            // Late Check Logic
+            const dueTime = new Date(item.tanggal_jatuh_tempo);
+            const dueStr = dueTime.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const dueTime = new Date(item.tanggal_jatuh_tempo);
             dueTime.setHours(0, 0, 0, 0);
-            const isLate = dueTime < today && item.status_transaksi === 'berjalan';
 
+            const isLate = dueTime < today && item.status_transaksi === 'berjalan';
             const dueClass = isLate ? 'text-red-600 font-bold animate-pulse' : 'text-slate-600 dark:text-white/70';
 
             // Badges
@@ -119,24 +190,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 'selesai': 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
                 'terlambat': 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
             };
-            const badgeClass = badges[item.status_transaksi] || 'bg-slate-100';
+            const badgeClass = badges[item.status_transaksi] || 'bg-slate-100 text-slate-600';
+
+            // Highlight
+            const codeHighlighted = highlightText(item.id_peminjaman, searchQuery);
+            const nameHighlighted = highlightText(item.nama_anggota, searchQuery);
 
             const row = document.createElement('tr');
-            row.className = 'hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group';
+            row.className = 'hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group animate-enter';
 
             row.innerHTML = `
-                <td class="p-4 pl-6 font-mono text-primary font-bold dark:text-accent whitespace-nowrap">${highlightText(item.id_peminjaman, query)}</td>
+                <td class="p-4 pl-6 font-mono font-bold text-primary dark:text-accent whitespace-nowrap">
+                    ${codeHighlighted}
+                </td>
                 <td class="p-4">
                     <div class="flex flex-col">
-                        <span class="font-bold text-slate-800 dark:text-white">${highlightText(item.nama_anggota, query)}</span>
+                        <span class="font-bold text-slate-800 dark:text-white">${nameHighlighted}</span>
                         <span class="text-xs text-slate-500 dark:text-white/50">${item.email_anggota || '-'}</span>
                     </div>
                 </td>
                 <td class="p-4 text-center font-bold text-slate-700 dark:text-white">${item.total_buku}</td>
-                <td class="p-4 text-slate-600 dark:text-white/70">${dateStr}</td>
-                <td class="p-4 ${dueClass}">
-                    ${dueStr}
-                    ${isLate ? '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase">Telat</span>' : ''}
+                <td class="p-4 text-slate-600 dark:text-white/70">
+                    ${datePinjam}
+                </td>
+                <td class="p-4">
+                    <span class="${dueClass}">
+                        ${dueStr}
+                        ${isLate ? '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase">Telat</span>' : ''}
+                    </span>
                 </td>
                 <td class="p-4">
                     <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${badgeClass}">
@@ -144,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </span>
                 </td>
                 <td class="p-4 text-right pr-6">
-                    <a href="/peminjaman/${item.id_peminjaman}" 
+                    <a href="/peminjaman/${item.id_peminjaman}"
                         class="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 dark:hover:bg-white/10 transition-colors inline-block"
                         title="Lihat Detail">
                         <span class="material-symbols-outlined text-lg">visibility</span>
@@ -155,33 +236,83 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function renderPagination(total, count, page, limit) {
-        page = parseInt(page);
-        limit = parseInt(limit);
+    function updatePagination(json) {
+        const footer = document.querySelector('.p-4.border-t');
+        if (!footer) return;
+
+        const total = json.total;
+        const perPage = parseInt(state.limit);
+        const currentPage = parseInt(state.page);
+        const from = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1;
+        const to = Math.min(currentPage * perPage, total);
+
+        const infoDiv = footer.querySelector('div.text-xs');
+        if (infoDiv) {
+            infoDiv.innerHTML = `Showing <span class="font-bold">${from}</span> to <span class="font-bold">${to}</span> of <span class="font-bold">${total}</span> entries`;
+        }
+
+        const linksContainer = footer.querySelector('nav') || footer.querySelector('div.flex.justify-between') || footer.lastElementChild;
+
+        if (linksContainer) {
+            let html = buildPaginationHTML(total, perPage, currentPage);
+            linksContainer.innerHTML = html;
+        }
+    }
+
+    function buildPaginationHTML(total, limit, page) {
         const totalPages = Math.ceil(total / limit);
-        const from = (page - 1) * limit + 1;
-        const to = from + count - 1;
+        if (totalPages <= 1) return '';
 
-        if (total === 0) {
-            showingText.innerHTML = 'Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span class="font-bold">0</span> entries';
-            paginationContainer.innerHTML = '';
-            return;
+        let html = '<div class="flex flex-wrap gap-1">';
+
+        if (page > 1) {
+            html += `<a href="#" data-page="${page - 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">Previous</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed">Previous</span>`;
         }
 
-        showingText.innerHTML = `Showing <span class="font-bold">${from}</span> to <span class="font-bold">${to}</span> of <span class="font-bold">${total}</span> entries`;
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, page + 2);
 
-        let paginationHTML = '';
-        paginationHTML += `<button ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})" class="px-3 py-1 rounded bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white text-xs hover:bg-slate-50 disabled:opacity-50">Prev</button>`;
-        let startPage = Math.max(1, page - 2);
-        let endPage = Math.min(totalPages, page + 2);
-        for (let i = startPage; i <= endPage; i++) {
-            const activeClass = i === page ? 'bg-primary text-white border-primary dark:bg-accent dark:text-primary-dark dark:border-accent' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50';
-            paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-1 rounded border text-xs font-bold ${activeClass}">${i}</button>`;
+        if (start > 1) {
+            html += `<a href="#" data-page="1" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">1</a>`;
+            if (start > 2) html += `<span class="px-2 text-slate-400">...</span>`;
         }
-        paginationHTML += `<button ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})" class="px-3 py-1 rounded bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white text-xs hover:bg-slate-50 disabled:opacity-50">Next</button>`;
-        paginationContainer.innerHTML = paginationHTML;
-        window.changePage = function (p) {
-            fetchData(p);
-        };
+
+        for (let i = start; i <= end; i++) {
+            const active = i === page ? 'bg-primary text-white border-primary dark:bg-accent dark:text-primary-dark dark:border-accent' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5';
+            html += `<a href="#" data-page="${i}" class="px-3 py-1 rounded border text-xs font-bold ${active}">${i}</a>`;
+        }
+
+        if (end < totalPages) {
+            if (end < totalPages - 1) html += `<span class="px-2 text-slate-400">...</span>`;
+            html += `<a href="#" data-page="${totalPages}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">${totalPages}</a>`;
+        }
+
+        if (page < totalPages) {
+            html += `<a href="#" data-page="${page + 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs ml-1">Next</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed ml-1">Next</span>`;
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function updateSortIcons() {
+        const headers = document.querySelectorAll('th[data-sort]');
+        headers.forEach(th => {
+            const col = th.dataset.sort;
+            const iconContainer = th.querySelector('.material-symbols-outlined');
+            if (iconContainer) {
+                if (state.sort === col) {
+                    iconContainer.textContent = state.direction === 'asc' ? 'arrow_upward' : 'arrow_downward';
+                    iconContainer.classList.remove('opacity-30');
+                } else {
+                    iconContainer.textContent = 'unfold_more';
+                    iconContainer.classList.add('opacity-30');
+                }
+            }
+        });
     }
 });

@@ -49,93 +49,118 @@
                     </div>
                 @endif
 
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm">
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
-                            <div class="relative">
-                                <select
-                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <div
-                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
-                                    <span class="material-symbols-outlined text-sm">expand_more</span>
-                                </div>
+                <!-- Table Container replaced with x-datatable -->
+                <x-datatable :data="$peminjaman" search-placeholder="Cari Kode atau Peminjam..." search-id="returnSearchInput" :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_peminjaman', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Kode
+                                @if(request('sort') == 'id_peminjaman')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
-                        </div>
-
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="returnSearchInput" placeholder="Cari Kode atau Peminjam..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40 shadow-sm">
-                            <div
-                                class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 dark:text-white/40">
-                                <span class="material-symbols-outlined text-lg">search</span>
+                        </th>
+                        <th class="p-4 font-medium w-72 cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_anggota', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Peminjam
+                                @if(request('sort') == 'nama_anggota')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        </th>
+                        <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_pinjam', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Tgl Pinjam
+                                @if(request('sort') == 'tanggal_pinjam')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_jatuh_tempo', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Jatuh Tempo
+                                @if(request('sort') == 'tanggal_jatuh_tempo')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium text-center w-40">Sisa Waktu</th>
+                        <th class="p-4 font-medium text-right pr-6">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto relative min-h-[300px]">
-                        <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                <tr
-                                    class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=id_peminjaman&direction=asc'"
-                                        data-sort="id_peminjaman">
-                                        <div class="flex items-center gap-1">Kode <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium w-72 cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
-                                        data-sort="nama_anggota">
-                                        <div class="flex items-center gap-1">Peminjam <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=tanggal_pinjam&direction=asc'"
-                                        data-sort="tanggal_pinjam">
-                                        <div class="flex items-center gap-1">Tgl Pinjam <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=tanggal_jatuh_tempo&direction=asc'"
-                                        data-sort="tanggal_jatuh_tempo">
-                                        <div class="flex items-center gap-1">Jatuh Tempo <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium text-center w-40">Sisa Waktu</th>
-                                    <th class="p-4 font-medium text-right pr-6">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pengembalianTableBody"
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Custom Pagination -->
-                    <div
-                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
-                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
-                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
-                                class="font-bold">0</span> entries
-                        </div>
-                        <div id="paginationContainer" class="flex gap-2">
-                            <!-- Pagination Generated by JS -->
-                        </div>
-                    </div>
-                </div>
+                    <x-slot:body>
+                        @forelse($peminjaman as $item)
+                            <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono font-bold text-primary dark:text-accent whitespace-nowrap">
+                                    {{ $item->id_peminjaman }}
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-slate-800 dark:text-white">{{ $item->nama_anggota }}</span>
+                                        <span class="text-xs text-slate-500 dark:text-white/50">{{ $item->email_anggota ?? '-' }}</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-white/70">
+                                    {{ \Carbon\Carbon::parse($item->tanggal_pinjam)->translatedFormat('d M Y') }}
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-white/70">
+                                    {{ \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->translatedFormat('d M Y') }}
+                                </td>
+                                <td class="p-4 text-center">
+                                    @php
+                                        $jatuhTempo = \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->startOfDay();
+                                        $diffDays = now()->startOfDay()->diffInDays($jatuhTempo, false);
+                                    @endphp
+                                    
+                                    @if($diffDays < 0)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30 animate-pulse">
+                                            <span class="material-symbols-outlined text-sm">warning</span>
+                                            Telat {{ abs($diffDays) }} hari
+                                        </span>
+                                    @elseif($diffDays == 0)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30">
+                                            <span class="material-symbols-outlined text-sm">event</span>
+                                            Hari Ini
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-blue-200 dark:border-blue-500/30">
+                                            <span class="material-symbols-outlined text-sm">schedule</span>
+                                            {{ $diffDays }} hari lagi
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="p-4 text-right pr-6">
+                                    <a href="{{ route('pengembalian.show', $item->id_peminjaman) }}"
+                                        class="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-dark shadow-md shadow-primary/30 transition-all inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px]">sync_alt</span>
+                                        Proses
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="p-12 text-center text-slate-400 dark:text-white/40">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-4xl opacity-50">data_loss_prevention</span>
+                                        <span>Tidak ada peminjaman yang sedang berjalan.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

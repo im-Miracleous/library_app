@@ -89,16 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Update active tab styling
                 filterTabs.forEach(t => {
-                    t.classList.remove('bg-white', 'shadow', 'text-primary', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+                    t.classList.remove('bg-white', 'shadow-sm', 'text-primary', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
                     t.classList.add('text-slate-500');
                 });
 
                 if (!state.status) {
-                    tab.classList.add('bg-white', 'shadow', 'text-primary');
+                    tab.classList.add('bg-white', 'shadow-sm', 'text-primary');
                 } else if (state.status === 'aktif') {
-                    tab.classList.add('bg-green-100', 'text-green-700');
+                    tab.classList.add('bg-green-100', 'text-green-700', 'shadow-sm');
                 } else if (state.status === 'nonaktif') {
-                    tab.classList.add('bg-red-100', 'text-red-700');
+                    tab.classList.add('bg-red-100', 'text-red-700', 'shadow-sm');
                 }
                 tab.classList.remove('text-slate-500');
             });

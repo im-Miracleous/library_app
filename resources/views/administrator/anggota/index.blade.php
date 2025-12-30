@@ -81,190 +81,122 @@
                     </div>
                 @endif
 
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none transition-colors">
-
-                    <!-- Table Controls (Show limit, Search, Filter) -->
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface dark:bg-[#1A1410]">
-
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-500 dark:text-white/60">Show</label>
-                            <select onchange="window.location.href = this.value"
-                                class="bg-white dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] text-xs rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent dark:text-white">
-                                @foreach([10, 25, 50, 100] as $limit)
-                                    <option value="{{ request()->fullUrlWithQuery(['limit' => $limit]) }}" {{ request('limit') == $limit ? 'selected' : '' }}>{{ $limit }}</option>
-                                @endforeach
-                            </select>
-                            <label class="text-xs font-bold text-slate-500 dark:text-white/60">entries</label>
+                <x-datatable :data="$pengguna" search-placeholder="Cari ID, nama, atau email..."
+                    search-id="searchAnggotaInput" :search-value="request('search')">
+                    <x-slot:filters>
+                        <div class="flex bg-slate-100 dark:bg-black/20 rounded-lg p-1">
+                            <a href="#" data-filter-status=""
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ !request('status') ? 'bg-white shadow-sm text-primary' : 'text-slate-500' }}">Semua</a>
+                            <a href="#" data-filter-status="aktif"
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ request('status') == 'aktif' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500' }}">Aktif</a>
+                            <a href="#" data-filter-status="nonaktif"
+                                class="px-3 py-1 text-xs font-bold rounded-md {{ request('status') == 'nonaktif' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500' }}">Nonaktif</a>
                         </div>
+                    </x-slot:filters>
 
-                        <!-- Filter Tabs -->
-                        <div class="hidden sm:block">
-                            <!-- (Existing Filter Logic retained or simplified) -->
-                            <div class="flex bg-slate-100 dark:bg-black/20 rounded-lg p-1">
-                                <a href="#" data-filter-status=""
-                                    class="px-3 py-1 text-xs font-bold rounded-md {{ !request('status') ? 'bg-white shadow text-primary' : 'text-slate-500' }}">Semua</a>
-                                <a href="#" data-filter-status="aktif"
-                                    class="px-3 py-1 text-xs font-bold rounded-md {{ request('status') == 'aktif' ? 'bg-green-100 text-green-700' : 'text-slate-500' }}">Aktif</a>
-                                <a href="#" data-filter-status="nonaktif"
-                                    class="px-3 py-1 text-xs font-bold rounded-md {{ request('status') == 'nonaktif' ? 'bg-red-100 text-red-700' : 'text-slate-500' }}">Nonaktif</a>
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_pengguna', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                ID
+                                @if(request('sort') == 'id_pengguna')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-
-                        <!-- Search Bar -->
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="searchAnggotaInput" placeholder="Cari ID, nama, atau email..."
-                                value="{{ request('search') }}"
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40 shadow-sm transition-all">
-                            <div
-                                class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 dark:text-white/40">
-                                <span class="material-symbols-outlined text-lg">search</span>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Nama Anggota
+                                @if(request('sort') == 'nama')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        </th>
+                        <th class="p-4 font-medium">Telepon</th>
+                        <th class="p-4 font-medium">Alamat</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Status
+                                @if(request('sort') == 'status')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 pr-6 font-medium text-right">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                <tr
-                                    class="border-b border-primary/20 dark:border-border-dark text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <!-- Sortable Headers -->
-                                    <th class="p-4 pl-6 font-medium cursor-pointer hover:text-primary transition-colors"
-                                        onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_pengguna', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-                                        <div class="flex items-center gap-1">
-                                            ID
-                                            @if(request('sort') == 'id_pengguna')
-                                                <span
-                                                    class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                                            @else
-                                                <span
-                                                    class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                            @endif
+                    <x-slot:body>
+                        @forelse($pengguna as $user)
+                            <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
+                                    {{ $user->id_pengguna }}
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Avatar Initials -->
+                                        <div
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
+                                            {{ substr($user->nama, 0, 1) }}
                                         </div>
-                                    </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
-                                        onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-                                        <div class="flex items-center gap-1">
-                                            Nama Anggota
-                                            @if(request('sort') == 'nama')
-                                                <span
-                                                    class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                                            @else
-                                                <span
-                                                    class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                            @endif
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium">Telepon</th>
-                                    <th class="p-4 font-medium">Alamat</th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors"
-                                        onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-                                        <div class="flex items-center gap-1">
-                                            Status
-                                            @if(request('sort') == 'status')
-                                                <span
-                                                    class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                                            @else
-                                                <span
-                                                    class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                            @endif
-                                        </div>
-                                    </th>
-                                    <th class="p-4 pr-6 font-medium text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($pengguna as $user)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
-                                            {{ $user->id_pengguna }}
-                                        </td>
-                                        <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <!-- Avatar Initials -->
-                                                <div
-                                                    class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                                    {{ substr($user->nama, 0, 1) }}
-                                                </div>
-                                                <div class="flex flex-col max-w-[220px]">
-                                                    <span
-                                                        class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight"
-                                                        title="{{ $user->nama }}">
-                                                        {{ $user->nama }}
-                                                    </span>
-                                                    <span class="text-xs text-slate-500 dark:text-white/60 truncate"
-                                                        title="{{ $user->email }}">
-                                                        {{ $user->email }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="p-4">{{ $user->telepon ?? '-' }}</td>
-                                        <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
-                                            {{ $user->alamat ?? '-' }}
-                                        </td>
-                                        <td class="p-4">
+                                        <div class="flex flex-col max-w-[220px]">
                                             <span
-                                                class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
-                                                {{ ucfirst($user->status) }}
+                                                class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight"
+                                                title="{{ $user->nama }}">
+                                                {{ $user->nama }}
                                             </span>
-                                        </td>
-                                        <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditAnggota('{{ $user->id_pengguna }}')"
-                                                class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                                                title="Edit">
-                                                <span class="material-symbols-outlined text-lg">edit</span>
-                                            </button>
-                                            <form action="{{ route('anggota.destroy', $user->id_pengguna) }}" method="POST"
-                                                onsubmit="return confirm('Yakin hapus?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                                    title="Hapus">
-                                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="p-8 text-center text-slate-400 dark:text-white/40">Belum ada
-                                            data.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Footer Pagination & Info -->
-                    <div
-                        class="p-4 border-t border-slate-200 dark:border-border-dark flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="text-xs text-slate-500 dark:text-white/60">
-                            Showing <span class="font-bold">{{ $pengguna->firstItem() ?? 0 }}</span> to <span
-                                class="font-bold">{{ $pengguna->lastItem() ?? 0 }}</span> of <span
-                                class="font-bold">{{ $pengguna->total() }}</span> entries
-                        </div>
-                        <div class="flex gap-2">
-                            @if($pengguna->onFirstPage())
-                                <button disabled
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Previous</button>
-                            @else
-                                <a href="{{ $pengguna->previousPageUrl() }}"
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Previous</a>
-                            @endif
-
-                            @if($pengguna->hasMorePages())
-                                <a href="{{ $pengguna->nextPageUrl() }}"
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Next</a>
-                            @else
-                                <button disabled
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Next</button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                                            <span class="text-xs text-slate-500 dark:text-white/60 truncate"
+                                                title="{{ $user->email }}">
+                                                {{ $user->email }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">{{ $user->telepon ?? '-' }}</td>
+                                <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
+                                    {{ $user->alamat ?? '-' }}
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
+                                        {{ ucfirst($user->status) }}
+                                    </span>
+                                </td>
+                                <td class="p-4 pr-6 text-right flex justify-end gap-2">
+                                    <button onclick="openEditAnggota('{{ $user->id_pengguna }}')"
+                                        class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                        title="Edit">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </button>
+                                    <form action="{{ route('anggota.destroy', $user->id_pengguna) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                            class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                            title="Hapus">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-slate-400 dark:text-white/40">Belum ada
+                                    data.</td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

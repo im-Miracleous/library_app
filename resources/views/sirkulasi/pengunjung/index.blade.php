@@ -114,85 +114,120 @@
                 @endif
 
                 <!-- Table Section -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden animate-enter delay-100 shadow-sm">
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
-                            <div class="relative">
-                                <select
-                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <div
-                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
-                                    <span class="material-symbols-outlined text-sm">expand_more</span>
-                                </div>
+                <!-- Table Section replaced with x-datatable -->
+                <x-datatable :data="$pengunjung" search-placeholder="Cari nama atau keperluan..."
+                    search-id="searchInput" :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-16">No</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_pengunjung', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Nama Pengunjung
+                                @if(request('sort') == 'nama_pengunjung')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
-                        </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'jenis_pengunjung', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Status
+                                @if(request('sort') == 'jenis_pengunjung')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium">Keperluan</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Tanggal Masuk
+                                @if(request('sort') == 'created_at')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium text-right pr-6">Aksi</th>
+                    </x-slot:header>
 
-                        <div class="relative w-full sm:w-64">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
-                            <input type="text" id="searchInput" placeholder="Cari nama atau keperluan..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40">
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto relative min-h-[300px]">
-                        <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                <tr
-                                    class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 pl-6 font-medium w-16">No</th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=nama_pengunjung&direction=asc'"
-                                        data-sort="nama_pengunjung">
-                                        <div class="flex items-center gap-1">Nama Pengunjung <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                    <x-slot:body>
+                        @forelse($pengunjung as $index => $item)
+                            <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-slate-400 font-bold">
+                                    {{ $pengunjung->firstItem() + $index }}
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="font-bold text-slate-800 dark:text-white">{{ $item->nama_pengunjung }}</span>
+                                    @if($item->id_pengguna)
+                                        <div
+                                            class="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5">
+                                            <span class="material-symbols-outlined text-[10px]">verified</span>Terdaftar
                                         </div>
-                                    </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=jenis_pengunjung&direction=asc'"
-                                        data-sort="jenis_pengunjung">
-                                        <div class="flex items-center gap-1">Status <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium">Keperluan</th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=created_at&direction=desc'"
-                                        data-sort="created_at">
-                                        <div class="flex items-center gap-1">Tanggal Masuk <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium text-right pr-6">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Custom Pagination -->
-                    <div
-                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
-                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
-                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
-                                class="font-bold">0</span> entries
-                        </div>
-                        <div id="paginationContainer" class="flex gap-2">
-                            <!-- Pagination Generated by JS -->
-                        </div>
-                    </div>
-                </div>
+                                    @endif
+                                </td>
+                                <td class="p-4">
+                                    @php
+                                        $badgeClass = match ($item->jenis_pengunjung) {
+                                            'umum' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
+                                            'anggota' => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+                                            'petugas' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+                                            'admin' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
+                                            default => 'bg-slate-100'
+                                        };
+                                        $roleDisplay = $item->jenis_pengunjung === 'petugas' ? 'Staff' : ucfirst($item->jenis_pengunjung);
+                                    @endphp
+                                    <span
+                                        class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
+                                        {{ $roleDisplay }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-white/70">{{ $item->keperluan ?? '-' }}</td>
+                                <td class="p-4 font-mono text-slate-500 dark:text-white/50">
+                                    {{ $item->created_at->translatedFormat('d F Y') }},
+                                    <span
+                                        class="text-slate-800 dark:text-white font-bold">{{ $item->created_at->format('H:i:s') }}</span>
+                                </td>
+                                <td class="p-4 text-right pr-6 flex justify-end gap-2">
+                                    <button onclick='openEditPengunjung(@json($item))'
+                                        class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                                        title="Edit Log">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </button>
+                                    <form action="{{ route('pengunjung.destroy', $item->id_pengunjung) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus log ini?');" class="inline-block">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                            title="Hapus Log">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="p-12 text-center text-slate-400 dark:text-white/40">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-4xl opacity-50">data_loss_prevention</span>
+                                        <span>Tidak ada data pengunjung.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
     </div>
     </main>

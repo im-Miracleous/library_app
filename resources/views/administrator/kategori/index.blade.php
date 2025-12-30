@@ -86,138 +86,74 @@
                 @endif
 
                 <!-- Tabel Data -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-[#36271F] overflow-hidden animate-enter delay-100 shadow-sm dark:shadow-none">
-
-                    <!-- Table Controls -->
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-[#36271F] flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface dark:bg-[#1A1410]">
-
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-500 dark:text-white/60">Show</label>
-                            <select onchange="window.location.href = this.value"
-                                class="bg-white dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] text-xs rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-accent dark:text-white">
-                                @foreach([10, 25, 50, 100] as $limit)
-                                    <option value="{{ request()->fullUrlWithQuery(['limit' => $limit]) }}" {{ request('limit') == $limit ? 'selected' : '' }}>{{ $limit }}</option>
-                                @endforeach
-                            </select>
-                            <label class="text-xs font-bold text-slate-500 dark:text-white/60">entries</label>
-                        </div>
-
-                        <!-- Search Bar Sederhana -->
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="searchKategoriInput" value="{{ request('search') }}"
-                                placeholder="Cari ID atau kategori..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40 shadow-sm transition-all">
-                            <div
-                                class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 dark:text-white/40">
-                                <span class="material-symbols-outlined text-lg">search</span>
+                <x-datatable :data="$kategori" search-placeholder="Cari ID atau kategori..."
+                    search-id="searchKategoriInput" :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-20 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                ID
+                                @if(request('sort') == 'id_kategori')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        </th>
+                        <th class="p-4 font-medium w-1/4 cursor-pointer hover:text-primary transition-colors"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Nama Kategori
+                                @if(request('sort') == 'nama_kategori')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium">Deskripsi</th>
+                        <th class="p-4 pr-6 font-medium text-right w-32">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead>
-                                <tr
-                                    class="border-b border-primary/20 dark:border-[#36271F] text-slate-500 dark:text-white/40 text-xs uppercase tracking-wider bg-surface dark:bg-[#1A1410]">
-                                    <th class="p-4 pl-6 font-medium w-20 cursor-pointer hover:text-primary transition-colors"
-                                        onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-                                        <div class="flex items-center gap-1">
-                                            ID
-                                            @if(request('sort') == 'id_kategori')
-                                                <span
-                                                    class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                                            @else
-                                                <span
-                                                    class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                            @endif
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium w-1/4 cursor-pointer hover:text-primary transition-colors"
-                                        onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_kategori', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-                                        <div class="flex items-center gap-1">
-                                            Nama Kategori
-                                            @if(request('sort') == 'nama_kategori')
-                                                <span
-                                                    class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                                            @else
-                                                <span
-                                                    class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                            @endif
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium">Deskripsi</th>
-                                    <th class="p-4 pr-6 font-medium text-right w-32">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-[#36271F] text-sm text-slate-600 dark:text-white/80">
-                                @forelse($kategori as $item)
-                                    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
-                                        <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
-                                            #{{ $item->id_kategori }}</td>
-                                        <td
-                                            class="p-4 font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
-                                            {{ $item->nama_kategori }}
-                                        </td>
-                                        <td class="p-4 text-slate-500 dark:text-white/60 truncate max-w-xs">
-                                            {{ $item->deskripsi ?? '-' }}
-                                        </td>
-                                        <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                            <button onclick="openEditKategori('{{ $item->id_kategori }}')"
-                                                class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
-                                                title="Edit">
-                                                <span class="material-symbols-outlined text-lg">edit</span>
-                                            </button>
-                                            <form action="{{ route('kategori.destroy', $item->id_kategori) }}" method="POST"
-                                                onsubmit="return confirm('Yakin hapus kategori ini?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit"
-                                                    class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-                                                    title="Hapus">
-                                                    <span class="material-symbols-outlined text-lg">delete</span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada
-                                            kategori buku.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Footer Pagination & Info -->
-                    <div
-                        class="p-4 border-t border-slate-200 dark:border-border-dark flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="text-xs text-slate-500 dark:text-white/60">
-                            Showing <span class="font-bold">{{ $kategori->firstItem() ?? 0 }}</span> to <span
-                                class="font-bold">{{ $kategori->lastItem() ?? 0 }}</span> of <span
-                                class="font-bold">{{ $kategori->total() }}</span> entries
-                        </div>
-                        <div class="flex gap-2">
-                            @if($kategori->onFirstPage())
-                                <button disabled
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Previous</button>
-                            @else
-                                <a href="{{ $kategori->previousPageUrl() }}"
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Previous</a>
-                            @endif
-
-                            @if($kategori->hasMorePages())
-                                <a href="{{ $kategori->nextPageUrl() }}"
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Next</a>
-                            @else
-                                <button disabled
-                                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Next</button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                    <x-slot:body>
+                        @forelse($kategori as $item)
+                            <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-primary dark:text-accent font-bold">
+                                    #{{ $item->id_kategori }}</td>
+                                <td
+                                    class="p-4 font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
+                                    {{ $item->nama_kategori }}
+                                </td>
+                                <td class="p-4 text-slate-500 dark:text-white/60 truncate max-w-xs">
+                                    {{ $item->deskripsi ?? '-' }}
+                                </td>
+                                <td class="p-4 pr-6 text-right flex justify-end gap-2">
+                                    <button onclick="openEditKategori('{{ $item->id_kategori }}')"
+                                        class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-600 transition-colors"
+                                        title="Edit">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </button>
+                                    <form action="{{ route('kategori.destroy', $item->id_kategori) }}" method="POST"
+                                        onsubmit="return confirm('Yakin hapus kategori ini?');">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                            class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-600 transition-colors"
+                                            title="Hapus">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-slate-500 dark:text-white/40">Belum ada kategori
+                                    buku.</td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

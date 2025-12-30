@@ -127,99 +127,112 @@
                 </div>
 
                 <!-- Table Container -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden shadow-sm animate-enter delay-300">
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
-                            <div class="relative">
-                                <select
-                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <div
-                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
-                                    <span class="material-symbols-outlined text-sm">expand_more</span>
-                                </div>
+                <!-- Table Container replaced with x-datatable -->
+                <x-datatable :data="$peminjaman" search-placeholder="Cari ID transaksi atau nama..." search-id="searchTransaksiInput" :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'id_peminjaman', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Kode
+                                @if(request('sort') == 'id_peminjaman')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
-                        </div>
-
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="searchTransaksiInput" placeholder="Cari ID transaksi atau nama..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder:text-slate-400">
-                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
-                                <span class="material-symbols-outlined text-lg">search</span>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_anggota', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Peminjam
+                                @if(request('sort') == 'nama_anggota')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_pinjam', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Tanggal Pinjam
+                                @if(request('sort') == 'tanggal_pinjam')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_jatuh_tempo', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Jatuh Tempo
+                                @if(request('sort') == 'tanggal_jatuh_tempo')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                        <th class="p-4 font-medium text-center">Jml Buku</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none text-right pr-6"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'status_transaksi', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center justify-end gap-1">
+                                Status
+                                @if(request('sort') == 'status_transaksi')
+                                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
+                            </div>
+                        </th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto relative min-h-[300px]">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr
-                                    class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=id_peminjaman&direction=asc'"
-                                        data-sort="id_peminjaman">
-                                        <div class="flex items-center gap-1">Kode <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
-                                        data-sort="nama_anggota">
-                                        <div class="flex items-center gap-1">Peminjam <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=tanggal_pinjam&direction=asc'"
-                                        data-sort="tanggal_pinjam">
-                                        <div class="flex items-center gap-1">Tanggal Pinjam <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=tanggal_jatuh_tempo&direction=asc'"
-                                        data-sort="tanggal_jatuh_tempo">
-                                        <div class="flex items-center gap-1">Jatuh Tempo <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium text-center">Jml Buku</th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none text-right pr-6"
-                                        onclick="window.location.search = '?sort=status_transaksi&direction=asc'"
-                                        data-sort="status_transaksi">
-                                        <div class="flex items-center justify-end gap-1">Status <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-white/10 text-sm text-slate-600 dark:text-white/80">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Custom Pagination -->
-                    <div
-                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
-                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
-                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
-                                class="font-bold">0</span> entries
-                        </div>
-                        <div id="paginationContainer" class="flex gap-2">
-                            <!-- Pagination Generated by JS -->
-                        </div>
-                    </div>
-                </div>
+                    <x-slot:body>
+                        @forelse($peminjaman as $item)
+                            <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-sm text-slate-600 dark:text-white/70 whitespace-nowrap">
+                                    <span class="font-bold text-primary dark:text-accent">{{ $item->id_peminjaman }}</span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-slate-800 dark:text-white">{{ $item->nama_anggota }}</span>
+                                        <span class="text-xs text-slate-500 dark:text-white/50">{{ $item->email_anggota ?? '-' }}</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-white/70">
+                                    {{ \Carbon\Carbon::parse($item->tanggal_pinjam)->translatedFormat('d M Y') }}
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-white/70">
+                                    {{ \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->translatedFormat('d M Y') }}
+                                </td>
+                                <td class="p-4 text-center font-bold text-slate-700 dark:text-white">{{ $item->total_buku }}</td>
+                                <td class="p-4 text-right pr-6">
+                                    @php
+                                        $badgeClass = match($item->status_transaksi) {
+                                            'berjalan' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+                                            'selesai' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
+                                            'terlambat' => 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400',
+                                            default => 'bg-slate-100 text-slate-600'
+                                        };
+                                    @endphp
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
+                                        {{ $item->status_transaksi }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="p-12 text-center text-slate-400 dark:text-white/40">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-4xl opacity-50">search_off</span>
+                                        <span>Tidak ada data ditemukan.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

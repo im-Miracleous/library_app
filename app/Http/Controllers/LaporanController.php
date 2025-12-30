@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 class LaporanController extends Controller
 {
     /**
@@ -28,23 +30,24 @@ class LaporanController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $status = $request->input('status');
 
+        // Common parameters
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+
+        // Fetch Data (used for both Ajax and Initial View)
+        $data = DB::select('CALL sp_get_laporan_transaksi(?, ?, ?, ?, ?, ?, @total)', [
+            $startDate,
+            $endDate,
+            $status,
+            $search,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
         if ($request->ajax()) {
-            $page = $request->input('page', 1);
-            $limit = $request->input('limit', 10);
-            $offset = ($page - 1) * $limit;
-            $search = $request->input('search');
-
-            // Call SP
-            $data = DB::select('CALL sp_get_laporan_transaksi(?, ?, ?, ?, ?, ?, @total)', [
-                $startDate,
-                $endDate,
-                $status,
-                $search,
-                $limit,
-                $offset
-            ]);
-            $total = DB::select('SELECT @total as total')[0]->total;
-
             return response()->json([
                 'data' => $data,
                 'total' => $total
@@ -59,14 +62,21 @@ class LaporanController extends Controller
 
         $totalTransaksi = $query->count();
 
-        // Use View or specialized query for book count if performance is critical. 
-        // For now: sum relation count.
         // Optimization: Get IDs first, then count details
         $peminjamanIds = $query->pluck('id_peminjaman');
         $totalBukuDipinjam = DetailPeminjaman::whereIn('id_peminjaman', $peminjamanIds)->count();
 
         $transaksiSelesai = $query->clone()->where('status_transaksi', 'selesai')->count();
         $transaksiBerjalan = $query->clone()->where('status_transaksi', 'berjalan')->count();
+
+        // Create Paginator for Initial View
+        $peminjaman = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('laporan.peminjaman', compact(
             'startDate',
@@ -75,7 +85,8 @@ class LaporanController extends Controller
             'totalTransaksi',
             'totalBukuDipinjam',
             'transaksiSelesai',
-            'transaksiBerjalan'
+            'transaksiBerjalan',
+            'peminjaman'
         ));
     }
 
@@ -88,23 +99,24 @@ class LaporanController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         $statusBayar = $request->input('status_bayar');
 
+        // Common parameters
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $offset = ($page - 1) * $limit;
+        $search = $request->input('search');
+
+        // Fetch Data (used for both Ajax and Initial View)
+        $data = DB::select('CALL sp_get_laporan_denda(?, ?, ?, ?, ?, ?, @total)', [
+            $startDate,
+            $endDate,
+            $statusBayar,
+            $search,
+            $limit,
+            $offset
+        ]);
+        $total = DB::select('SELECT @total as total')[0]->total;
+
         if ($request->ajax()) {
-            $page = $request->input('page', 1);
-            $limit = $request->input('limit', 10);
-            $offset = ($page - 1) * $limit;
-            $search = $request->input('search');
-
-            // Call SP
-            $data = DB::select('CALL sp_get_laporan_denda(?, ?, ?, ?, ?, ?, @total)', [
-                $startDate,
-                $endDate,
-                $statusBayar,
-                $search,
-                $limit,
-                $offset
-            ]);
-            $total = DB::select('SELECT @total as total')[0]->total;
-
             return response()->json([
                 'data' => $data,
                 'total' => $total
@@ -121,13 +133,23 @@ class LaporanController extends Controller
         $totalDibayar = $query->clone()->where('status_bayar', 'lunas')->sum('jumlah_denda');
         $totalBelumBayar = $query->clone()->where('status_bayar', 'belum_bayar')->sum('jumlah_denda');
 
+        // Create Paginator for Initial View
+        $denda = new LengthAwarePaginator(
+            $data,
+            $total,
+            $limit,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return view('laporan.denda', compact(
             'startDate',
             'endDate',
             'statusBayar',
             'totalDenda',
             'totalDibayar',
-            'totalBelumBayar'
+            'totalBelumBayar',
+            'denda'
         ));
     }
 }

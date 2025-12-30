@@ -119,83 +119,110 @@
                 </div>
 
                 <!-- Table Container -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark overflow-hidden shadow-sm animate-enter delay-300">
-                    <div
-                        class="p-4 border-b border-primary/20 dark:border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">Show</span>
-                            <div class="relative">
-                                <select
-                                    class="appearance-none bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                                <div
-                                    class="absolute inset-y-0 right-2 flex items-center pointer-events-none text-slate-500">
-                                    <span class="material-symbols-outlined text-sm">expand_more</span>
-                                </div>
+                <!-- Table Container replaced with x-datatable -->
+                <x-datatable :data="$denda" search-placeholder="Cari nama atau buku..." search-id="searchDendaInput"
+                    :search-value="request('search')">
+                    <x-slot:header>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('direction') == 'desc' ? 'asc' : 'desc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Tanggal
+                                @if(request('sort') == 'created_at' || !request('sort'))
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                            <span class="text-sm font-bold text-slate-600 dark:text-white/80">entries</span>
-                        </div>
-
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="searchDendaInput" placeholder="Cari nama atau buku..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder:text-slate-400">
-                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
-                                <span class="material-symbols-outlined text-lg">search</span>
+                        </th>
+                        <th class="p-4 font-medium">Kode</th>
+                        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'nama_anggota', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+                            <div class="flex items-center gap-1">
+                                Peminjam
+                                @if(request('sort') == 'nama_anggota')
+                                    <span
+                                        class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                                @else
+                                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                                @endif
                             </div>
-                        </div>
-                    </div>
+                        </th>
+                        <th class="p-4 font-medium">Buku</th>
+                        <th class="p-4 font-medium">Jenis Denda</th>
+                        <th class="p-4 font-medium text-right">Nominal</th>
+                        <th class="p-4 font-medium text-center">Status</th>
+                        <th class="p-4 font-medium text-center">Aksi</th>
+                    </x-slot:header>
 
-                    <div class="overflow-x-auto relative min-h-[300px]">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr
-                                    class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=created_at&direction=desc'"
-                                        data-sort="created_at">
-                                        <div class="flex items-center gap-1">Tanggal <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium">Kode</th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-                                        onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
-                                        data-sort="nama_anggota">
-                                        <div class="flex items-center gap-1">Peminjam <span
-                                                class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                                        </div>
-                                    </th>
-                                    <th class="p-4 font-medium">Buku</th>
-                                    <th class="p-4 font-medium">Jenis Denda</th>
-                                    <th class="p-4 font-medium text-right">Nominal</th>
-                                    <th class="p-4 font-medium text-center">Status</th>
-                                    <th class="p-4 font-medium text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                class="divide-y divide-slate-100 dark:divide-white/10 text-sm text-slate-600 dark:text-white/80">
-                                <!-- JS Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Custom Pagination -->
-                    <div
-                        class="p-4 border-t border-primary/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-white/5">
-                        <div class="text-xs text-slate-500 dark:text-white/60 font-medium">
-                            Showing <span class="font-bold">0</span> to <span class="font-bold">0</span> of <span
-                                class="font-bold">0</span> entries
-                        </div>
-                        <div id="paginationContainer" class="flex gap-2">
-                            <!-- JS Populated -->
-                        </div>
-                    </div>
-                </div>
+                    <x-slot:body>
+                        @forelse($denda as $item)
+                            <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                <td class="p-4 pl-6 font-mono text-xs text-slate-500 dark:text-white/50">
+                                    {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d M Y') }}
+                                </td>
+                                <td class="p-4 font-mono font-bold text-primary dark:text-accent">
+                                    {{ $item->id_peminjaman }}
+                                </td>
+                                <td class="p-4 max-w-[200px] truncate" title="{{ $item->nama_anggota }}">
+                                    <span class="font-bold text-slate-800 dark:text-white">{{ $item->nama_anggota }}</span>
+                                </td>
+                                <td class="p-4 max-w-[250px] truncate text-slate-600 dark:text-white/70"
+                                    title="{{ $item->judul_buku }}">
+                                    {{ $item->judul_buku }}
+                                </td>
+                                <td class="p-4 text-xs font-bold uppercase text-slate-500 dark:text-white/50">
+                                    {{ $item->jenis_denda }}
+                                </td>
+                                <td class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right">
+                                    Rp {{ number_format($item->jumlah_denda, 0, ',', '.') }}
+                                </td>
+                                <td class="p-4 text-center">
+                                    @php
+                                        $badgeClass = match ($item->status_bayar) {
+                                            'lunas' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
+                                            'belum_bayar' => 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400',
+                                            'sebagian' => 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
+                                            default => 'bg-slate-100 text-slate-600'
+                                        };
+                                        $statusLabel = str_replace('_', ' ', $item->status_bayar);
+                                    @endphp
+                                    <span
+                                        class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider {{ $badgeClass }}">
+                                        {{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    @if($item->status_bayar === 'belum_bayar')
+                                        <form action="{{ route('laporan.denda.bayar', $item->id_denda) }}" method="POST"
+                                            onsubmit="return confirm('Konfirmasi pembayaran denda ini?');">
+                                            @csrf
+                                            <button type="submit"
+                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm shadow-emerald-200 dark:shadow-none w-full">
+                                                <span class="material-symbols-outlined text-[16px]">payments</span>
+                                                Bayar
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span
+                                            class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1 font-bold">
+                                            <span class="material-symbols-outlined text-sm">check_circle</span>Lunas
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="p-12 text-center text-slate-400 dark:text-white/40">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-4xl opacity-50">search_off</span>
+                                        <span>Tidak ada data denda ditemukan.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </x-slot:body>
+                </x-datatable>
             </div>
         </main>
     </div>

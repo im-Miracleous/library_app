@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">
                         <button onclick="openEditKategori('${item.id_kategori}')" 
-                            class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
+                            class="cursor-pointer p-2 rounded-lg hover:bg-blue-500/20 text-blue-600 transition-colors"
                             title="Edit">
                             <span class="material-symbols-outlined text-lg">edit</span>
                         </button>
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="submit" 
-                                class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
+                                class="cursor-pointer p-2 rounded-lg hover:bg-red-500/20 text-red-600 transition-colors"
                                 title="Hapus">
                                 <span class="material-symbols-outlined text-lg">delete</span>
                             </button>
