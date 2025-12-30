@@ -124,6 +124,28 @@
                                     value="{{ old('denda_per_hari', $pengaturan->denda_per_hari) }}" required />
                             </div>
 
+                            <!-- Denda Rusak -->
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-primary-dark dark:text-white" for="denda_rusak">
+                                    Denda Buku Rusak (Rp)
+                                </label>
+                                <input
+                                    class="w-full p-3 rounded-xl bg-background-light dark:bg-[#261C16] border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent transition-all outline-none"
+                                    id="denda_rusak" name="denda_rusak" type="number" min="0" step="0.01"
+                                    value="{{ old('denda_rusak', $pengaturan->denda_rusak) }}" required />
+                            </div>
+
+                            <!-- Denda Hilang -->
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-primary-dark dark:text-white" for="denda_hilang">
+                                    Denda Buku Hilang (Rp)
+                                </label>
+                                <input
+                                    class="w-full p-3 rounded-xl bg-background-light dark:bg-[#261C16] border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent transition-all outline-none"
+                                    id="denda_hilang" name="denda_hilang" type="number" min="0" step="0.01"
+                                    value="{{ old('denda_hilang', $pengaturan->denda_hilang) }}" required />
+                            </div>
+
                             <!-- Batas Hari -->
                             <div class="flex flex-col gap-2">
                                 <label class="text-sm font-bold text-primary-dark dark:text-white"

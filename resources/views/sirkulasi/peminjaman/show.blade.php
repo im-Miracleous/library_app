@@ -164,7 +164,22 @@
                                                     @endif
                                                 </td>
                                                 <td class="p-3 text-right pr-4 font-mono text-xs">
-                                                    {{ $detail->tanggal_kembali_aktual ? \Carbon\Carbon::parse($detail->tanggal_kembali_aktual)->format('d/m/Y') : '-' }}
+                                                    @if($detail->tanggal_kembali_aktual)
+                                                        @php
+                                                            $tglKembali = \Carbon\Carbon::parse($detail->tanggal_kembali_aktual);
+                                                            $jatuhTempo = \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo);
+                                                            $isLateReturn = $tglKembali->startOfDay()->gt($jatuhTempo->startOfDay());
+                                                        @endphp
+                                                        <span
+                                                            class="{{ $isLateReturn ? 'text-red-600 dark:text-red-400 font-bold' : '' }}">
+                                                            {{ $tglKembali->format('d/m/Y') }}
+                                                        </span>
+                                                        @if($isLateReturn)
+                                                            <div class="text-[10px] text-red-500 dark:text-red-400/80">Terlambat</div>
+                                                        @endif
+                                                    @else
+                                                        -
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach

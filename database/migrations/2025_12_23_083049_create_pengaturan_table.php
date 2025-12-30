@@ -17,6 +17,8 @@ return new class extends Migration {
             $table->decimal('denda_per_hari', 10, 2)->default(0);
             $table->integer('batas_peminjaman_hari')->default(7);
             $table->integer('maksimal_buku_pinjam')->default(3);
+            $table->decimal('denda_rusak', 10, 2)->default(50000);
+            $table->decimal('denda_hilang', 10, 2)->default(100000);
 
             $table->timestamps();
         });

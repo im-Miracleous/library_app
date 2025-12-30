@@ -145,6 +145,7 @@
                                                         class="rounded border-slate-300 text-primary focus:ring-primary">
                                                 </th>
                                                 <th class="p-3">Judul Buku</th>
+                                                <th class="p-3">Kondisi Buku</th>
                                                 <th class="p-3">Status Saat Ini</th>
                                             </tr>
                                         </thead>
@@ -165,6 +166,15 @@
                                                             </div>
                                                         </td>
                                                         <td class="p-3">
+                                                            <select
+                                                                name="kondisi[{{ $detail->id_detail_peminjaman }}]"
+                                                                class="w-full p-2 text-sm rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                                <option value="baik">Baik</option>
+                                                                <option value="rusak">Rusak</option>
+                                                                <option value="hilang">Hilang</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="p-3">
                                                             <span
                                                                 class="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase">Dipinjam</span>
                                                         </td>
@@ -178,6 +188,10 @@
                                                         <td class="p-3">
                                                             <div class="font-bold text-slate-800 dark:text-white">
                                                                 {{ $detail->buku->judul }}</div>
+                                                        </td>
+                                                        <td class="p-3">
+                                                            <!-- Empty cell for condition or show saved condition if available -->
+                                                            <span class="text-xs text-slate-400">-</span>
                                                         </td>
                                                         <td class="p-3">
                                                             <span
@@ -242,7 +256,10 @@
     </div>
 
     <!-- Inject JS for Pengembalian Logic -->
-    <script id="pengembalian-script" data-terlambat-hari="{{ $terlambatHari }}"></script>
+    <script id="pengembalian-script"
+        data-terlambat-hari="{{ $terlambatHari }}"
+        data-denda-rusak="{{ $pengaturan->denda_rusak ?? 0 }}"
+        data-denda-hilang="{{ $pengaturan->denda_hilang ?? 0 }}"></script>
     @vite('resources/js/pengembalian.js')
 </body>
 
