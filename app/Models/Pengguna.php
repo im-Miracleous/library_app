@@ -30,6 +30,7 @@ class Pengguna extends Authenticatable
         'peran',
         'telepon',
         'alamat',
+        'foto_profil',
         'otp_code',       // <--- KOLOM BARU
         'otp_expires_at', // <--- KOLOM BARU
         'login_attempts',

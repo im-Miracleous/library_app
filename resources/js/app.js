@@ -1,6 +1,10 @@
 import './bootstrap';
 import './global-search';
 import './system-status';
+import Cropper from 'cropperjs';
+import 'cropperjs/dist/cropper.css';
+
+window.Cropper = Cropper;
 
 document.addEventListener('DOMContentLoaded', () => {
 

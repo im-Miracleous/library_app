@@ -59,6 +59,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/read-all', [\App\Http\Controllers\NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.readAll');
 
+    // Profile Routes
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
     // --- AREA KHUSUS ADMIN ---
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);

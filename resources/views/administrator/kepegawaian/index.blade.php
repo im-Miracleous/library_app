@@ -166,8 +166,13 @@
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                            {{ substr($user->nama, 0, 1) }}
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                            @if($user->foto_profil)
+                                                <img src="{{ asset('storage/' . $user->foto_profil) }}" alt="{{ $user->nama }}"
+                                                    class="w-full h-full object-cover">
+                                            @else
+                                                {{ substr($user->nama, 0, 1) }}
+                                            @endif
                                         </div>
                                         <div class="flex flex-col max-w-[220px]">
                                             <span

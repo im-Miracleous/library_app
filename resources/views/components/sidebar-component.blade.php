@@ -213,8 +213,13 @@
             <div
                 class="bg-white/50 dark:bg-surface-dark p-4 rounded-xl flex items-center gap-3 border border-primary/10 dark:border-border-dark cursor-default transition-colors">
                 <div
-                    class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold">
-                    {{ substr(Auth::user()->nama, 0, 1) }}
+                    class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold overflow-hidden">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="{{ Auth::user()->nama }}"
+                            class="w-full h-full object-cover">
+                    @else
+                        {{ substr(Auth::user()->nama, 0, 1) }}
+                    @endif
                 </div>
                 <div class="flex flex-col overflow-hidden">
                     <p class="text-sm font-bold truncate text-primary-dark dark:text-white">

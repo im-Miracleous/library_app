@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             KategoriSeeder::class,
             PenggunaSeeder::class,
             BukuSeeder::class,
+            PengaturanSeeder::class,
             PeminjamanSeeder::class,
             // PengunjungSeeder::class // Dikosongkan sesuai request
         ]);

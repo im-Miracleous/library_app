@@ -199,6 +199,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
             const initial = item.nama ? item.nama.charAt(0).toUpperCase() : '?';
 
+            let avatarContent;
+            if (item.foto_profil) {
+                avatarContent = `<img src="/storage/${item.foto_profil}" alt="${item.nama}" class="w-full h-full object-cover">`;
+            } else {
+                avatarContent = initial;
+            }
+
             // Apply Highlight
             const namaHighlighted = highlightText(item.nama, searchQuery);
             const emailHighlighted = highlightText(item.email, searchQuery);
@@ -211,8 +218,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
-                            <div class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                ${initial}
+                            <!-- Avatar Initials -->
+                            <div class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                ${avatarContent}
                             </div>
                             <div class="flex flex-col max-w-[220px]">
                                 <span class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight" title="${item.nama}">

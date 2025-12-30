@@ -153,12 +153,16 @@
         </script>
 
         <!-- Profile Shortcut Button -->
-        <button
+        <a href="{{ route('profile.edit') }}"
             class="flex items-center gap-3 p-1.5 sm:pr-4 sm:pl-1.5 rounded-full bg-white dark:bg-surface-dark border border-primary/20 dark:border-transparent hover:bg-primary/5 dark:hover:bg-[#36271F] transition-all cursor-pointer group shadow-sm shrink-0">
             <div
-                class="size-8 rounded-full bg-primary/10 dark:bg-accent/10 flex items-center justify-center text-primary dark:text-accent font-bold group-hover:bg-primary/20 dark:group-hover:bg-accent/20 transition-colors">
-                <!-- Fallback to Initial if no image (assuming no image field for now based on context) -->
-                {{ substr(Auth::user()->nama, 0, 1) }}
+                class="size-8 rounded-full bg-primary/10 dark:bg-accent/10 flex items-center justify-center text-primary dark:text-accent font-bold group-hover:bg-primary/20 dark:group-hover:bg-accent/20 transition-colors overflow-hidden">
+                @if(Auth::user()->foto_profil)
+                    <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="Profile"
+                        class="w-full h-full object-cover">
+                @else
+                    {{ substr(Auth::user()->nama, 0, 1) }}
+                @endif
             </div>
             <div class="hidden sm:flex flex-col items-start text-left">
                 <span
@@ -166,6 +170,6 @@
                 <span
                     class="text-primary/70 dark:text-accent/70 text-[10px] uppercase tracking-wider font-semibold">{{ Auth::user()->peran }}</span>
             </div>
-        </button>
+        </a>
     </div>
 </header>

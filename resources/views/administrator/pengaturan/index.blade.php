@@ -186,6 +186,132 @@
             </div>
         </main>
     </div>
+    <!-- Crop Modal -->
+    <div id="cropModal"
+        class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div
+                class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-[#1A1410]">
+                <h3 class="font-bold text-lg text-primary-dark dark:text-white">Sesuaikan Logo Perpustakaan</h3>
+                <button type="button" onclick="closeCropModal()"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="flex-1 p-4 bg-black/50 overflow-hidden flex items-center justify-center relative min-h-[300px]">
+                <img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block">
+            </div>
+
+            <div
+                class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-white dark:bg-surface-dark">
+                <button type="button" onclick="closeCropModal()"
+                    class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    Batal
+                </button>
+                <button type="button" id="cropButton"
+                    class="px-5 py-2.5 rounded-xl bg-primary dark:bg-accent text-white dark:text-primary-dark font-bold text-sm hover:brightness-110 shadow-lg shadow-primary/20 dark:shadow-accent/20 transition-all transform active:scale-95">
+                    Potong & Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cropper;
+        const inputImage = document.getElementById('logo');
+        const modal = document.getElementById('cropModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropButton = document.getElementById('cropButton');
+        // Preview container is the div with border that contains the img
+        // Since it's inside an if block, it might not exist initially if no logo.
+        // But we can check if it exists or create/update a preview area.
+        // For simplicity, let's look for the img tag inside the existing preview div if it exists.
+
+        function openCropModal() {
+            modal.classList.remove('hidden');
+        }
+
+        function closeCropModal() {
+            modal.classList.add('hidden');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        inputImage.addEventListener('change', function (e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    imageToCrop.src = event.target.result;
+                    openCropModal();
+
+                    // Init Cropper
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imageToCrop, {
+                        // For Logo, maybe we don't force 1:1? Or maybe yes. 
+                        // Usually logos are flexible. Let's keep it free ratio or maybe 1:1 if requested "cropping".
+                        // User just said "Crop", didn't specify ratio. But profile was 1:1. 
+                        // Let's use NaN (Free) or 16:9? Let's use standard free crop since logos vary.
+                        // But wait, user asked "implementasi SAAT saya mengupload...".
+                        // Let's assume user wants to crop useful parts.
+                        // I'll leave aspectRatio: NaN (Free) which is default if not set? 
+                        // No, let's set it to NaN explicitly to be sure.
+                        aspectRatio: NaN,
+                        viewMode: 1,
+                        autoCropArea: 0.8,
+                        responsive: true,
+                    });
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropButton.addEventListener('click', function () {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    // maxWidth: 1024,
+                    // maxHeight: 1024,
+                });
+
+                canvas.toBlob(function (blob) {
+                    // Update File Input with Cropped Blob
+                    const dataTransfer = new DataTransfer();
+                    const file = new File([blob], "logo_cropped.png", { type: "image/png" });
+                    dataTransfer.items.add(file);
+                    inputImage.files = dataTransfer.files;
+
+                    // Update UI Preview
+                    // Find or Create preview container
+                    let previewDiv = document.querySelector('img[alt="Current Logo"]')?.parentElement;
+
+                    if (!previewDiv) {
+                        // If no existing preview (first time upload), we might need to insert it.
+                        // Looking at the blade, the preview div is inside an if($pengaturan->logo_path).
+                        // If that's false, the div is not there.
+                        // We can create a temporary preview if needed, or just rely on the filename in input (default browser behavior).
+                        // But seeing the result is nice.
+                        // Let's just create a dynamic preview below the label if needed.
+                        // But for now, ensuring the file input has the cropped file is the most important part.
+                    } else {
+                        // If existing, update the src
+                        const img = previewDiv.querySelector('img');
+                        if (img) img.src = canvas.toDataURL();
+                    }
+
+                    closeCropModal();
+                }, 'image/png');
+            }
+        });
+    </script>
 </body>
 
 </html>
