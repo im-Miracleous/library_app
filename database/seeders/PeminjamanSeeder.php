@@ -18,23 +18,23 @@ class PeminjamanSeeder extends Seeder
             Peminjaman::create([
                 'id_pengguna' => $anggota->id_pengguna,
                 'tanggal_pinjam' => Carbon::now(),
-                'tanggal_jatuh_tempo' => Carbon::now()->addDays(7), 
-                'status_transaksi' => 'berjalan', 
+                'tanggal_jatuh_tempo' => Carbon::now()->addDays(7),
+                'status_transaksi' => 'berjalan',
                 'keterangan' => 'Peminjaman rutin'
             ]);
 
             $peminjaman = Peminjaman::where('id_pengguna', $anggota->id_pengguna)
-                                ->orderBy('created_at', 'desc')
-                                ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
             if ($peminjaman) {
                 DetailPeminjaman::create([
                     'id_peminjaman' => $peminjaman->id_peminjaman,
                     'id_buku' => $buku->id_buku,
                     'jumlah' => 1,
-                    'status_buku' => 'dipinjam' 
+                    'status_buku' => 'dipinjam'
                 ]);
-                $buku->decrement('stok_tersedia');
+                // Note: stok_tersedia otomatis dikurangi oleh trigger tr_kurangi_stok_buku
             }
         }
     }
