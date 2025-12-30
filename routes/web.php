@@ -54,6 +54,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/global-search', [\App\Http\Controllers\Api\GlobalSearchController::class, 'search'])->name('global.search');
 
+    // Notifikasi Routes
+    Route::get('/notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markAsRead'])->name('notifikasi.read');
+    Route::post('/notifikasi/read-all', [\App\Http\Controllers\NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.readAll');
+
     // --- AREA KHUSUS ADMIN ---
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);

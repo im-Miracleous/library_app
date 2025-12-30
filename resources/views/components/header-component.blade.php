@@ -70,12 +70,87 @@
             <span id="theme-icon" class="material-symbols-outlined text-[20px]">dark_mode</span>
         </button>
 
-        <button
-            class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] transition-all hover:rotate-12 relative shadow-sm border border-primary/20 dark:border-transparent cursor-pointer shrink-0">
-            <span class="material-symbols-outlined">notifications</span>
-            <span
-                class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark animate-pulse"></span>
-        </button>
+        <!-- Notification Dropdown -->
+        <div class="relative" id="notification-container">
+            <button onclick="toggleNotificationDropdown()"
+                class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] transition-all duration-500 relative shadow-sm border border-primary/20 dark:border-transparent cursor-pointer shrink-0">
+                <span class="material-symbols-outlined">notifications</span>
+
+                @if(auth()->user()->unreadNotifications->count() > 0)
+                    <span
+                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark animate-pulse"></span>
+                @endif
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="notification-dropdown"
+                class="absolute top-full right-0 mt-3 w-80 bg-white dark:bg-surface-dark rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 hidden origin-top-right transform transition-all duration-200">
+
+                <div
+                    class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-surface-dark/50">
+                    <h3 class="font-bold text-gray-800 dark:text-white text-sm">Notifikasi</h3>
+                    @if(auth()->user()->unreadNotifications->count() > 0)
+                        <form action="{{ route('notifikasi.readAll') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="no-bounce text-xs text-primary hover:text-primary-dark dark:text-accent dark:hover:text-white font-medium transition-colors">
+                                Tandai semua dibaca
+                            </button>
+                        </form>
+                    @endif
+                </div>
+
+                <div class="max-h-[300px] overflow-y-auto">
+                    @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
+                        <form action="{{ route('notifikasi.read', $notification->id) }}" method="POST" class="block">
+                            @csrf
+                            <button type="submit"
+                                class="no-bounce w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors duration-200 border-b last:border-0 border-gray-50 dark:border-gray-800 flex gap-3 transform-none hover:transform-none hover:scale-100 group">
+                                <div class="shrink-0 mt-1">
+                                    <span class="material-symbols-outlined text-yellow-500 text-xl">warning</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-800 dark:text-gray-200 font-medium line-clamp-2">
+                                        {{ $notification->data['message'] ?? 'Notifikasi baru' }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </button>
+                        </form>
+                    @empty
+                        <div class="p-8 text-center text-gray-500">
+                            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">notifications_off</span>
+                            <p class="text-sm">Tidak ada notifikasi baru</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <div
+                    class="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-surface-dark/50 text-center">
+                    <a href="{{ route('notifikasi.index') }}"
+                        class="block p-2 text-xs font-bold text-primary hover:text-primary-dark dark:text-accent dark:hover:text-white transition-colors rounded-lg hover:bg-primary/5 dark:hover:bg-white/10">
+                        Lihat Semua Notifikasi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function toggleNotificationDropdown() {
+                const dropdown = document.getElementById('notification-dropdown');
+                dropdown.classList.toggle('hidden');
+            }
+
+            // Close on click outside
+            document.addEventListener('click', function (event) {
+                const container = document.getElementById('notification-container');
+                const dropdown = document.getElementById('notification-dropdown');
+                if (!container.contains(event.target) && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        </script>
 
         <!-- Profile Shortcut Button -->
         <button
