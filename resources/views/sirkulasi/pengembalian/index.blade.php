@@ -72,10 +72,12 @@
                         </div>
 
                         <div class="relative w-full sm:w-64">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
                             <input type="text" id="returnSearchInput" placeholder="Cari Kode atau Peminjam..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40">
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-all placeholder-primary-mid/60 dark:placeholder-white/40 shadow-sm">
+                            <div
+                                class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 dark:text-white/40">
+                                <span class="material-symbols-outlined text-lg">search</span>
+                            </div>
                         </div>
                     </div>
 
@@ -84,35 +86,35 @@
                             <thead>
                                 <tr
                                     class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 pl-6 font-medium w-32 cursor-pointer hover:text-primary transition-colors select-none"
+                                    <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=id_peminjaman&direction=asc'"
                                         data-sort="id_peminjaman">
                                         <div class="flex items-center gap-1">Kode <span
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                    <th class="p-4 font-medium w-72 cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=nama_anggota&direction=asc'"
                                         data-sort="nama_anggota">
                                         <div class="flex items-center gap-1">Peminjam <span
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                    <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=tanggal_pinjam&direction=asc'"
                                         data-sort="tanggal_pinjam">
                                         <div class="flex items-center gap-1">Tgl Pinjam <span
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
-                                    <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                    <th class="p-4 font-medium w-40 cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=tanggal_jatuh_tempo&direction=asc'"
                                         data-sort="tanggal_jatuh_tempo">
                                         <div class="flex items-center gap-1">Jatuh Tempo <span
                                                 class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                                         </div>
                                     </th>
-                                    <th class="p-4 font-medium text-center">Sisa Waktu</th>
+                                    <th class="p-4 font-medium text-center w-40">Sisa Waktu</th>
                                     <th class="p-4 font-medium text-right pr-6">Aksi</th>
                                 </tr>
                             </thead>

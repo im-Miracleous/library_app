@@ -90,11 +90,12 @@
                         
                         <!-- Form Search AJAX -->
                         <div class="relative w-full sm:w-64">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 dark:text-white/40 text-lg">search</span>
                             <input type="text" id="searchInput" value="{{ request('search') }}"
                                 placeholder="Cari ID, judul, atau penulis..."
-                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40">
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg pl-10 pr-4 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none placeholder-primary-mid/60 dark:placeholder-white/40 shadow-sm transition-all">
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400 dark:text-white/40">
+                                <span class="material-symbols-outlined text-lg">search</span>
+                            </div>
                         </div>
                     </div>
 

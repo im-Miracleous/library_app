@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const row = document.createElement('tr');
             row.className = 'hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group';
             row.innerHTML = `
-                <td class="p-4 pl-6 font-mono text-sm text-slate-600 dark:text-white/70">
+                <td class="p-4 pl-6 font-mono text-sm text-slate-600 dark:text-white/70 whitespace-nowrap">
                     <span class="font-bold text-primary dark:text-accent">${codeHighlight}</span>
                 </td>
                 <td class="p-4">

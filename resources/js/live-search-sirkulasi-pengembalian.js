@@ -114,19 +114,30 @@ document.addEventListener('DOMContentLoaded', function () {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             let statusHtml = '';
+            const badgeBase = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border';
+
             if (diffDays < 0) {
-                statusHtml = `<span class="flex items-center gap-1 text-red-600 font-bold bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded"><span class="material-symbols-outlined text-sm">warning</span>Telat ${Math.abs(diffDays)} hari</span>`;
+                statusHtml = `<span class="${badgeBase} bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30 animate-pulse">
+                                <span class="material-symbols-outlined text-sm">warning</span>
+                                Telat ${Math.abs(diffDays)} hari
+                            </span>`;
             } else if (diffDays === 0) {
-                statusHtml = `<span class="text-orange-600 font-bold">Hari ini</span>`;
+                statusHtml = `<span class="${badgeBase} bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30">
+                                <span class="material-symbols-outlined text-sm">event</span>
+                                Hari Ini
+                            </span>`;
             } else {
-                statusHtml = `<span class="text-blue-600 font-bold">${diffDays} hari lagi</span>`;
+                statusHtml = `<span class="${badgeBase} bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-blue-200 dark:border-blue-500/30">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                ${diffDays} hari lagi
+                            </span>`;
             }
 
             const row = document.createElement('tr');
             row.className = 'hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group';
 
             row.innerHTML = `
-                <td class="p-4 pl-6 font-mono text-primary font-bold dark:text-accent">${highlightText(item.id_peminjaman, query)}</td>
+                <td class="p-4 pl-6 font-mono text-primary font-bold dark:text-accent whitespace-nowrap">${highlightText(item.id_peminjaman, query)}</td>
                 <td class="p-4">
                     <div class="flex flex-col">
                         <span class="font-bold text-slate-800 dark:text-white">${highlightText(item.nama_anggota, query)}</span>

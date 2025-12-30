@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Laporan Peminjaman - Library App</title>
+    <title>Laporan Transaksi - Library App</title>
     <link rel="icon" type="image/png" href="https://laravel.com/img/favicon/favicon-32x32.png">
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -33,13 +33,13 @@
 
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
-            <x-header-component title="Laporan Peminjaman" />
+            <x-header-component title="Laporan Transaksi" />
 
             <div class="p-4 sm:p-8">
                 <!-- Header & Breadcrumb -->
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
-                    <x-breadcrumb-component parent="Laporan" current="Peminjaman" />
+                    <x-breadcrumb-component parent="Laporan" current="Transaksi" />
                 </div>
 
                 <!-- Filters -->
@@ -163,7 +163,7 @@
                             <thead>
                                 <tr
                                     class="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/60 text-xs uppercase tracking-wider">
-                                    <th class="p-4 pl-6 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+                                    <th class="p-4 pl-6 font-medium w-44 cursor-pointer hover:text-primary transition-colors select-none"
                                         onclick="window.location.search = '?sort=id_peminjaman&direction=asc'"
                                         data-sort="id_peminjaman">
                                         <div class="flex items-center gap-1">Kode <span
