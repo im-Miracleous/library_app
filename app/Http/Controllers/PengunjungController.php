@@ -45,9 +45,12 @@ class PengunjungController extends Controller
             ]);
         }
 
+        // Hydrate raw results to Models
+        $items = Pengunjung::hydrate($data);
+
         // Manual Pagination for View
         $pengunjung = new LengthAwarePaginator(
-            $data,
+            $items,
             $total,
             $limit,
             $page,
