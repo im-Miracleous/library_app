@@ -219,15 +219,11 @@
     </div>
 
     <script>
-        let cropper;
         const inputImage = document.getElementById('logo');
         const modal = document.getElementById('cropModal');
-        const imageToCrop = document.getElementById('imageToCrop');
+        const cropContainer = document.getElementById('imageToCrop').parentElement; // Parent div of the img
         const cropButton = document.getElementById('cropButton');
-        // Preview container is the div with border that contains the img
-        // Since it's inside an if block, it might not exist initially if no logo.
-        // But we can check if it exists or create/update a preview area.
-        // For simplicity, let's look for the img tag inside the existing preview div if it exists.
+        let cropperCanvas = null;
 
         function openCropModal() {
             modal.classList.remove('hidden');
@@ -235,74 +231,118 @@
 
         function closeCropModal() {
             modal.classList.add('hidden');
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
+            // Clean up
+            if (cropContainer) cropContainer.innerHTML = '<img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block hidden">';
+            inputImage.value = ''; // Reset input so change event fires again if same file selected
         }
 
         inputImage.addEventListener('change', function (e) {
             const files = e.target.files;
             if (files && files.length > 0) {
                 const file = files[0];
-                const reader = new FileReader();
+                const url = URL.createObjectURL(file);
 
-                reader.onload = function (event) {
-                    imageToCrop.src = event.target.result;
-                    openCropModal();
+                openCropModal();
 
-                    // Init Cropper
-                    if (cropper) {
-                        cropper.destroy();
-                    }
-                    cropper = new Cropper(imageToCrop, {
-                        // For Logo, maybe we don't force 1:1? Or maybe yes. 
-                        // Usually logos are flexible. Let's keep it free ratio or maybe 1:1 if requested "cropping".
-                        // User just said "Crop", didn't specify ratio. But profile was 1:1. 
-                        // Let's use NaN (Free) or 16:9? Let's use standard free crop since logos vary.
-                        // But wait, user asked "implementasi SAAT saya mengupload...".
-                        // Let's assume user wants to crop useful parts.
-                        // I'll leave aspectRatio: NaN (Free) which is default if not set? 
-                        // No, let's set it to NaN explicitly to be sure.
-                        aspectRatio: NaN,
-                        viewMode: 1,
-                        autoCropArea: 0.8,
-                        responsive: true,
-                    });
-                };
+                // Create CropperJS v2 Elements
+                // <cropper-canvas background>
+                //   <cropper-image src="..."></cropper-image>
+                //   <cropper-shade hidden></cropper-shade>
+                //   <cropper-handle action="select" plain></cropper-handle>
+                //   <cropper-selection initial-coverage="0.8">
+                //     <cropper-grid role="grid" covered></cropper-grid>
+                //     <cropper-crosshair centered></cropper-crosshair>
+                //     <cropper-handle action="move" theme-color="rgba(255, 255, 255, 0.35)"></cropper-handle>
+                //     <cropper-handle action="n-resize"></cropper-handle>
+                //     <cropper-handle action="e-resize"></cropper-handle>
+                //     <cropper-handle action="s-resize"></cropper-handle>
+                //     <cropper-handle action="w-resize"></cropper-handle>
+                //     <cropper-handle action="ne-resize"></cropper-handle>
+                //     <cropper-handle action="nw-resize"></cropper-handle>
+                //     <cropper-handle action="se-resize"></cropper-handle>
+                //     <cropper-handle action="sw-resize"></cropper-handle>
+                //   </cropper-selection>
+                // </cropper-canvas>
 
-                reader.readAsDataURL(file);
+                cropContainer.innerHTML = '';
+
+                const canvas = document.createElement('cropper-canvas');
+                canvas.setAttribute('background', '');
+                canvas.style.height = '400px';
+                canvas.style.width = '100%';
+
+                const image = document.createElement('cropper-image');
+                image.setAttribute('src', url);
+                image.setAttribute('alt', 'Picture');
+                image.setAttribute('rotatable', 'false'); // Lock rotation for simplicity
+                image.setAttribute('scalable', 'false');
+                image.setAttribute('translatable', 'false'); // Move selection, not image
+
+                const shade = document.createElement('cropper-shade');
+                shade.setAttribute('hidden', '');
+
+                const handleSelect = document.createElement('cropper-handle');
+                handleSelect.setAttribute('action', 'select');
+                handleSelect.setAttribute('plain', '');
+
+                const selection = document.createElement('cropper-selection');
+                selection.setAttribute('initial-coverage', '0.8');
+                selection.setAttribute('movable', '');
+                selection.setAttribute('resizable', '');
+
+                const grid = document.createElement('cropper-grid');
+                grid.setAttribute('role', 'grid');
+                grid.setAttribute('covered', '');
+
+                const crosshair = document.createElement('cropper-crosshair');
+                crosshair.setAttribute('centered', '');
+
+                // Handles for resize
+                const handles = ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'];
+
+                selection.appendChild(grid);
+                selection.appendChild(crosshair);
+
+                handles.forEach(dir => {
+                    const h = document.createElement('cropper-handle');
+                    h.setAttribute('action', `${dir}-resize`);
+                    selection.appendChild(h);
+                });
+
+                canvas.appendChild(image);
+                canvas.appendChild(shade);
+                canvas.appendChild(handleSelect);
+                canvas.appendChild(selection);
+
+                cropContainer.appendChild(canvas);
+                cropperCanvas = canvas;
             }
         });
 
-        cropButton.addEventListener('click', function () {
-            if (cropper) {
-                const canvas = cropper.getCroppedCanvas({
-                    // maxWidth: 1024,
-                    // maxHeight: 1024,
+        cropButton.addEventListener('click', async function () {
+            if (cropperCanvas) {
+                // v2 API: $canvas.toCanvas() returns a Promise resolving to HTMLCanvasElement
+                const selection = cropperCanvas.querySelector('cropper-selection');
+                if (!selection) return;
+
+                const canvas = await selection.$toCanvas({
+                    width: 500, // Reasonable default size for logo? or leave free? 
+                    // Let's verify what the user wants. Usually logos are small.
                 });
 
                 canvas.toBlob(function (blob) {
                     // Update File Input with Cropped Blob
+                    // We need a new DataTransfer because file inputs are read-only
                     const dataTransfer = new DataTransfer();
                     const file = new File([blob], "logo_cropped.png", { type: "image/png" });
                     dataTransfer.items.add(file);
+
+                    // Note: This won't trigger 'change' event again, preventing loop
                     inputImage.files = dataTransfer.files;
 
                     // Update UI Preview
-                    // Find or Create preview container
                     let previewDiv = document.querySelector('img[alt="Current Logo"]')?.parentElement;
-
-                    if (!previewDiv) {
-                        // If no existing preview (first time upload), we might need to insert it.
-                        // Looking at the blade, the preview div is inside an if($pengaturan->logo_path).
-                        // If that's false, the div is not there.
-                        // We can create a temporary preview if needed, or just rely on the filename in input (default browser behavior).
-                        // But seeing the result is nice.
-                        // Let's just create a dynamic preview below the label if needed.
-                        // But for now, ensuring the file input has the cropped file is the most important part.
-                    } else {
-                        // If existing, update the src
+                    if (previewDiv) {
                         const img = previewDiv.querySelector('img');
                         if (img) img.src = canvas.toDataURL();
                     }

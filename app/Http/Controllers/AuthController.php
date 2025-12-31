@@ -216,7 +216,14 @@ class AuthController extends Controller
             if ($user) {
                 $user->update(['login_attempts' => 0, 'lockout_time' => null, 'is_locked' => false]);
             }
-            return redirect()->route('dashboard')->with('success', 'Selamat Datang!');
+            // Redirect berdasarkan peran
+            if ($user->peran === 'admin' || $user->peran === 'owner') {
+                return redirect()->intended('/dashboard')->with('success', 'Selamat Datang!');
+            } elseif ($user->peran === 'petugas') {
+                return redirect()->intended('/dashboard')->with('success', 'Selamat Datang!'); // Petugas juga akses dashboard yang sama saat ini
+            } else {
+                return redirect()->intended('/')->with('success', 'Selamat Datang!');
+            }
         }
 
         // Logic Lockout

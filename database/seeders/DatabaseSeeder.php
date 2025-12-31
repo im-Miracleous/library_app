@@ -3,6 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Pengguna;
+use App\Models\Kategori;
+use App\Models\Buku;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,15 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Panggil seeder secara berurutan
-        // PENTING: Master data (Kategori) harus duluan sebelum Buku
         $this->call([
+            PengaturanSeeder::class,
             KategoriSeeder::class,
             PenggunaSeeder::class,
             BukuSeeder::class,
-            PengaturanSeeder::class,
             PeminjamanSeeder::class,
-            // PengunjungSeeder::class // Dikosongkan sesuai request
         ]);
     }
 }

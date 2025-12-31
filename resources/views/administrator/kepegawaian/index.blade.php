@@ -188,55 +188,113 @@
                                     </div>
                                 </td>
                                 <td class="p-4">
-                                    <span
-                                        class="px-2 py-1 rounded text-xs font-bold {{ $user->peran == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700' }} uppercase">
-                                        {{ $user->peran }}
-                                    </span>
+                                    @if ($user->peran === 'admin')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary-dark dark:bg-accent/10 dark:text-accent border border-primary/20 dark:border-accent/20">
+                                            Administrator
+                                        </span>
+                                    @elseif ($user->peran === 'owner')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border border-gray-600 dark:border-gray-400">
+                                            Owner
+                                        </span>
+                                    @else
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                            Petugas
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="p-4">{{ $user->telepon ?? '-' }}</td>
                                 <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
                                     {{ $user->alamat ?? '-' }}
                                 </td>
                                 <td class="p-4">
-                                    <span
-                                        class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
-                                        {{ ucfirst($user->status) }}
-                                    </span>
+                                    @if ($user->status === 'aktif')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500 border border-green-200 dark:border-green-800">
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500 border border-red-200 dark:border-red-800">
+                                            Nonaktif
+                                        </span>
+                                    @endif
+                                    
+                                    @if ($user->is_locked)
+                                        <span class="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white border border-red-700">
+                                            LOCKED
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                    {{-- PROTEKSI: Edit --}}
-                                    @if($user->peran == 'admin' && $user->id_pengguna != auth()->user()->id_pengguna)
-                                        <button disabled
-                                            class="p-2 rounded-lg text-blue-300 dark:text-blue-800 cursor-not-allowed opacity-70"
-                                            title="Edit (Dilindungi)">
-                                            <span class="material-symbols-outlined text-lg">edit</span>
-                                        </button>
-                                    @else
-                                        <button onclick="openEditPegawai({{ $user->toJson() }})"
-                                            class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                                            title="Edit">
-                                            <span class="material-symbols-outlined text-lg">edit</span>
-                                        </button>
-                                    @endif
+                                    {{-- LOGIC TOMBOL EDIT --}}
+                                        @php
+                                            $canEdit = true;
+                                            $currentUser = auth()->user();
+                                            
+                                            // 1. Admin/Petugas tidak bisa edit Owner
+                                            if ($user->peran === 'owner' && $currentUser->peran !== 'owner') {
+                                                $canEdit = false;
+                                            }
+                                            // 2. Admin tidak bisa edit sesama Admin (kecuali diri sendiri)
+                                            // Owner BISA edit Admin
+                                            if ($currentUser->peran === 'admin' && $user->peran === 'admin' && $user->id_pengguna !== $currentUser->id_pengguna) {
+                                                $canEdit = false;
+                                            }
+                                        @endphp
 
-                                    {{-- PROTEKSI: Delete --}}
-                                    @if($user->peran === 'admin')
-                                        <button disabled
-                                            class="p-2 rounded-lg text-red-300 dark:text-red-800 cursor-not-allowed opacity-70"
-                                            title="Hapus (Dilindungi)">
-                                            <span class="material-symbols-outlined text-lg">delete</span>
-                                        </button>
-                                    @else
-                                        <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
-                                            onsubmit="return confirm('Yakin hapus?');">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                                title="Hapus">
+                                        @if ($canEdit)
+                                            <button onclick="openEditPegawai({{ $user->toJson() }})"
+                                                class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                                title="Edit">
+                                                <span class="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                class="p-2 rounded-lg text-blue-300 dark:text-blue-800 cursor-not-allowed opacity-70"
+                                                title="Edit (Dilindungi)">
+                                                <span class="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+                                        @endif
+
+                                        {{-- LOGIC TOMBOL DELETE --}}
+                                        @php
+                                            $canDelete = true;
+                                            
+                                            // 1. Owner tidak bisa dihapus oleh siapapun
+                                            if ($user->peran === 'owner') {
+                                                $canDelete = false;
+                                            }
+                                            // 2. Admin tidak bisa hapus Admin
+                                            // Owner BISA hapus Admin
+                                            if ($currentUser->peran === 'admin' && $user->peran === 'admin') {
+                                                $canDelete = false;
+                                            }
+                                            // 3. User tidak bisa hapus diri sendiri (UI only, backend protected too)
+                                            if ($user->id_pengguna === $currentUser->id_pengguna) {
+                                                $canDelete = false;
+                                            }
+                                        @endphp
+                                        
+                                        @if ($canDelete)
+                                            <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
+                                                onsubmit="return confirm('Yakin hapus?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                                    title="Hapus">
+                                                    <span class="material-symbols-outlined text-lg">delete</span>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button disabled
+                                                class="p-2 rounded-lg text-red-300 dark:text-red-800 cursor-not-allowed opacity-70"
+                                                title="Hapus (Dilindungi)">
                                                 <span class="material-symbols-outlined text-lg">delete</span>
                                             </button>
-                                        </form>
-                                    @endif
+                                        @endif
                                 </td>
                             </tr>
                         @empty

@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Pengguna;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class KepegawaianController extends Controller
 {
     public function index(Request $request)
     {
-        // Hanya Admin yang boleh akses (Handling di Controller level selain Middleware)
-        if (auth()->user()->peran !== 'admin') {
+        // Hanya Admin & Owner yang boleh akses (Handling di Controller level selain Middleware)
+        if (auth()->user()->peran !== 'admin' && auth()->user()->peran !== 'owner') {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
@@ -25,10 +26,10 @@ class KepegawaianController extends Controller
         $offset = ($page - 1) * $limit;
         $peran = $request->input('peran', ''); // Add peran filter
 
-        // Panggil Stored Procedure
+        // Panggil Stored Procedure (Pass Caller Role)
         $results = \Illuminate\Support\Facades\DB::select(
-            'CALL sp_get_kepegawaian(?, ?, ?, ?, ?, ?, @total)',
-            [$search, $sortCol, $sortDir, $limit, $offset, $peran]
+            'CALL sp_get_kepegawaian(?, ?, ?, ?, ?, ?, ?, @total)',
+            [$search, $sortCol, $sortDir, $limit, $offset, $peran, auth()->user()->peran]
         );
 
         // Ambil Total Data
@@ -55,17 +56,24 @@ class KepegawaianController extends Controller
             ]);
         }
 
-        // Statistik
-        $totalPegawai = Pengguna::whereIn('peran', ['admin', 'petugas'])->count();
+        // Statistik (Respect Visibility)
+        $currentUserPeran = auth()->user()->peran;
+        $allowedRoles = ['admin', 'petugas'];
+        if ($currentUserPeran === 'owner') {
+            $allowedRoles[] = 'owner';
+        }
+
+        $totalPegawai = Pengguna::whereIn('peran', $allowedRoles)->count();
+        $totalOwner = $currentUserPeran === 'owner' ? Pengguna::where('peran', 'owner')->count() : 0;
         $totalAdmin = Pengguna::where('peran', 'admin')->count();
         $totalPetugas = Pengguna::where('peran', 'petugas')->count();
 
-        return view('administrator.kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalAdmin', 'totalPetugas'));
+        return view('administrator.kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalOwner', 'totalAdmin', 'totalPetugas'));
     }
 
     public function store(Request $request)
     {
-        if (auth()->user()->peran !== 'admin') {
+        if (auth()->user()->peran !== 'admin' && auth()->user()->peran !== 'owner') {
             abort(403, 'Anda tidak memiliki akses.');
         }
 
@@ -93,7 +101,7 @@ class KepegawaianController extends Controller
 
     public function show($id)
     {
-        if (auth()->user()->peran !== 'admin') {
+        if (auth()->user()->peran !== 'admin' && auth()->user()->peran !== 'owner') {
             abort(403, 'Anda tidak memiliki akses.');
         }
         $user = Pengguna::findOrFail($id);
@@ -102,17 +110,26 @@ class KepegawaianController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (auth()->user()->peran !== 'admin') {
+        if (auth()->user()->peran !== 'admin' && auth()->user()->peran !== 'owner') {
             abort(403, 'Anda tidak memiliki akses.');
         }
 
         $user = Pengguna::findOrFail($id);
 
-        // PROTEKSI ADMIN: Tidak boleh edit sesama Admin (kecuali diri sendiri)
-        if ($user->peran === 'admin' && $user->id_pengguna !== auth()->user()->id_pengguna) {
-            abort(403, 'Anda tidak dapat mengubah data sesama Admin.');
+        // PROTEKSI ADMIN & OWNER
+        $targetUser = Pengguna::findOrFail($id);
+        $currentUser = auth()->user();
+
+        // 1. Admin/Petugas TIDAK BOLEH edit Owner
+        if ($targetUser->peran === 'owner' && $currentUser->peran !== 'owner') {
+            abort(403, 'Akses Ditolak: Anda tidak dapat mengubah data Owner.');
         }
 
+        // 2. Admin TIDAK BOLEH edit sesama Admin (kecuali diri sendiri)
+        // Owner BOLEH edit Admin
+        if ($currentUser->peran === 'admin' && $targetUser->peran === 'admin' && $targetUser->id_pengguna !== $currentUser->id_pengguna) {
+            abort(403, 'Akses Ditolak: Admin tidak dapat mengubah data sesama Admin.');
+        }
         // UNLOCK ACCOUNT FEATURE
         if ($request->boolean('unlock_account')) {
             $user->update([
@@ -167,25 +184,29 @@ class KepegawaianController extends Controller
         return redirect()->back()->with('success', 'Data pegawai berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy(string $id)
     {
-        if (auth()->user()->peran !== 'admin') {
-            abort(403, 'Anda tidak memiliki akses.');
-        }
-
         $user = Pengguna::findOrFail($id);
+        $currentUser = auth()->user();
 
-        // Prevent deleting self
-        if ($user->id_pengguna == auth()->id()) {
-            return redirect()->back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        // 1. Owner tidak boleh dihapus oleh siapapun (termasuk sesama owner jika ada, tapi karena single owner, aman)
+        if ($user->peran === 'owner') {
+            abort(403, 'AKSI ILEGAL: Akun Root/Owner tidak dapat dihapus.');
         }
 
-        // PROTEKSI: Tidak boleh hapus Admin
-        if ($user->peran === 'admin') {
+        // 2. Admin tidak boleh menghapus Admin lain
+        // Owner BOLEH menghapus Admin
+        if ($currentUser->peran === 'admin' && $user->peran === 'admin') {
             abort(403, 'Anda tidak dapat menghapus akun Admin.');
         }
 
+        // Hapus foto profil jika ada
+        if ($user->foto_profil) {
+            Storage::disk('public')->delete($user->foto_profil);
+        }
+
         $user->delete();
-        return redirect()->back()->with('success', 'Pegawai berhasil dihapus.');
+
+        return redirect()->route('kepegawaian.index')->with('success', 'Data pegawai berhasil dihapus');
     }
 }

@@ -63,8 +63,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // --- AREA KHUSUS ADMIN ---
-    Route::middleware(['role:admin'])->group(function () {
+    // --- AREA KHUSUS ADMIN & OWNER ---
+    Route::middleware(['role:admin,owner'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
         Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
         Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
@@ -85,8 +85,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.update');
     });
 
-    // --- AREA PETUGAS & ADMIN (Sirkulasi) ---
-    Route::middleware(['role:admin,petugas'])->group(function () {
+    // --- AREA PETUGAS, ADMIN & OWNER (Sirkulasi) ---
+    Route::middleware(['role:admin,petugas,owner'])->group(function () {
         // Rute Resource untuk Pengunjung (Sirkulasi)
         Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 

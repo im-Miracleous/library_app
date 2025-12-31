@@ -68,11 +68,13 @@
                 <p class="text-sm {{ request()->routeIs('dashboard') ? 'font-bold' : 'font-medium' }}">Dashboard</p>
             </a>
 
-            @if(Auth::user()->peran == 'admin')
+            @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'owner')
                     <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
                         class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
-                        Administrator</div>
+                        Administrator
+                        @if(Auth::user()->peran == 'owner') & Owner @endif
+                    </div>
 
                     <a href="{{ route('anggota.index') }}"
                         class="{{ request()->routeIs('anggota*')
@@ -149,7 +151,7 @@
 
             @endif
 
-            @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas')
+            @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'petugas' || Auth::user()->peran == 'owner')
                     <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
                         class="px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none mb-2">
