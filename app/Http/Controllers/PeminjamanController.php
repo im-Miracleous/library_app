@@ -155,9 +155,9 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
 
-        // Cegah pengeditan jika transaksi sudah 'selesai'
-        if ($peminjaman->status_transaksi == 'selesai') {
-            return back()->with('error', 'Transaksi yang sudah selesai tidak dapat diedit.');
+        // Cegah pengeditan jika transaksi sudah 'selesai' (Kecuali Owner)
+        if ($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran !== 'owner') {
+            return back()->with('error', 'Transaksi yang sudah selesai hanya dapat diedit oleh Owner.');
         }
 
         return view('sirkulasi.peminjaman.edit', compact('peminjaman'));
@@ -201,7 +201,11 @@ class PeminjamanController extends Controller
      */
     public function destroy($id)
     {
-        // Usually transaction log should be kept. Allow delete only for admin.
+        // Restriction: Only Owner can delete transactions
+        if (auth()->user()->peran !== 'owner') {
+            abort(403, 'Hanya Owner yang dapat menghapus data transaksi.');
+        }
+
         $peminjaman = Peminjaman::findOrFail($id);
         $peminjaman->delete();
         return redirect()->route('peminjaman.index')->with('success', 'Transaksi berhasil dihapus.');

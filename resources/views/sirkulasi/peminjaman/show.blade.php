@@ -207,18 +207,27 @@
                                     <span class="material-symbols-outlined">edit_square</span>
                                     Edit Transaksi
                                 </a>
+                            @elseif($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran == 'owner')
+                                {{-- Owner privilege: Edit finished transactions --}}
+                                <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}"
+                                    class="w-full py-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/30 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 mb-3">
+                                    <span class="material-symbols-outlined">edit_square</span>
+                                    Edit Transaksi
+                                </a>
                             @endif
 
-                            <form action="{{ route('peminjaman.destroy', $peminjaman->id_peminjaman) }}" method="POST"
-                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat transaksi ini? Data tidak dapat dikembalikan.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="w-full py-3 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
-                                    <span class="material-symbols-outlined">delete</span>
-                                    Hapus Transaksi
-                                </button>
-                            </form>
+                            @if(auth()->user()->peran == 'owner')
+                                <form action="{{ route('peminjaman.destroy', $peminjaman->id_peminjaman) }}" method="POST"
+                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat transaksi ini? Data tidak dapat dikembalikan.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="w-full py-3 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined">delete</span>
+                                        Hapus Transaksi
+                                    </button>
+                                </form>
+                            @endif
 
                             <div class="mt-6 pt-6 border-t border-slate-100 dark:border-white/10">
                                 <div class="text-xs text-slate-400 dark:text-white/40 text-center">

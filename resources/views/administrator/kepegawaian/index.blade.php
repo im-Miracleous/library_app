@@ -447,11 +447,19 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Role</label>
-                                <select id="edit_peran" name="peran"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="petugas">Petugas</option>
-                                    <option value="admin">Administrator</option>
-                                </select>
+                                <div id="edit_peran_container">
+                                    <select id="edit_peran" name="peran"
+                                        class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
+                                        <option value="petugas">Petugas</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                    <div id="edit_peran_readonly" class="hidden">
+                                        <div class="px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-bold text-sm flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">shield_person</span>
+                                            Root / Owner
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -527,21 +535,39 @@
             document.getElementById('edit_status').value = user.status;
             document.getElementById('edit_peran').value = user.peran;
 
-            // PROTEKSI DIRI: Disable Role & Status jika edit diri sendiri
+            // PROTEKSI ROLE & STATUS
             const currentUserId = '{{ auth()->user()->id_pengguna }}';
             const statusSelect = document.getElementById('edit_status');
             const peranSelect = document.getElementById('edit_peran');
+            const peranReadonly = document.getElementById('edit_peran_readonly');
 
-            if (user.id_pengguna === currentUserId) {
-                statusSelect.disabled = true;
+            if (user.peran === 'owner') {
+                // Akun Owner: Role tidak bisa diubah sama sekali (tetap Owner)
+                peranSelect.classList.add('hidden');
                 peranSelect.disabled = true;
+                peranReadonly.classList.remove('hidden');
+                
+                // Status juga tidak bisa diubah untuk Owner (Safety)
+                statusSelect.disabled = true;
                 statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            } else if (user.id_pengguna === currentUserId) {
+                // Edit diri sendiri (Admin/Petugas): Gak boleh ganti Role & Status sendiri
+                peranSelect.classList.remove('hidden');
+                peranSelect.disabled = true;
+                peranReadonly.classList.add('hidden');
                 peranSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+                statusSelect.disabled = true;
+                statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
             } else {
-                statusSelect.disabled = false;
+                // Edit orang lain (dan bukan Owner): Normal
+                peranSelect.classList.remove('hidden');
                 peranSelect.disabled = false;
-                statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+                peranReadonly.classList.add('hidden');
                 peranSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+                statusSelect.disabled = false;
+                statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
             }
 
             // UNLOCK ACCOUNT UI

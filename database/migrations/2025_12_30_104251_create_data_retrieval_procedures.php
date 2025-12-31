@@ -264,7 +264,7 @@ BEGIN
     SET p_total = @temp_total;
 
     SET @sql = 'SELECT d.id_denda, d.created_at as tanggal_denda, p.id_peminjaman, u.nama as nama_anggota, ';
-    SET @sql = CONCAT(@sql, 'b.judul as judul_buku, d.jenis_denda, d.jumlah_denda, d.status_bayar ');
+    SET @sql = CONCAT(@sql, 'b.judul as judul_buku, d.jenis_denda, d.jumlah_denda, d.status_bayar, d.keterangan ');
     SET @sql = CONCAT(@sql, 'FROM denda d ');
     SET @sql = CONCAT(@sql, 'JOIN detail_peminjaman dp ON d.id_detail_peminjaman = dp.id_detail_peminjaman ');
     SET @sql = CONCAT(@sql, 'JOIN peminjaman p ON dp.id_peminjaman = p.id_peminjaman ');

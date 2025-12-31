@@ -63,11 +63,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
+    // --- AREA KHUSUS OWNER (Super Protected) ---
+    Route::middleware(['role:owner'])->group(function () {
+        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+    });
+
     // --- AREA KHUSUS ADMIN & OWNER ---
     Route::middleware(['role:admin,owner'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
-        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
-        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
 
         Route::resource('buku', \App\Http\Controllers\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
@@ -81,8 +85,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/denda/{id}/bayar', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.bayar');
         });
 
-        // Route Update Status Denda (Outside Laporan Prefix)
+        // Route Update & Delete Status Denda (Outside Laporan Prefix)
         Route::put('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.update');
+        Route::delete('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'destroy'])->name('denda.destroy');
     });
 
     // --- AREA PETUGAS, ADMIN & OWNER (Sirkulasi) ---

@@ -186,6 +186,9 @@
                                 @endif
                             </div>
                         </th>
+                        @if(auth()->user()->peran == 'owner')
+                            <th class="p-4 font-medium text-center">Aksi (Owner)</th>
+                        @endif
                     </x-slot:header>
 
                     <x-slot:body>
@@ -220,6 +223,28 @@
                                         {{ $item->status_transaksi }}
                                     </span>
                                 </td>
+                                @if(auth()->user()->peran == 'owner')
+                                    <td class="p-4 flex justify-center gap-2">
+                                        {{-- Edit Button --}}
+                                        <a href="{{ route('peminjaman.edit', $item->id_peminjaman) }}"
+                                            class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                                            title="Edit Transaksi">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </a>
+
+                                        {{-- Delete Button --}}
+                                        <form action="{{ route('peminjaman.destroy', $item->id_peminjaman) }}" method="POST"
+                                            onsubmit="return confirm('PERINGATAN: Menghapus data transaksi akan menghapus history selamanya. Lanjutkan?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                                title="Hapus Paksa">
+                                                <span class="material-symbols-outlined text-lg">delete_forever</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>

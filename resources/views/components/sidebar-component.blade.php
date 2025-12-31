@@ -115,14 +115,16 @@
                         <p class="text-sm {{ request()->routeIs('kategori*') ? 'font-bold' : 'font-medium' }}">Data Kategori</p>
                     </a>
 
-                    <a href="{{ route('pengaturan.index') }}"
-                        class="{{ request()->routeIs('pengaturan*')
-                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
-                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
-                        <span
-                            class="material-symbols-outlined {{ request()->routeIs('pengaturan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">settings</span>
-                        <p class="text-sm {{ request()->routeIs('pengaturan*') ? 'font-bold' : 'font-medium' }}">Pengaturan</p>
-                    </a>
+                    @if(Auth::user()->peran == 'owner')
+                        <a href="{{ route('pengaturan.index') }}"
+                            class="{{ request()->routeIs('pengaturan*')
+                        ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                        : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                            <span
+                                class="material-symbols-outlined {{ request()->routeIs('pengaturan*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">settings</span>
+                            <p class="text-sm {{ request()->routeIs('pengaturan*') ? 'font-bold' : 'font-medium' }}">Pengaturan</p>
+                        </a>
+                    @endif
 
                     <div class="mt-2 mb-1 px-4 py-2 border-t border-primary/10 dark:border-white/5"></div>
                     <div
