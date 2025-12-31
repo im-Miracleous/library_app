@@ -17,7 +17,7 @@ return new class extends Migration {
 
             $table->date('tanggal_pinjam');
             $table->date('tanggal_jatuh_tempo');
-            $table->enum('status_transaksi', ['berjalan', 'selesai'])->default('berjalan');
+            $table->enum('status_transaksi', ['menunggu_verifikasi', 'ditolak', 'berjalan', 'selesai', 'dibatalkan'])->default('menunggu_verifikasi');
             $table->text('keterangan')->nullable();
             $table->timestamps();
         });

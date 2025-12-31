@@ -26,7 +26,8 @@
                 {{ optional($pengaturan)->nama_perpustakaan ?? 'Library App' }}
             </h1>
             <p class="text-primary-mid dark:text-white/60 text-[10px] font-medium uppercase tracking-wider">
-                Panel Manajemen</p>
+                {{ Auth::user()->peran == 'anggota' ? 'Portal Anggota' : 'Panel Manajemen' }}
+            </p>
         </div>
     </div>
 
@@ -59,13 +60,16 @@
         <nav class="flex flex-col gap-2">
 
             <!-- Menu Utama (Dashboard) -->
-            <a href="{{ route('dashboard') }}"
-                class="{{ request()->routeIs('dashboard')
+            @php
+                $dashboardRoute = Auth::user()->peran == 'anggota' ? 'member.dashboard' : 'dashboard';
+            @endphp
+            <a href="{{ route($dashboardRoute) }}"
+                class="{{ request()->routeIs($dashboardRoute)
     ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
     : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
-                <span class="material-symbols-outlined {{ request()->routeIs('dashboard') ? 'filled' : '' }}"
-                    style="{{ request()->routeIs('dashboard') ? 'font-variation-settings: \'FILL\' 1;' : '' }}">dashboard</span>
-                <p class="text-sm {{ request()->routeIs('dashboard') ? 'font-bold' : 'font-medium' }}">Dashboard</p>
+                <span class="material-symbols-outlined {{ request()->routeIs($dashboardRoute) ? 'filled' : '' }}"
+                    style="{{ request()->routeIs($dashboardRoute) ? 'font-variation-settings: \'FILL\' 1;' : '' }}">dashboard</span>
+                <p class="text-sm {{ request()->routeIs($dashboardRoute) ? 'font-bold' : 'font-medium' }}">Dashboard</p>
             </a>
 
             @if(Auth::user()->peran == 'admin' || Auth::user()->peran == 'owner')
@@ -191,21 +195,50 @@
             @endif
 
             @if(Auth::user()->peran == 'anggota')
-                <div
-                    class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
-                    Menu Anggota</div>
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">search</span>
-                    <p class="text-sm font-medium">Cari Buku</p>
-                </a>
-                <a href="#"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group">
-                    <span
-                        class="material-symbols-outlined group-hover:text-primary dark:group-hover:text-accent transition-colors">history</span>
-                    <p class="text-sm font-medium">Riwayat Saya</p>
-                </a>
+                    <div
+                        class="mt-4 mb-2 px-4 text-xs font-bold text-primary-mid/60 dark:text-white/40 uppercase tracking-widest select-none">
+                        E-Perpustakaan</div>
+
+                    <a href="{{ route('member.buku.index') }}"
+                        class="{{ (request()->routeIs('member.buku*') && request()->get('filter') !== 'bookmarks')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ (request()->routeIs('member.buku*') && request()->get('filter') !== 'bookmarks') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">search</span>
+                        <p
+                            class="text-sm {{ (request()->routeIs('member.buku*') && request()->get('filter') !== 'bookmarks') ? 'font-bold' : 'font-medium' }}">
+                            Cari Buku</p>
+                    </a>
+
+                    <a href="{{ route('member.keranjang.index') }}"
+                        class="{{ request()->routeIs('member.keranjang*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('member.keranjang*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">shopping_cart</span>
+                        <p class="text-sm {{ request()->routeIs('member.keranjang*') ? 'font-bold' : 'font-medium' }}">Keranjang
+                        </p>
+                    </a>
+
+                    <a href="{{ route('member.buku.index', ['filter' => 'bookmarks']) }}"
+                        class="{{ request()->get('filter') === 'bookmarks'
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->get('filter') === 'bookmarks' ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">favorite</span>
+                        <p class="text-sm {{ request()->get('filter') === 'bookmarks' ? 'font-bold' : 'font-medium' }}">Koleksi
+                        </p>
+                    </a>
+
+                    <a href="{{ route('member.peminjaman.index') }}"
+                        class="{{ request()->routeIs('member.peminjaman*')
+                ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('member.peminjaman*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">history</span>
+                        <p class="text-sm {{ request()->routeIs('member.peminjaman*') ? 'font-bold' : 'font-medium' }}">Riwayat
+                            Transaksi</p>
+                    </a>
             @endif
 
         </nav>

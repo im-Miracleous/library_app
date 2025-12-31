@@ -104,4 +104,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
     });
 
+    // --- AREA KHUSUS ANGGOTA ---
+    Route::middleware(['role:anggota'])->name('member.')->prefix('member')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Member\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/buku', [\App\Http\Controllers\Member\BukuController::class, 'index'])->name('buku.index');
+        Route::get('/buku/{id}', [\App\Http\Controllers\Member\BukuController::class, 'show'])->name('buku.show');
+        Route::post('/buku/{id}/bookmark', [\App\Http\Controllers\Member\BukuController::class, 'toggleBookmark'])->name('buku.bookmark');
+        Route::get('/keranjang', [\App\Http\Controllers\Member\KeranjangController::class, 'index'])->name('keranjang.index');
+        Route::post('/keranjang', [\App\Http\Controllers\Member\KeranjangController::class, 'store'])->name('keranjang.store');
+        Route::delete('/keranjang/clear', [\App\Http\Controllers\Member\KeranjangController::class, 'clear'])->name('keranjang.clear');
+        Route::delete('/keranjang/{id}', [\App\Http\Controllers\Member\KeranjangController::class, 'destroy'])->name('keranjang.destroy');
+
+        // Checkout Flow
+        Route::get('/peminjaman/konfirmasi', [\App\Http\Controllers\Member\PeminjamanController::class, 'confirm'])->name('peminjaman.confirm');
+        Route::post('/peminjaman/store', [\App\Http\Controllers\Member\PeminjamanController::class, 'store'])->name('peminjaman.store');
+        Route::get('/peminjaman', [\App\Http\Controllers\Member\PeminjamanController::class, 'index'])->name('peminjaman.index');
+        Route::get('/peminjaman/{id}', [\App\Http\Controllers\Member\PeminjamanController::class, 'show'])->name('peminjaman.show');
+    });
+
 });
