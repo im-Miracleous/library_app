@@ -153,6 +153,9 @@
                         <th class="p-4 font-medium text-right">Nominal</th>
                         <th class="p-4 font-medium text-center">Status</th>
                         <th class="p-4 pr-6 font-medium text-center">Aksi</th>
+                        @if(auth()->user()->peran == 'owner')
+                            <th class="p-4 font-medium text-center">Kontrol</th>
+                        @endif
                     </x-slot:header>
 
                     <x-slot:body>
@@ -161,20 +164,29 @@
                                 <td class="p-4 text-left font-mono text-xs text-slate-500 dark:text-white/50">
                                     {{ \Carbon\Carbon::parse($item->tanggal_denda)->translatedFormat('d M Y') }}
                                 </td>
-                                <td class="p-4 font-mono font-bold text-primary dark:text-accent">
+                                <td class="p-4 font-mono font-bold text-primary dark:text-accent whitespace-nowrap">
                                     {{ $item->id_peminjaman }}
                                 </td>
-                                <td class="p-4 max-w-[200px] truncate" title="{{ $item->nama_anggota }}">
+                                <td class="p-4 max-w-[150px] truncate" title="{{ $item->nama_anggota }}">
                                     <span class="font-bold text-slate-800 dark:text-white">{{ $item->nama_anggota }}</span>
                                 </td>
-                                <td class="p-4 max-w-[250px] truncate text-slate-600 dark:text-white/70"
+                                <td class="p-4 max-w-[180px] truncate text-slate-600 dark:text-white/70"
                                     title="{{ $item->judul_buku }}">
                                     {{ $item->judul_buku }}
                                 </td>
-                                <td class="p-4 text-xs font-bold uppercase text-slate-500 dark:text-white/50">
-                                    {{ $item->jenis_denda }}
+                                <td class="p-4">
+                                    <div class="text-xs font-bold uppercase text-slate-500 dark:text-white/50">
+                                        {{ $item->jenis_denda }}
+                                    </div>
+                                    @if(isset($item->keterangan) && $item->keterangan)
+                                        <div class="text-[10px] text-slate-400 dark:text-white/30 italic mt-0.5 line-clamp-1"
+                                            title="{{ $item->keterangan }}">
+                                            {{ $item->keterangan }}
+                                        </div>
+                                    @endif
                                 </td>
-                                <td class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right">
+                                <td
+                                    class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right whitespace-nowrap">
                                     Rp {{ number_format($item->jumlah_denda, 0, ',', '.') }}
                                 </td>
                                 <td class="p-4 text-center">
@@ -188,7 +200,7 @@
                                         $statusLabel = str_replace('_', ' ', $item->status_bayar);
                                     @endphp
                                     <span
-                                        class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider {{ $badgeClass }}">
+                                        class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap {{ $badgeClass }}">
                                         {{ $statusLabel }}
                                     </span>
                                 </td>
@@ -210,6 +222,28 @@
                                         </span>
                                     @endif
                                 </td>
+                                @if(auth()->user()->peran == 'owner')
+                                    <td class="p-4 flex justify-center gap-2">
+                                        {{-- Edit Button --}}
+                                        <button onclick='openEditModal(@json($item))'
+                                            class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                                            title="Edit Denda">
+                                            <span class="material-symbols-outlined text-lg">edit</span>
+                                        </button>
+
+                                        {{-- Delete Button --}}
+                                        <form action="{{ route('denda.destroy', $item->id_denda) }}" method="POST"
+                                            onsubmit="return confirm('Hapus denda ini selamanya?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                                title="Hapus Data Denda">
+                                                <span class="material-symbols-outlined text-lg">delete_forever</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
@@ -226,6 +260,100 @@
             </div>
         </main>
     </div>
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="fixed inset-0 z-50 transition-all duration-200 opacity-0 pointer-events-none"
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300"
+            onclick="closeModal('editModal')"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+                <div
+                    class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark text-left shadow-2xl transition-all duration-300 scale-95 sm:w-full sm:max-w-lg">
+                    <div
+                        class="px-6 py-4 border-b border-primary/20 dark:border-border-dark flex justify-between items-center bg-surface dark:bg-[#1A1410]">
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-blue-500">edit_note</span>
+                            Edit Status Pembayaran
+                        </h3>
+                        <button onclick="closeModal('editModal')"
+                            class="text-slate-500 dark:text-white/60 hover:text-slate-800 dark:hover:text-white transition-colors">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <form id="editForm" method="POST" class="p-6 flex flex-col gap-4">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="flex flex-col gap-1.5">
+                            <label
+                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Jumlah
+                                Denda (Rp)</label>
+                            <input type="number" id="edit_jumlah" name="jumlah_denda" readonly
+                                class="w-full bg-slate-100 dark:bg-white/5 border border-primary/20 dark:border-border-dark rounded-lg px-3 py-2.5 text-slate-500 dark:text-white/40 outline-none text-sm font-mono cursor-not-allowed"
+                                title="Jumlah denda diatur otomatis melalui sistem pengaturan.">
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <label
+                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Keterangan</label>
+                            <textarea id="edit_keterangan" name="keterangan" rows="3"
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-3 py-2.5 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm"></textarea>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <label
+                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status
+                                Pembayaran</label>
+                            <select id="edit_status_bayar" name="status_bayar"
+                                class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-3 py-2.5 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm cursor-pointer">
+                                <option value="belum_bayar">Belum Bayar</option>
+                                <option value="lunas">Lunas</option>
+                            </select>
+                        </div>
+
+                        <div
+                            class="bg-yellow-50 dark:bg-yellow-500/10 p-3 rounded-lg border border-yellow-200 dark:border-yellow-500/20 text-xs text-yellow-700 dark:text-yellow-400 flex gap-2 items-start">
+                            <span class="material-symbols-outlined text-sm mt-0.5">warning</span>
+                            <p>Perubahan data denda bersifat sensitif. Pastikan perubahan ini valid.</p>
+                        </div>
+
+                        <div
+                            class="mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-border-dark">
+                            <button type="button" onclick="closeModal('editModal')"
+                                class="px-4 py-2 rounded-lg border border-slate-200 dark:border-border-dark text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold transition-colors">Batal</button>
+                            <button type="submit"
+                                class="px-4 py-2 rounded-lg bg-surface dark:bg-accent text-primary-dark text-sm font-bold transition-all shadow-sm hover:scale-105 active:scale-95 duration-200">Simpan
+                                Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(item) {
+            // Populate Data
+            document.getElementById('edit_jumlah').value = item.jumlah_denda;
+            document.getElementById('edit_keterangan').value = item.keterangan || '';
+            document.getElementById('edit_status_bayar').value = item.status_bayar;
+
+            // Set Action URL
+            const form = document.getElementById('editForm');
+            form.action = `{{ url('denda') }}/${item.id_denda}`;
+
+            // Use Global Helper for animation
+            if (window.openModal) {
+                window.openModal('editModal');
+            } else {
+                // Fallback
+                const modal = document.getElementById('editModal');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // Global closeModal is already provided by app.js
+    </script>
 </body>
 
 </html>

@@ -194,11 +194,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
         data.forEach(item => {
-            const statusClass = item.status === 'aktif'
-                ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500'
-                : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500';
+            let roleBadge = '';
+            if (item.peran === 'admin') {
+                roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary-dark dark:bg-accent/10 dark:text-accent border border-primary/20 dark:border-accent/20">Administrator</span>`;
+            } else if (item.peran === 'owner') {
+                roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border border-gray-600 dark:border-gray-400">Owner</span>`;
+            } else {
+                roleBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">Petugas</span>`;
+            }
 
             const initial = item.nama ? item.nama.charAt(0).toUpperCase() : '?';
+
+            let avatarContent;
+            if (item.foto_profil) {
+                avatarContent = `<img src="/storage/${item.foto_profil}" alt="${item.nama}" class="w-full h-full object-cover">`;
+            } else {
+                avatarContent = initial;
+            }
+
+            const statusBadge = item.status === 'aktif'
+                ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500 border border-green-200 dark:border-green-800">Aktif</span>`
+                : `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500 border border-red-200 dark:border-red-800">Nonaktif</span>`;
+
+            const lockBadge = item.is_locked
+                ? `<span class="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white border border-red-700 uppercase">LOCKED</span>`
+                : '';
 
             // Apply Highlight
             const namaHighlighted = highlightText(item.nama, searchQuery);
@@ -212,8 +232,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="p-4">
                         <div class="flex items-center gap-3">
-                            <div class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                ${initial}
+                            <div class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                ${avatarContent}
                             </div>
                             <div class="flex flex-col max-w-[220px]">
                                 <span class="font-bold text-slate-800 dark:text-white line-clamp-2 text-sm leading-tight" title="${item.nama}">
@@ -226,9 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     </td>
                     <td class="p-4">
-                        <span class="px-2 py-1 rounded text-xs font-bold ${item.peran === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'} uppercase">
-                            ${item.peran}
-                        </span>
+                        ${roleBadge}
                     </td>
                     <td class="p-4">
                         ${item.telepon || '-'}
@@ -237,9 +255,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${item.alamat || '-'}
                     </td>
                     <td class="p-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold capitalize ${statusClass}">
-                            ${item.status}
-                        </span>
+                        ${statusBadge}
+                        ${lockBadge}
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">
                         <button onclick="openEditPegawai(${JSON.stringify(item).replace(/"/g, '&quot;')})" 

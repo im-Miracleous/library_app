@@ -75,6 +75,7 @@ CREATE PROCEDURE sp_get_kepegawaian(
     IN p_limit INT,
     IN p_offset INT,
     IN p_peran VARCHAR(20),
+    IN p_viewer_role VARCHAR(20),
     OUT p_total INT
 )
 BEGIN
@@ -86,7 +87,22 @@ BEGIN
     IF p_offset IS NULL THEN SET p_offset = 0; END IF;
 
     SET @search_param = CONCAT('%', p_search, '%');
-    SET @peran_filter = IF(p_peran IS NULL OR p_peran = '', ' AND peran IN ("admin", "petugas")', CONCAT(' AND peran = "', p_peran, '"'));
+    
+    -- Visibility Logic: Only Owner can see Owner
+    IF p_peran IS NULL OR p_peran = '' THEN
+        IF p_viewer_role = 'owner' THEN
+            SET @peran_filter = ' AND peran IN ("owner", "admin", "petugas")';
+        ELSE
+            SET @peran_filter = ' AND peran IN ("admin", "petugas")';
+        END IF;
+    ELSE
+        -- Specific role filter
+        IF p_peran = 'owner' AND p_viewer_role != 'owner' THEN
+            SET @peran_filter = ' AND 1=0'; -- Not allowed
+        ELSE
+            SET @peran_filter = CONCAT(' AND peran = "', p_peran, '"');
+        END IF;
+    END IF;
 
     -- Count query with peran filter
     SET @count_sql = CONCAT(
@@ -248,7 +264,7 @@ BEGIN
     SET p_total = @temp_total;
 
     SET @sql = 'SELECT d.id_denda, d.created_at as tanggal_denda, p.id_peminjaman, u.nama as nama_anggota, ';
-    SET @sql = CONCAT(@sql, 'b.judul as judul_buku, d.jenis_denda, d.jumlah_denda, d.status_bayar ');
+    SET @sql = CONCAT(@sql, 'b.judul as judul_buku, d.jenis_denda, d.jumlah_denda, d.status_bayar, d.keterangan ');
     SET @sql = CONCAT(@sql, 'FROM denda d ');
     SET @sql = CONCAT(@sql, 'JOIN detail_peminjaman dp ON d.id_detail_peminjaman = dp.id_detail_peminjaman ');
     SET @sql = CONCAT(@sql, 'JOIN peminjaman p ON dp.id_peminjaman = p.id_peminjaman ');

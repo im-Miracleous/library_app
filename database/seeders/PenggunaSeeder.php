@@ -11,6 +11,17 @@ class PenggunaSeeder extends Seeder
 {
     public function run(): void
     {
+        // 0. ROOT / OWNER (1 Orang)
+        Pengguna::create([
+            'nama' => 'Root',
+            'email' => 'root@library.com',
+            'password' => Hash::make('password123'),
+            'peran' => 'owner',
+            'telepon' => '080000000000',
+            'alamat' => 'System Root',
+            'status' => 'aktif'
+        ]);
+
         // 1. ADMIN (2 Orang)
         // Convention: [name]@admin.library.com
         Pengguna::create([

@@ -1,6 +1,8 @@
 import './bootstrap';
 import './global-search';
 import './system-status';
+import 'cropperjs';
+// CropperJS v2 uses Web Components, no need to assign window.Cropper class or import CSS manually.
 
 document.addEventListener('DOMContentLoaded', () => {
 

@@ -186,6 +186,172 @@
             </div>
         </main>
     </div>
+    <!-- Crop Modal -->
+    <div id="cropModal"
+        class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div
+                class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-[#1A1410]">
+                <h3 class="font-bold text-lg text-primary-dark dark:text-white">Sesuaikan Logo Perpustakaan</h3>
+                <button type="button" onclick="closeCropModal()"
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="flex-1 p-4 bg-black/50 overflow-hidden flex items-center justify-center relative min-h-[300px]">
+                <img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block">
+            </div>
+
+            <div
+                class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-white dark:bg-surface-dark">
+                <button type="button" onclick="closeCropModal()"
+                    class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    Batal
+                </button>
+                <button type="button" id="cropButton"
+                    class="px-5 py-2.5 rounded-xl bg-primary dark:bg-accent text-white dark:text-primary-dark font-bold text-sm hover:brightness-110 shadow-lg shadow-primary/20 dark:shadow-accent/20 transition-all transform active:scale-95">
+                    Potong & Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputImage = document.getElementById('logo');
+        const modal = document.getElementById('cropModal');
+        const cropContainer = document.getElementById('imageToCrop').parentElement; // Parent div of the img
+        const cropButton = document.getElementById('cropButton');
+        let cropperCanvas = null;
+
+        function openCropModal() {
+            modal.classList.remove('hidden');
+        }
+
+        function closeCropModal() {
+            modal.classList.add('hidden');
+            // Clean up
+            if (cropContainer) cropContainer.innerHTML = '<img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block hidden">';
+            inputImage.value = ''; // Reset input so change event fires again if same file selected
+        }
+
+        inputImage.addEventListener('change', function (e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const url = URL.createObjectURL(file);
+
+                openCropModal();
+
+                // Create CropperJS v2 Elements
+                // <cropper-canvas background>
+                //   <cropper-image src="..."></cropper-image>
+                //   <cropper-shade hidden></cropper-shade>
+                //   <cropper-handle action="select" plain></cropper-handle>
+                //   <cropper-selection initial-coverage="0.8">
+                //     <cropper-grid role="grid" covered></cropper-grid>
+                //     <cropper-crosshair centered></cropper-crosshair>
+                //     <cropper-handle action="move" theme-color="rgba(255, 255, 255, 0.35)"></cropper-handle>
+                //     <cropper-handle action="n-resize"></cropper-handle>
+                //     <cropper-handle action="e-resize"></cropper-handle>
+                //     <cropper-handle action="s-resize"></cropper-handle>
+                //     <cropper-handle action="w-resize"></cropper-handle>
+                //     <cropper-handle action="ne-resize"></cropper-handle>
+                //     <cropper-handle action="nw-resize"></cropper-handle>
+                //     <cropper-handle action="se-resize"></cropper-handle>
+                //     <cropper-handle action="sw-resize"></cropper-handle>
+                //   </cropper-selection>
+                // </cropper-canvas>
+
+                cropContainer.innerHTML = '';
+
+                const canvas = document.createElement('cropper-canvas');
+                canvas.setAttribute('background', '');
+                canvas.style.height = '400px';
+                canvas.style.width = '100%';
+
+                const image = document.createElement('cropper-image');
+                image.setAttribute('src', url);
+                image.setAttribute('alt', 'Picture');
+                image.setAttribute('rotatable', 'false'); // Lock rotation for simplicity
+                image.setAttribute('scalable', 'false');
+                image.setAttribute('translatable', 'false'); // Move selection, not image
+
+                const shade = document.createElement('cropper-shade');
+                shade.setAttribute('hidden', '');
+
+                const handleSelect = document.createElement('cropper-handle');
+                handleSelect.setAttribute('action', 'select');
+                handleSelect.setAttribute('plain', '');
+
+                const selection = document.createElement('cropper-selection');
+                selection.setAttribute('initial-coverage', '0.8');
+                selection.setAttribute('movable', '');
+                selection.setAttribute('resizable', '');
+
+                const grid = document.createElement('cropper-grid');
+                grid.setAttribute('role', 'grid');
+                grid.setAttribute('covered', '');
+
+                const crosshair = document.createElement('cropper-crosshair');
+                crosshair.setAttribute('centered', '');
+
+                // Handles for resize
+                const handles = ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'];
+
+                selection.appendChild(grid);
+                selection.appendChild(crosshair);
+
+                handles.forEach(dir => {
+                    const h = document.createElement('cropper-handle');
+                    h.setAttribute('action', `${dir}-resize`);
+                    selection.appendChild(h);
+                });
+
+                canvas.appendChild(image);
+                canvas.appendChild(shade);
+                canvas.appendChild(handleSelect);
+                canvas.appendChild(selection);
+
+                cropContainer.appendChild(canvas);
+                cropperCanvas = canvas;
+            }
+        });
+
+        cropButton.addEventListener('click', async function () {
+            if (cropperCanvas) {
+                // v2 API: $canvas.toCanvas() returns a Promise resolving to HTMLCanvasElement
+                const selection = cropperCanvas.querySelector('cropper-selection');
+                if (!selection) return;
+
+                const canvas = await selection.$toCanvas({
+                    width: 500, // Reasonable default size for logo? or leave free? 
+                    // Let's verify what the user wants. Usually logos are small.
+                });
+
+                canvas.toBlob(function (blob) {
+                    // Update File Input with Cropped Blob
+                    // We need a new DataTransfer because file inputs are read-only
+                    const dataTransfer = new DataTransfer();
+                    const file = new File([blob], "logo_cropped.png", { type: "image/png" });
+                    dataTransfer.items.add(file);
+
+                    // Note: This won't trigger 'change' event again, preventing loop
+                    inputImage.files = dataTransfer.files;
+
+                    // Update UI Preview
+                    let previewDiv = document.querySelector('img[alt="Current Logo"]')?.parentElement;
+                    if (previewDiv) {
+                        const img = previewDiv.querySelector('img');
+                        if (img) img.src = canvas.toDataURL();
+                    }
+
+                    closeCropModal();
+                }, 'image/png');
+            }
+        });
+    </script>
 </body>
 
 </html>

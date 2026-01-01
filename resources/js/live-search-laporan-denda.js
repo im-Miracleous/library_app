@@ -164,10 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderTable(data) {
         tableBody.innerHTML = '';
         const searchQuery = searchInput ? searchInput.value.trim() : '';
+        const isOwner = !!document.querySelector('th[onclick*="Kontrol"]') || Array.from(document.querySelectorAll('th')).some(th => th.textContent.includes('Kontrol') || th.textContent.includes('Admin'));
+        const colCount = isOwner ? 9 : 8;
 
         if (data.length === 0) {
             tableBody.innerHTML = `<tr>
-                <td colspan="8" class="p-12 text-center text-slate-400 dark:text-white/40">
+                <td colspan="${colCount}" class="p-12 text-center text-slate-400 dark:text-white/40">
                     <div class="flex flex-col items-center justify-center gap-2">
                         <span class="material-symbols-outlined text-4xl opacity-50">search_off</span>
                         <span>Tidak ada data denda ditemukan.</span>
@@ -215,23 +217,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 actionBtn = `<span class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1 font-bold"><span class="material-symbols-outlined text-sm">check_circle</span>Lunas</span>`;
             }
 
+            let ownerControls = '';
+            if (isOwner) {
+                // Ensure item is stringified safely for the onclick
+                const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+                ownerControls = `
+                    <td class="p-4 flex justify-center gap-2">
+                        <button onclick='openEditModal(${itemJson})'
+                            class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                            title="Edit Denda">
+                            <span class="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                        <form action="/denda/${item.id_denda}" method="POST" onsubmit="return confirm('Hapus denda ini selamanya?');">
+                            <input type="hidden" name="_token" value="${csrfToken}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit"
+                                class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                title="Hapus Data Denda">
+                                <span class="material-symbols-outlined text-lg">delete_forever</span>
+                            </button>
+                        </form>
+                    </td>
+                `;
+            }
+
+            let keteranganHtml = '';
+            if (item.keterangan) {
+                keteranganHtml = `<div class="text-[10px] text-slate-400 dark:text-white/30 italic mt-0.5 line-clamp-1" title="${item.keterangan}">${item.keterangan}</div>`;
+            }
+
             row.innerHTML = `
-                <td class="p-4 text-left font-mono text-xs text-slate-500 dark:text-white/50">${date}</td>
-                <td class="p-4 font-mono font-bold text-primary dark:text-accent">${refHighlight}</td>
-                <td class="p-4 max-w-[200px] truncate" title="${item.nama_anggota}">
+                <td class="p-4 text-left font-mono text-xs text-slate-500 dark:text-white/50 whitespace-nowrap">${date}</td>
+                <td class="p-4 font-mono font-bold text-primary dark:text-accent whitespace-nowrap">${refHighlight}</td>
+                <td class="p-4 max-w-[150px] truncate" title="${item.nama_anggota}">
                     <span class="font-bold text-slate-800 dark:text-white">${nameHighlight}</span>
                 </td>
-                <td class="p-4 max-w-[250px] truncate text-slate-600 dark:text-white/70" title="${item.judul_buku}">
+                <td class="p-4 max-w-[180px] truncate text-slate-600 dark:text-white/70" title="${item.judul_buku}">
                     ${titleHighlight}
                 </td>
-                <td class="p-4 text-xs font-bold uppercase text-slate-500 dark:text-white/50">${item.jenis_denda}</td>
-                <td class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right">${amount.replace('Rp', 'Rp ')}</td>
-                <td class="p-4 text-center">
-                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${badgeClass}">${statusLabel}</span>
+                <td class="p-4">
+                    <div class="text-xs font-bold uppercase text-slate-500 dark:text-white/50">${item.jenis_denda}</div>
+                    ${keteranganHtml}
                 </td>
-                <td class="p-4 pr-6 text-center">
+                <td class="p-4 font-mono font-bold text-slate-800 dark:text-white text-right whitespace-nowrap">${amount.replace('Rp', 'Rp ')}</td>
+                <td class="p-4 text-center">
+                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap ${badgeClass}">${statusLabel}</span>
+                </td>
+                <td class="p-4 text-center">
                     ${actionBtn}
                 </td>
+                ${ownerControls}
             `;
             tableBody.appendChild(row);
         });

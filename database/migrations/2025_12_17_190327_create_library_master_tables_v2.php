@@ -25,10 +25,11 @@ return new class extends Migration {
             $table->integer('login_attempts')->default(0);
             $table->timestamp('lockout_time')->nullable();
             $table->boolean('is_locked')->default(false);
-            $table->enum('peran', ['admin', 'petugas', 'anggota']);
+            $table->enum('peran', ['owner', 'admin', 'petugas', 'anggota']);
             $table->string('telepon')->nullable();
             $table->text('alamat')->nullable();
             $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
+            $table->string('foto_profil')->nullable();
             $table->string('otp_code', 6)->nullable();
             $table->timestamp('otp_expires_at')->nullable();
             $table->rememberToken();
@@ -43,7 +44,8 @@ return new class extends Migration {
                 DECLARE year_code CHAR(2);
                 DECLARE next_no INT;
                 
-                IF NEW.peran = 'admin' THEN SET role_code = 'A';
+                IF NEW.peran = 'owner' THEN SET role_code = 'R';
+                ELSEIF NEW.peran = 'admin' THEN SET role_code = 'A';
                 ELSEIF NEW.peran = 'petugas' THEN SET role_code = 'S';
                 ELSE SET role_code = 'M';
                 END IF;

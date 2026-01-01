@@ -1,5 +1,12 @@
 @props(['title' => 'Overview'])
 
+@php
+    $pendingVerificationCount = 0;
+    if (Auth::check() && in_array(Auth::user()->peran, ['admin', 'petugas', 'owner'])) {
+        $pendingVerificationCount = \App\Models\Peminjaman::where('status_transaksi', 'menunggu_verifikasi')->count();
+    }
+@endphp
+
 <header
     class="animate-enter flex items-center justify-between gap-4 lg:gap-8 sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 sm:px-8 py-4 border-b border-primary/20 dark:border-border-dark">
 
@@ -76,9 +83,13 @@
                 class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] transition-all duration-500 relative shadow-sm border border-primary/20 dark:border-transparent cursor-pointer shrink-0">
                 <span class="material-symbols-outlined">notifications</span>
 
-                @if(auth()->user()->unreadNotifications->count() > 0)
+                @if(auth()->user()->unreadNotifications->count() > 0 || $pendingVerificationCount > 0)
                     <span
-                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark animate-pulse"></span>
+                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark {{ $pendingVerificationCount > 0 ? 'animate-ping' : 'animate-pulse' }}"></span>
+                    @if($pendingVerificationCount > 0)
+                        <span
+                            class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark"></span>
+                    @endif
                 @endif
             </button>
 
@@ -100,30 +111,84 @@
                     @endif
                 </div>
 
-                <div class="max-h-[300px] overflow-y-auto">
-                    @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
-                        <form action="{{ route('notifikasi.read', $notification->id) }}" method="POST" class="block">
-                            @csrf
-                            <button type="submit"
-                                class="no-bounce w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors duration-200 border-b last:border-0 border-gray-50 dark:border-gray-800 flex gap-3 transform-none hover:transform-none hover:scale-100 group">
-                                <div class="shrink-0 mt-1">
-                                    <span class="material-symbols-outlined text-yellow-500 text-xl">warning</span>
+                <div class="max-h-[350px] overflow-y-auto">
+                    {{-- Verification Tasks (High Priority) --}}
+                    @if($pendingVerificationCount > 0)
+                        <a href="{{ route('peminjaman.index', ['status' => 'menunggu_verifikasi']) }}"
+                            class="no-bounce block px-4 py-4 bg-blue-50/50 dark:bg-blue-400/5 hover:bg-blue-100/50 dark:hover:bg-blue-400/10 transition-all border-b border-blue-100 dark:border-blue-900/30 group">
+                            <div class="flex gap-4">
+                                <div class="shrink-0">
+                                    <div
+                                        class="size-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-[20px]">assignment_late</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="text-sm text-gray-800 dark:text-gray-200 font-medium line-clamp-2">
-                                        {{ $notification->data['message'] ?? 'Notifikasi baru' }}
-                                    </p>
-                                    <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300">Tugas Verifikasi</h4>
+                                        <div class="flex items-center gap-1">
+                                            <span class="size-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                                            <span
+                                                class="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase">Penting</span>
+                                        </div>
+                                    </div>
+                                    <p
+                                        class="text-[11px] text-blue-700/70 dark:text-blue-400/50 font-medium leading-relaxed">
+                                        Ada {{ $pendingVerificationCount }} pengajuan yang menunggu persetujuan Anda.
                                     </p>
                                 </div>
-                            </button>
-                        </form>
-                    @empty
-                        <div class="p-8 text-center text-gray-500">
-                            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">notifications_off</span>
-                            <p class="text-sm">Tidak ada notifikasi baru</p>
-                        </div>
-                    @endforelse
+                            </div>
+                        </a>
+                    @endif
+
+                    <div id="unread-notification-list">
+                        @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
+                            <form action="{{ route('notifikasi.read', $notification->id) }}" method="POST" class="block">
+                                @csrf
+                                <button type="submit"
+                                    class="no-bounce w-full text-left px-4 py-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-200 border-b last:border-0 border-gray-50 dark:border-gray-800 flex gap-4 group relative">
+                                    <div class="shrink-0">
+                                        @php
+                                            $ntype = $notification->data['type'] ?? '';
+                                            $nicon = $notification->data['icon'] ?? ($ntype === 'warning' ? 'warning' : ($ntype === 'success' ? 'check_circle' : 'info'));
+                                            $ncolor = match ($ntype) {
+                                                'warning' => 'bg-orange-100 text-orange-600',
+                                                'success' => 'bg-emerald-100 text-emerald-600',
+                                                default => 'bg-blue-100 text-blue-600',
+                                            };
+                                        @endphp
+                                        <div class="size-10 rounded-xl flex items-center justify-center 
+                                                    {{ $ncolor }} 
+                                                    dark:bg-white/5 group-hover:scale-110 transition-transform">
+                                            <span class="material-symbols-outlined text-[20px]">
+                                                {{ $nicon }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-start mb-0.5">
+                                            <h4 class="text-xs font-bold text-gray-900 dark:text-white truncate">
+                                                {{ $notification->data['title'] ?? 'Notifikasi' }}
+                                            </h4>
+                                            <span class="text-[10px] text-gray-400 font-medium shrink-0 ml-2">
+                                                {{ $notification->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                            {{ $notification->data['message'] ?? '' }}
+                                        </p>
+                                    </div>
+                                </button>
+                            </form>
+                        @empty
+                            @if($pendingVerificationCount == 0)
+                                <div class="p-8 text-center text-gray-400 dark:text-white/20">
+                                    <span class="material-symbols-outlined text-4xl mb-2 opacity-50">notifications_off</span>
+                                    <p class="text-sm">Tidak ada notifikasi baru</p>
+                                </div>
+                            @endif
+                        @endforelse
+                    </div>
                 </div>
 
                 <div
@@ -153,12 +218,16 @@
         </script>
 
         <!-- Profile Shortcut Button -->
-        <button
+        <a href="{{ route('profile.edit') }}"
             class="flex items-center gap-3 p-1.5 sm:pr-4 sm:pl-1.5 rounded-full bg-white dark:bg-surface-dark border border-primary/20 dark:border-transparent hover:bg-primary/5 dark:hover:bg-[#36271F] transition-all cursor-pointer group shadow-sm shrink-0">
             <div
-                class="size-8 rounded-full bg-primary/10 dark:bg-accent/10 flex items-center justify-center text-primary dark:text-accent font-bold group-hover:bg-primary/20 dark:group-hover:bg-accent/20 transition-colors">
-                <!-- Fallback to Initial if no image (assuming no image field for now based on context) -->
-                {{ substr(Auth::user()->nama, 0, 1) }}
+                class="size-8 rounded-full bg-primary/10 dark:bg-accent/10 flex items-center justify-center text-primary dark:text-accent font-bold group-hover:bg-primary/20 dark:group-hover:bg-accent/20 transition-colors overflow-hidden">
+                @if(Auth::user()->foto_profil)
+                    <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="Profile"
+                        class="w-full h-full object-cover">
+                @else
+                    {{ substr(Auth::user()->nama, 0, 1) }}
+                @endif
             </div>
             <div class="hidden sm:flex flex-col items-start text-left">
                 <span
@@ -166,6 +235,6 @@
                 <span
                     class="text-primary/70 dark:text-accent/70 text-[10px] uppercase tracking-wider font-semibold">{{ Auth::user()->peran }}</span>
             </div>
-        </button>
+        </a>
     </div>
 </header>

@@ -16,10 +16,9 @@ class DashboardController extends Controller
             $stats = [
                 'total_buku' => Buku::count(),
                 'total_anggota' => Pengguna::where('peran', 'anggota')->count(),
-                // 'peminjaman_aktif' => Peminjaman::where('status_transaksi', 'berjalan')->count(),
-                // Updated: Use View for calculation
-                'peminjaman_aktif' => \Illuminate\Support\Facades\DB::table('v_peminjaman_aktif')->count(),
+                'peminjaman_aktif' => Peminjaman::where('status_transaksi', 'berjalan')->count(),
                 'total_denda' => Denda::where('status_bayar', 'belum_bayar')->sum('jumlah_denda'),
+                'pending_verifications' => Peminjaman::where('status_transaksi', 'menunggu_verifikasi')->count(),
             ];
 
             $peminjamanTerbaru = Peminjaman::with('pengguna')

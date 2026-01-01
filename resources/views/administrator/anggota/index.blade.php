@@ -145,9 +145,15 @@
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <!-- Avatar Initials -->
+                                        <!-- Avatar Initials -->
                                         <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                            {{ substr($user->nama, 0, 1) }}
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                            @if($user->foto_profil)
+                                                <img src="{{ asset('storage/' . $user->foto_profil) }}" alt="{{ $user->nama }}"
+                                                    class="w-full h-full object-cover">
+                                            @else
+                                                {{ substr($user->nama, 0, 1) }}
+                                            @endif
                                         </div>
                                         <div class="flex flex-col max-w-[220px]">
                                             <span
@@ -178,15 +184,23 @@
                                         title="Edit">
                                         <span class="material-symbols-outlined text-lg">edit</span>
                                     </button>
-                                    <form action="{{ route('anggota.destroy', $user->id_pengguna) }}" method="POST"
-                                        onsubmit="return confirm('Yakin hapus?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                            title="Hapus">
+                                    @if($user->peran === 'admin')
+                                        <button disabled
+                                            class="p-2 rounded-lg text-red-300 dark:text-red-800 cursor-not-allowed opacity-70"
+                                            title="Hapus (Dilindungi)">
                                             <span class="material-symbols-outlined text-lg">delete</span>
                                         </button>
-                                    </form>
+                                    @else
+                                        <form action="{{ route('anggota.destroy', $user->id_pengguna) }}" method="POST"
+                                            onsubmit="return confirm('Yakin hapus?');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                                title="Hapus">
+                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -346,6 +360,18 @@
                                 <option value="nonaktif">Nonaktif</option>
                             </select>
                         </div>
+                        <div id="unlockContainer"
+                            class="hidden p-3 bg-red-50 dark:bg-red-500/10 rounded-lg border border-red-200 dark:border-red-500/20 mt-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-red-700 dark:text-red-400">
+                                <span class="material-symbols-outlined text-xl">lock</span>
+                                <span class="text-xs font-bold uppercase">Akun Terkunci Permanen</span>
+                            </div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="unlock_account" id="unlock_account" value="1"
+                                    class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-bold text-slate-700 dark:text-white">Buka Kunci</span>
+                            </label>
+                        </div>
                         <div
                             class="p-3 bg-yellow-50 dark:bg-yellow-500/5 rounded-lg border border-yellow-200 dark:border-yellow-500/10 mt-2">
                             <p
@@ -399,6 +425,26 @@
                 document.getElementById('edit_telepon').value = user.telepon || '';
                 document.getElementById('edit_alamat').value = user.alamat || '';
                 document.getElementById('edit_status').value = user.status;
+
+                // PROTEKSI DIRI: Disable Status jika edit diri sendiri
+                const currentUserId = '{{ auth()->user()->id_pengguna }}';
+                const statusSelect = document.getElementById('edit_status');
+                if (user.id_pengguna === currentUserId) {
+                    statusSelect.disabled = true;
+                    statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+                } else {
+                    statusSelect.disabled = false;
+                    statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+                }
+
+                // UNLOCK ACCOUNT UI
+                const unlockContainer = document.getElementById('unlockContainer');
+                if (user.is_locked) {
+                    unlockContainer.classList.remove('hidden');
+                } else {
+                    unlockContainer.classList.add('hidden');
+                    document.getElementById('unlock_account').checked = false;
+                }
 
                 // Set action url
                 document.getElementById('editForm').action = `/anggota/${user.id_pengguna}`;

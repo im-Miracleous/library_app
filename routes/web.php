@@ -1,13 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasswordResetController;
 
 // 1. Halaman Utama (Root)
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    if (auth()->check()) {
+        if (auth()->user()->peran === 'anggota') {
+            return redirect()->route('member.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 });
 
 // 2. Rute Guest - Hanya bisa diakses jika BELUM login
@@ -59,11 +66,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/read-all', [\App\Http\Controllers\NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.readAll');
 
-    // --- AREA KHUSUS ADMIN ---
-    Route::middleware(['role:admin'])->group(function () {
-        Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+    // Profile Routes
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
+    // --- AREA KHUSUS OWNER (Super Protected) ---
+    Route::middleware(['role:owner'])->group(function () {
         Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
         Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+    });
+
+    // --- AREA KHUSUS ADMIN & OWNER ---
+    Route::middleware(['role:admin,owner'])->group(function () {
+        Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
 
         Route::resource('buku', \App\Http\Controllers\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
@@ -77,22 +92,43 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/denda/{id}/bayar', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.bayar');
         });
 
-        // Route Update Status Denda (Outside Laporan Prefix)
+        // Route Update & Delete Status Denda (Outside Laporan Prefix)
         Route::put('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.update');
+        Route::delete('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'destroy'])->name('denda.destroy');
     });
 
-    // --- AREA PETUGAS & ADMIN (Sirkulasi) ---
-    Route::middleware(['role:admin,petugas'])->group(function () {
+    // --- AREA PETUGAS, ADMIN & OWNER (Sirkulasi) ---
+    Route::middleware(['role:admin,petugas,owner'])->group(function () {
         // Rute Resource untuk Pengunjung (Sirkulasi)
         Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 
-        // Rute Resource untuk Peminjaman
-        Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class);
+        // Rute Resource    // Peminjaman (Sirkulasi) - Admin/Petugas
+        Route::resource('peminjaman', PeminjamanController::class);
+        Route::post('/peminjaman/{id}/approve', [PeminjamanController::class, 'approve'])->name('peminjaman.approve');
+        Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])->name('peminjaman.reject');
 
         // Rute Resource untuk Pengembalian
         Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
         Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
         Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
+    });
+
+    // --- AREA KHUSUS ANGGOTA ---
+    Route::middleware(['role:anggota'])->name('member.')->prefix('member')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Member\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/buku', [\App\Http\Controllers\Member\BukuController::class, 'index'])->name('buku.index');
+        Route::get('/buku/{id}', [\App\Http\Controllers\Member\BukuController::class, 'show'])->name('buku.show');
+        Route::post('/buku/{id}/bookmark', [\App\Http\Controllers\Member\BukuController::class, 'toggleBookmark'])->name('buku.bookmark');
+        Route::get('/keranjang', [\App\Http\Controllers\Member\KeranjangController::class, 'index'])->name('keranjang.index');
+        Route::post('/keranjang', [\App\Http\Controllers\Member\KeranjangController::class, 'store'])->name('keranjang.store');
+        Route::delete('/keranjang/clear', [\App\Http\Controllers\Member\KeranjangController::class, 'clear'])->name('keranjang.clear');
+        Route::delete('/keranjang/{id}', [\App\Http\Controllers\Member\KeranjangController::class, 'destroy'])->name('keranjang.destroy');
+
+        // Checkout Flow
+        Route::get('/peminjaman/konfirmasi', [\App\Http\Controllers\Member\PeminjamanController::class, 'confirm'])->name('peminjaman.confirm');
+        Route::post('/peminjaman/store', [\App\Http\Controllers\Member\PeminjamanController::class, 'store'])->name('peminjaman.store');
+        Route::get('/peminjaman', [\App\Http\Controllers\Member\PeminjamanController::class, 'index'])->name('peminjaman.index');
+        Route::get('/peminjaman/{id}', [\App\Http\Controllers\Member\PeminjamanController::class, 'show'])->name('peminjaman.show');
     });
 
 });

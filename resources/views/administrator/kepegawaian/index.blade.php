@@ -166,8 +166,13 @@
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0">
-                                            {{ substr($user->nama, 0, 1) }}
+                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                            @if($user->foto_profil)
+                                                <img src="{{ asset('storage/' . $user->foto_profil) }}" alt="{{ $user->nama }}"
+                                                    class="w-full h-full object-cover">
+                                            @else
+                                                {{ substr($user->nama, 0, 1) }}
+                                            @endif
                                         </div>
                                         <div class="flex flex-col max-w-[220px]">
                                             <span
@@ -183,36 +188,113 @@
                                     </div>
                                 </td>
                                 <td class="p-4">
-                                    <span
-                                        class="px-2 py-1 rounded text-xs font-bold {{ $user->peran == 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700' }} uppercase">
-                                        {{ $user->peran }}
-                                    </span>
+                                    @if ($user->peran === 'admin')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary-dark dark:bg-accent/10 dark:text-accent border border-primary/20 dark:border-accent/20">
+                                            Administrator
+                                        </span>
+                                    @elseif ($user->peran === 'owner')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900 border border-gray-600 dark:border-gray-400">
+                                            Owner
+                                        </span>
+                                    @else
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                            Petugas
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="p-4">{{ $user->telepon ?? '-' }}</td>
                                 <td class="p-4 max-w-[200px] truncate" title="{{ $user->alamat ?? '-' }}">
                                     {{ $user->alamat ?? '-' }}
                                 </td>
                                 <td class="p-4">
-                                    <span
-                                        class="px-3 py-1 rounded-full text-xs font-bold {{ $user->status == 'aktif' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-500' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500' }}">
-                                        {{ ucfirst($user->status) }}
-                                    </span>
+                                    @if ($user->status === 'aktif')
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-500 border border-green-200 dark:border-green-800">
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span
+                                            class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-500 border border-red-200 dark:border-red-800">
+                                            Nonaktif
+                                        </span>
+                                    @endif
+                                    
+                                    @if ($user->is_locked)
+                                        <span class="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white border border-red-700">
+                                            LOCKED
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                                    <button onclick="openEditPegawai({{ $user->toJson() }})"
-                                        class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                                        title="Edit">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                    <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
-                                        onsubmit="return confirm('Yakin hapus?');">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
-                                            title="Hapus">
-                                            <span class="material-symbols-outlined text-lg">delete</span>
-                                        </button>
-                                    </form>
+                                    {{-- LOGIC TOMBOL EDIT --}}
+                                        @php
+                                            $canEdit = true;
+                                            $currentUser = auth()->user();
+                                            
+                                            // 1. Admin/Petugas tidak bisa edit Owner
+                                            if ($user->peran === 'owner' && $currentUser->peran !== 'owner') {
+                                                $canEdit = false;
+                                            }
+                                            // 2. Admin tidak bisa edit sesama Admin (kecuali diri sendiri)
+                                            // Owner BISA edit Admin
+                                            if ($currentUser->peran === 'admin' && $user->peran === 'admin' && $user->id_pengguna !== $currentUser->id_pengguna) {
+                                                $canEdit = false;
+                                            }
+                                        @endphp
+
+                                        @if ($canEdit)
+                                            <button onclick="openEditPegawai({{ $user->toJson() }})"
+                                                class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                                title="Edit">
+                                                <span class="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                class="p-2 rounded-lg text-blue-300 dark:text-blue-800 cursor-not-allowed opacity-70"
+                                                title="Edit (Dilindungi)">
+                                                <span class="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+                                        @endif
+
+                                        {{-- LOGIC TOMBOL DELETE --}}
+                                        @php
+                                            $canDelete = true;
+                                            
+                                            // 1. Owner tidak bisa dihapus oleh siapapun
+                                            if ($user->peran === 'owner') {
+                                                $canDelete = false;
+                                            }
+                                            // 2. Admin tidak bisa hapus Admin
+                                            // Owner BISA hapus Admin
+                                            if ($currentUser->peran === 'admin' && $user->peran === 'admin') {
+                                                $canDelete = false;
+                                            }
+                                            // 3. User tidak bisa hapus diri sendiri (UI only, backend protected too)
+                                            if ($user->id_pengguna === $currentUser->id_pengguna) {
+                                                $canDelete = false;
+                                            }
+                                        @endphp
+                                        
+                                        @if ($canDelete)
+                                            <form action="{{ route('kepegawaian.destroy', $user->id_pengguna) }}" method="POST"
+                                                onsubmit="return confirm('Yakin hapus?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors"
+                                                    title="Hapus">
+                                                    <span class="material-symbols-outlined text-lg">delete</span>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button disabled
+                                                class="p-2 rounded-lg text-red-300 dark:text-red-800 cursor-not-allowed opacity-70"
+                                                title="Hapus (Dilindungi)">
+                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        @endif
                                 </td>
                             </tr>
                         @empty
@@ -365,11 +447,19 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Role</label>
-                                <select id="edit_peran" name="peran"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
-                                    <option value="petugas">Petugas</option>
-                                    <option value="admin">Administrator</option>
-                                </select>
+                                <div id="edit_peran_container">
+                                    <select id="edit_peran" name="peran"
+                                        class="w-full bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer">
+                                        <option value="petugas">Petugas</option>
+                                        <option value="admin">Administrator</option>
+                                    </select>
+                                    <div id="edit_peran_readonly" class="hidden">
+                                        <div class="px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-bold text-sm flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">shield_person</span>
+                                            Root / Owner
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -396,6 +486,18 @@
                                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
                         </div>
 
+                        <div id="unlockContainer"
+                            class="hidden p-3 bg-red-50 dark:bg-red-500/10 rounded-lg border border-red-200 dark:border-red-500/20 mt-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-red-700 dark:text-red-400">
+                                <span class="material-symbols-outlined text-xl">lock</span>
+                                <span class="text-xs font-bold uppercase">Akun Terkunci Permanen</span>
+                            </div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="unlock_account" id="unlock_account" value="1"
+                                    class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                                <span class="text-sm font-bold text-slate-700 dark:text-white">Buka Kunci</span>
+                            </label>
+                        </div>
                         <div
                             class="p-3 bg-yellow-50 dark:bg-yellow-500/5 rounded-lg border border-yellow-200 dark:border-yellow-500/10 mt-2">
                             <p
@@ -432,6 +534,50 @@
             document.getElementById('edit_alamat').value = user.alamat;
             document.getElementById('edit_status').value = user.status;
             document.getElementById('edit_peran').value = user.peran;
+
+            // PROTEKSI ROLE & STATUS
+            const currentUserId = '{{ auth()->user()->id_pengguna }}';
+            const statusSelect = document.getElementById('edit_status');
+            const peranSelect = document.getElementById('edit_peran');
+            const peranReadonly = document.getElementById('edit_peran_readonly');
+
+            if (user.peran === 'owner') {
+                // Akun Owner: Role tidak bisa diubah sama sekali (tetap Owner)
+                peranSelect.classList.add('hidden');
+                peranSelect.disabled = true;
+                peranReadonly.classList.remove('hidden');
+                
+                // Status juga tidak bisa diubah untuk Owner (Safety)
+                statusSelect.disabled = true;
+                statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            } else if (user.id_pengguna === currentUserId) {
+                // Edit diri sendiri (Admin/Petugas): Gak boleh ganti Role & Status sendiri
+                peranSelect.classList.remove('hidden');
+                peranSelect.disabled = true;
+                peranReadonly.classList.add('hidden');
+                peranSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+                statusSelect.disabled = true;
+                statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            } else {
+                // Edit orang lain (dan bukan Owner): Normal
+                peranSelect.classList.remove('hidden');
+                peranSelect.disabled = false;
+                peranReadonly.classList.add('hidden');
+                peranSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+                statusSelect.disabled = false;
+                statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            }
+
+            // UNLOCK ACCOUNT UI
+            const unlockContainer = document.getElementById('unlockContainer');
+            if (user.is_locked) {
+                unlockContainer.classList.remove('hidden');
+            } else {
+                unlockContainer.classList.add('hidden');
+                document.getElementById('unlock_account').checked = false;
+            }
 
             // Set action url
             document.getElementById('editForm').action = `{{ url('kepegawaian') }}/${user.id_pengguna}`;

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pengaturan;
+use App\Notifications\LoanStatusNotification;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -155,9 +156,9 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
 
-        // Cegah pengeditan jika transaksi sudah 'selesai'
-        if ($peminjaman->status_transaksi == 'selesai') {
-            return back()->with('error', 'Transaksi yang sudah selesai tidak dapat diedit.');
+        // Cegah pengeditan jika transaksi sudah 'selesai' (Kecuali Owner)
+        if ($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran !== 'owner') {
+            return back()->with('error', 'Transaksi yang sudah selesai hanya dapat diedit oleh Owner.');
         }
 
         return view('sirkulasi.peminjaman.edit', compact('peminjaman'));
@@ -193,7 +194,84 @@ class PeminjamanController extends Controller
     public function show($id)
     {
         $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
+
+        // Auto-mark notification as read for this loan
+        if (Auth::check()) {
+            Auth::user()->unreadNotifications
+                ->where('data.peminjaman_id', $id)
+                ->markAsRead();
+        }
+
         return view('sirkulasi.peminjaman.show', compact('peminjaman'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function approve($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+
+        if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
+            return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat disetujui.');
+        }
+
+        $pengaturan = Pengaturan::first();
+        $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
+
+        $peminjaman->update([
+            'status_transaksi' => 'berjalan',
+            'tanggal_pinjam' => now(),
+            'tanggal_jatuh_tempo' => now()->addDays($batasHari),
+        ]);
+
+        // Mark as read after approval
+        Auth::user()->unreadNotifications
+            ->where('data.peminjaman_id', $id)
+            ->markAsRead();
+
+        // Notify Member
+        try {
+            $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'disetujui'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to notify member about loan approval: " . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
+    }
+
+    public function reject($id)
+    {
+        $peminjaman = Peminjaman::with('details.buku')->findOrFail($id);
+
+        if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
+            return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat ditolak.');
+        }
+
+        DB::transaction(function () use ($peminjaman, $id) {
+            // Restore stock
+            foreach ($peminjaman->details as $detail) {
+                $detail->buku->increment('stok_tersedia', $detail->jumlah);
+            }
+
+            $peminjaman->update([
+                'status_transaksi' => 'ditolak',
+            ]);
+
+            // Mark as read after rejection
+            Auth::user()->unreadNotifications
+                ->where('data.peminjaman_id', $id)
+                ->markAsRead();
+        });
+
+        // Notify Member
+        try {
+            $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'ditolak'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to notify member about loan rejection: " . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Peminjaman berhasil ditolak.');
     }
 
     /**
@@ -201,7 +279,11 @@ class PeminjamanController extends Controller
      */
     public function destroy($id)
     {
-        // Usually transaction log should be kept. Allow delete only for admin.
+        // Restriction: Only Owner can delete transactions
+        if (auth()->user()->peran !== 'owner') {
+            abort(403, 'Hanya Owner yang dapat menghapus data transaksi.');
+        }
+
         $peminjaman = Peminjaman::findOrFail($id);
         $peminjaman->delete();
         return redirect()->route('peminjaman.index')->with('success', 'Transaksi berhasil dihapus.');
