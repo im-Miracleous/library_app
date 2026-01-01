@@ -57,7 +57,7 @@
                         class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                         <!-- Filter Kategori -->
                         <select name="kategori" onchange="this.form.submit()"
-                            class="px-4 py-2 rounded-xl bg-white dark:bg-white/5 border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+                            class="px-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer dark:[color-scheme:dark]">
                             <option value="">Semua Kategori</option>
                             @foreach($kategori_list as $kat)
                                 <option value="{{ $kat->id_kategori }}" {{ request('kategori') == $kat->id_kategori ? 'selected' : '' }}>
@@ -72,7 +72,7 @@
                                 class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary-mid/60 text-[20px]">search</span>
                             <input type="text" name="search" value="{{ request('search') }}"
                                 placeholder="Cari judul atau penulis..."
-                                class="pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-white/5 border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-64">
+                                class="pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-surface-dark border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-64">
                         </div>
                     </form>
                 </div>
@@ -142,6 +142,14 @@
                                             title="Buku sedang Anda pinjam">
                                             <span class="material-symbols-outlined text-[14px]">check_circle</span>
                                             <span class="hidden sm:inline">Sedang Dipinjam</span>
+                                        </div>
+                                    </div>
+                                @elseif(in_array($item->id_buku, $pendingBookIds ?? []))
+                                    <div class="absolute top-2 right-2 z-20">
+                                        <div class="bg-amber-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-md flex items-center gap-1 border border-white/20"
+                                            title="Menunggu Persetujuan">
+                                            <span class="material-symbols-outlined text-[14px]">hourglass_top</span>
+                                            <span class="hidden sm:inline">Menunggu Verifikasi</span>
                                         </div>
                                     </div>
                                 @endif

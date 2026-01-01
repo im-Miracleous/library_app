@@ -58,7 +58,7 @@ class PeminjamanController extends Controller
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->where('peminjaman.id_pengguna', $userId)
             ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-            ->where('detail_peminjaman.status_buku', 'dipinjam')
+            ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan'])
             ->sum('detail_peminjaman.jumlah');
 
         $cartCount = $items->count();
@@ -98,7 +98,7 @@ class PeminjamanController extends Controller
                 ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
                 ->where('peminjaman.id_pengguna', $userId)
                 ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-                ->where('detail_peminjaman.status_buku', 'dipinjam')
+                ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan'])
                 ->sum('detail_peminjaman.jumlah');
 
             $limitPeminjaman = \App\Models\Pengaturan::first()->maksimal_buku_pinjam ?? 3;
@@ -113,7 +113,7 @@ class PeminjamanController extends Controller
                     ->where('peminjaman.id_pengguna', $userId)
                     ->where('detail_peminjaman.id_buku', $item->id_buku)
                     ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-                    ->where('detail_peminjaman.status_buku', 'dipinjam')
+                    ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan'])
                     ->exists();
 
                 if ($isAlreadyBorrowed) {
@@ -147,7 +147,7 @@ class PeminjamanController extends Controller
                     'id_peminjaman' => $newId,
                     'id_buku' => $item->id_buku,
                     'jumlah' => 1,
-                    'status_buku' => 'dipinjam'
+                    'status_buku' => 'diajukan'
                 ]);
 
                 // Decrement Stock: 

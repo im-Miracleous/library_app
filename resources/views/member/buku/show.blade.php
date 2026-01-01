@@ -217,6 +217,12 @@
                                         <span class="material-symbols-outlined">check_circle</span>
                                         Anda Sedang Meminjam Buku Ini
                                     </button>
+                                @elseif($isPending)
+                                    <button disabled
+                                        class="w-full bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-500/50 text-amber-600 dark:text-amber-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 cursor-default">
+                                        <span class="material-symbols-outlined">hourglass_top</span>
+                                        Dalam Proses Pengajuan
+                                    </button>
                                 @elseif($isInCart)
                                     <button disabled
                                         class="flex-1 bg-slate-100 dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
@@ -240,7 +246,7 @@
                                     </button>
                                 @endif
 
-                                @if(!$isBorrowed)
+                                @if(!$isBorrowed && !$isPending)
                                     @if($isInCart)
                                         <button onclick="window.location.href='{{ route('member.keranjang.index') }}'"
                                             id="btn-loan-now"

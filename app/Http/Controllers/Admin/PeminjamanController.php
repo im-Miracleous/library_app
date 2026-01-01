@@ -219,10 +219,17 @@ class PeminjamanController extends Controller
      */
     public function approve($id)
     {
-        $peminjaman = Peminjaman::findOrFail($id);
+        $peminjaman = Peminjaman::with('details.buku')->findOrFail($id);
 
         if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
             return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat disetujui.');
+        }
+
+        // Validasi Stok sebelum menyetujui
+        foreach ($peminjaman->details as $detail) {
+            if ($detail->status_buku === 'diajukan' && $detail->buku->stok_tersedia < $detail->jumlah) {
+                return back()->with('error', "Gagal menyetujui. Stok buku '{$detail->buku->judul}' tidak mencukupi.");
+            }
         }
 
         $pengaturan = Pengaturan::first();
@@ -233,6 +240,9 @@ class PeminjamanController extends Controller
             'tanggal_pinjam' => now(),
             'tanggal_jatuh_tempo' => now()->addDays($batasHari),
         ]);
+
+        // Update status_buku for details to trigger stock reduction via tr_kembalikan_stok_buku
+        $peminjaman->details()->where('status_buku', 'diajukan')->update(['status_buku' => 'dipinjam']);
 
         // Mark as read after approval
         Auth::user()->unreadNotifications
@@ -258,14 +268,15 @@ class PeminjamanController extends Controller
         }
 
         DB::transaction(function () use ($peminjaman, $id) {
-            // Restore stock
-            foreach ($peminjaman->details as $detail) {
-                $detail->buku->increment('stok_tersedia', $detail->jumlah);
-            }
+            // No manual stock restoration needed anymore because stock is not reduced until approval.
+            // If status is 'diajukan', rejecting it simply keeps stock as is.
 
             $peminjaman->update([
                 'status_transaksi' => 'ditolak',
             ]);
+
+            // Optional: Also update status_buku to 'ditolak' for clarity
+            $peminjaman->details()->where('status_buku', 'diajukan')->update(['status_buku' => 'ditolak']);
 
             // Mark as read after rejection
             Auth::user()->unreadNotifications

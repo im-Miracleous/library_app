@@ -58,9 +58,11 @@ class BukuController extends Controller
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->where('peminjaman.id_pengguna', Auth::user()->id_pengguna)
             ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-            ->where('detail_peminjaman.status_buku', 'dipinjam');
+            ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan']);
 
-        $borrowedBookIds = $borrowedBooksQuery->pluck('detail_peminjaman.id_buku')->toArray();
+        $borrowedBookIds = (clone $borrowedBooksQuery)->where('detail_peminjaman.status_buku', 'dipinjam')->pluck('detail_peminjaman.id_buku')->toArray();
+        $pendingBookIds = (clone $borrowedBooksQuery)->where('detail_peminjaman.status_buku', 'diajukan')->pluck('detail_peminjaman.id_buku')->toArray();
+
         $activeBooksCount = $borrowedBooksQuery->sum('detail_peminjaman.jumlah');
 
         // Calculate limit from settings
@@ -69,7 +71,7 @@ class BukuController extends Controller
 
         $limitReached = ($activeBooksCount + $cartItems->count()) >= $maxBuku;
 
-        return view('member.buku.index', compact('buku', 'kategori_list', 'bookmarkedIds', 'cartItemIds', 'borrowedBookIds', 'limitReached'));
+        return view('member.buku.index', compact('buku', 'kategori_list', 'bookmarkedIds', 'cartItemIds', 'borrowedBookIds', 'pendingBookIds', 'limitReached'));
     }
 
     public function show($id)
@@ -88,14 +90,16 @@ class BukuController extends Controller
         $cartItems = \App\Models\Keranjang::where('id_pengguna', Auth::user()->id_pengguna)->get();
         $isInCart = $cartItems->where('id_buku', $id)->first() ? true : false;
 
-        // Check if book is already borrowed
+        // Check if book is already borrowed or pending
         $borrowedBooksQuery = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->where('peminjaman.id_pengguna', Auth::user()->id_pengguna)
             ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-            ->where('detail_peminjaman.status_buku', 'dipinjam');
+            ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan']);
 
-        $isBorrowed = (clone $borrowedBooksQuery)->where('detail_peminjaman.id_buku', $id)->exists();
+        $isBorrowed = (clone $borrowedBooksQuery)->where('detail_peminjaman.id_buku', $id)->where('detail_peminjaman.status_buku', 'dipinjam')->exists();
+        $isPending = (clone $borrowedBooksQuery)->where('detail_peminjaman.id_buku', $id)->where('detail_peminjaman.status_buku', 'diajukan')->exists();
+
         $activeBooksCount = $borrowedBooksQuery->sum('detail_peminjaman.jumlah');
 
         // Calculate limit from settings
@@ -104,7 +108,7 @@ class BukuController extends Controller
 
         $limitReached = ($activeBooksCount + $cartItems->count()) >= $maxBuku;
 
-        return view('member.buku.show', compact('buku', 'isBookmarked', 'isInCart', 'isBorrowed', 'limitReached'));
+        return view('member.buku.show', compact('buku', 'isBookmarked', 'isInCart', 'isBorrowed', 'isPending', 'limitReached'));
     }
 
     public function toggleBookmark($id)

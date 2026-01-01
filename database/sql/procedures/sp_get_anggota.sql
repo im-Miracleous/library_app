@@ -33,10 +33,15 @@ BEGIN
     DEALLOCATE PREPARE count_stmt;
     SET p_total = @temp_total;
 
-    -- Data query with active loans count and status filter
+    -- Data query with active loans count (including pending requests) and status filter
     SET @sql = CONCAT(
         'SELECT *, 
-            (SELECT COUNT(*) FROM detail_peminjaman dp JOIN peminjaman p ON dp.id_peminjaman = p.id_peminjaman WHERE p.id_pengguna = pengguna.id_pengguna AND p.status_transaksi = "berjalan" AND dp.status_buku = "dipinjam") AS active_loans 
+            (SELECT COUNT(*) 
+             FROM detail_peminjaman dp 
+             JOIN peminjaman p ON dp.id_peminjaman = p.id_peminjaman 
+             WHERE p.id_pengguna = pengguna.id_pengguna 
+             AND p.status_transaksi IN ("berjalan", "menunggu_verifikasi") 
+             AND dp.status_buku IN ("dipinjam", "diajukan")) AS active_loans 
          FROM pengguna 
          WHERE peran = "anggota" 
          AND (nama LIKE ? OR email LIKE ? OR id_pengguna LIKE ?)',
