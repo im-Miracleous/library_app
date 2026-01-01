@@ -1,10 +1,9 @@
 import './bootstrap';
 import './global-search';
 import './system-status';
-import 'cropperjs';
-// CropperJS v2 uses Web Components, no need to assign window.Cropper class or import CSS manually.
 
 document.addEventListener('DOMContentLoaded', () => {
+
 
     // --- HELPER: Loading State Animation ---
     const showLoading = (btn) => {
@@ -141,6 +140,12 @@ window.closeModal = function (modalId) {
         panel.classList.add('scale-95');
     }
 
+    // Reset all file inputs within the modal to clear selected filenames
+    const fileInputs = modal.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.value = '';
+    });
+
     // Tunggu transisi selesai baru set pointer-events-none
     setTimeout(() => {
         modal.classList.add('pointer-events-none');
@@ -195,16 +200,42 @@ window.openEditBuku = function (id) {
             const statusSelect = document.getElementById('edit_status');
             if (statusSelect) statusSelect.value = data.status;
 
-            // Handle Image Preview
+            // Handle Image Preview & Draft Delete
             const previewContainer = document.getElementById('edit_preview_container');
             const previewImg = document.getElementById('edit_preview_img');
+            const removeInput = document.getElementById('edit_remove_gambar_sampul');
+            const deleteBtn = document.getElementById('edit_cover_delete_btn');
+            const restoreBtn = document.getElementById('edit_cover_restore_btn');
+            const cancelBtn = document.getElementById('edit_cover_cancel_btn');
+
+            if (removeInput) removeInput.value = '0';
+
+            // Reset Buttons State
+            if (deleteBtn) {
+                deleteBtn.classList.add('hidden');
+                deleteBtn.style.display = 'none';
+            }
+            if (restoreBtn) {
+                restoreBtn.classList.add('hidden');
+                restoreBtn.style.display = 'none';
+            }
+            if (cancelBtn) {
+                cancelBtn.classList.add('hidden');
+                cancelBtn.style.display = 'none';
+            }
 
             if (previewContainer && previewImg) {
                 if (data.gambar_sampul) {
                     previewImg.src = `/storage/${data.gambar_sampul}`;
+                    previewImg.dataset.initialSrc = `/storage/${data.gambar_sampul}`;
                     previewContainer.classList.remove('hidden');
+                    if (deleteBtn) {
+                        deleteBtn.classList.remove('hidden');
+                        deleteBtn.style.display = 'inline-flex';
+                    }
                 } else {
                     previewImg.src = '';
+                    previewImg.dataset.initialSrc = '';
                     previewContainer.classList.add('hidden');
                 }
             }
@@ -216,3 +247,105 @@ window.openEditBuku = function (id) {
             alert('Gagal mengambil data buku.');
         });
 };
+
+// --- 9. LOGIKA PRATINJAU GAMBAR (IMAGE PREVIEW) ---
+let currentTargetInput = null;
+let currentPreviewImage = null;
+
+window.initImagePreview = function (inputSelector, previewSelector) {
+    const input = document.querySelector(inputSelector);
+    if (!input) return;
+
+    input.addEventListener('change', function (e) {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+
+            // Validate image
+            if (!file.type.startsWith('image/')) {
+                alert('Silakan pilih file gambar.');
+                return;
+            }
+
+            currentTargetInput = this;
+            currentPreviewImage = document.querySelector(previewSelector);
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const modal = document.getElementById('imagePreviewModal');
+                const previewImgModal = document.getElementById('imagePreviewContent');
+
+                if (modal && previewImgModal) {
+                    // Set src for modal preview
+                    previewImgModal.src = evt.target.result;
+
+                    // Show Modal
+                    modal.classList.remove('hidden', 'pointer-events-none');
+                    // Force reflow
+                    void modal.offsetWidth;
+
+                    modal.classList.remove('opacity-0');
+                    modal.querySelector('.transform').classList.remove('scale-95');
+                    modal.querySelector('.transform').classList.add('scale-100');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Global initialization for controls
+document.addEventListener('DOMContentLoaded', function () {
+    // Tombol close & cancel
+    const closeBtns = document.querySelectorAll('#closePreviewBtn, #cancelPreviewBtn');
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modal = document.getElementById('imagePreviewModal');
+            if (modal) {
+                modal.classList.add('opacity-0');
+                modal.querySelector('.transform').classList.add('scale-95');
+                modal.querySelector('.transform').classList.remove('scale-100');
+                setTimeout(() => {
+                    modal.classList.add('hidden', 'pointer-events-none');
+
+                    // Reset Logic
+                    const previewImgModal = document.getElementById('imagePreviewContent');
+                    if (previewImgModal) previewImgModal.src = '';
+
+                    // Reset input if cancelled
+                    if (currentTargetInput && !currentTargetInput.hasAttribute('confirmed')) {
+                        currentTargetInput.value = '';
+                    }
+                    currentTargetInput?.removeAttribute('confirmed');
+                }, 300);
+            }
+        });
+    });
+
+    // Confirm Upload Image
+    const confirmBtn = document.getElementById('confirmPreviewBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function () {
+            // Mark as confirmed so it's not reset by the close button logic
+            if (currentTargetInput) {
+                currentTargetInput.setAttribute('confirmed', 'true');
+
+                // The FileReader already loaded the image for us in initImagePreview
+                // and set the preview image modal. 
+                // We just need to update the page preview.
+                if (currentPreviewImage) {
+                    const previewImgModal = document.getElementById('imagePreviewContent');
+                    if (previewImgModal) {
+                        currentPreviewImage.src = previewImgModal.src;
+                        if (currentPreviewImage.parentElement.classList.contains('hidden')) {
+                            currentPreviewImage.parentElement.classList.remove('hidden');
+                        }
+                    }
+                }
+            }
+
+            // Close Modal
+            const closeBtn = document.getElementById('closePreviewBtn');
+            if (closeBtn) closeBtn.click();
+        });
+    }
+});

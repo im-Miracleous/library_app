@@ -8,6 +8,7 @@ use App\Models\Pengguna;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AnggotaController extends Controller
 {
@@ -34,8 +35,6 @@ class AnggotaController extends Controller
 
         // Buat Paginator Manual
         // Kita hydrate ke model supaya fitur aksesors/mutators tetap jalan jika ada (opsional)
-        // Tapi stdClass pun bisa, cukup cast ke Array atau Object.
-        // Untuk amannya kita hydrate jika hasil tidak kosong.
         $items = Pengguna::hydrate($results);
 
         $pengguna = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -52,12 +51,11 @@ class AnggotaController extends Controller
                 'status' => 'success',
                 'data' => $items,
                 'total' => $total,
-                'links' => (string) $pengguna->links() // Render pagination links jika perlu
+                'links' => (string) $pengguna->links()
             ]);
         }
 
-        // Stats (Bisa juga dibuatkan SP terpisah jika ingin full SP, tapi Eloquent simple count ok)
-        // Atau buat query simple count agar konsisten
+        // Stats
         $totalAnggota = Pengguna::where('peran', 'anggota')->count();
         $totalAktif = Pengguna::where('peran', 'anggota')->where('status', 'aktif')->count();
         $totalNonaktif = Pengguna::where('peran', 'anggota')->where('status', 'nonaktif')->count();
@@ -76,9 +74,15 @@ class AnggotaController extends Controller
                 'password' => 'required|string|min:8|confirmed',
                 'telepon' => 'nullable|string|max:20',
                 'alamat' => 'nullable|string',
+                'foto_profil' => 'nullable|image|max:2048', // Validation for photo
             ]);
 
             \Illuminate\Support\Facades\Log::info('Validation passed');
+
+            $fotoPath = null;
+            if ($request->hasFile('foto_profil')) {
+                $fotoPath = $request->file('foto_profil')->store('profile_photos', 'public');
+            }
 
             Pengguna::create([
                 'nama' => $validatedData['nama'],
@@ -87,6 +91,7 @@ class AnggotaController extends Controller
                 'peran' => 'anggota',
                 'telepon' => $validatedData['telepon'],
                 'alamat' => $validatedData['alamat'],
+                'foto_profil' => $fotoPath,
                 'status' => 'aktif',
             ]);
 
@@ -109,12 +114,10 @@ class AnggotaController extends Controller
     {
         $user = Pengguna::findOrFail($id);
 
-        // PROTEKSI ADMIN: Tidak boleh edit sesama Admin (kecuali diri sendiri)
         if ($user->peran === 'admin' && $user->id_pengguna !== auth()->user()->id_pengguna) {
             abort(403, 'Anda tidak dapat mengubah data sesama Admin.');
         }
 
-        // UNLOCK ACCOUNT FEATURE
         if ($request->boolean('unlock_account')) {
             $user->update([
                 'is_locked' => false,
@@ -137,11 +140,10 @@ class AnggotaController extends Controller
             'telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
             'status' => 'required|in:aktif,nonaktif',
+            'foto_profil' => 'nullable|image|max:2048',
         ]);
 
-        // PROTEKSI DIRI SENDIRI: Admin tidak boleh ubah Status diri sendiri
         if ($user->id_pengguna === auth()->user()->id_pengguna) {
-            // Hapus status dari update data jika edit diri sendiri
             unset($validatedData['status']);
         }
 
@@ -153,7 +155,22 @@ class AnggotaController extends Controller
         $user->telepon = $validatedData['telepon'];
         $user->alamat = $validatedData['alamat'];
 
-        // Update status hanya jika key masih ada (tidak di-unset)
+        // Handle Photo Upload
+        if ($request->hasFile('foto_profil')) {
+            // Delete old photo
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $user->foto_profil = $request->file('foto_profil')->store('profile_photos', 'public');
+        }
+        // Handle Draft Delete
+        elseif ($request->input('remove_foto_profil') == '1') {
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $user->foto_profil = null;
+        }
+
         if (isset($validatedData['status'])) {
             $user->status = $validatedData['status'];
         }
@@ -169,10 +186,15 @@ class AnggotaController extends Controller
         try {
             $user = Pengguna::findOrFail($id);
 
-            // PROTEKSI: Tidak boleh hapus Admin
             if ($user->peran === 'admin') {
                 abort(403, 'Anda tidak dapat menghapus akun Admin.');
             }
+
+            // Delete photo if exists
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+
             $user->delete();
             \Illuminate\Support\Facades\Log::info('User deleted successfully');
             return redirect()->back()->with('success', 'Anggota berhasil dihapus.');

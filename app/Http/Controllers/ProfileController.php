@@ -40,17 +40,22 @@ class ProfileController extends Controller
         $user->telepon = $request->telepon;
         $user->alamat = $request->alamat;
 
-        // Handle File Upload
+        // Handle File Upload or Removal
         if ($request->hasFile('foto_profil')) {
-            // Hapus foto lama jika ada dan bukan default (opsional, tergantung kebutuhan)
+            // Hapus foto lama jika ada
             if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
                 Storage::disk('public')->delete($user->foto_profil);
             }
 
             // Simpan foto baru
-            // Folder: storage/app/public/profiles
             $path = $request->file('foto_profil')->store('profiles', 'public');
             $user->foto_profil = $path;
+        } elseif ($request->input('remove_foto_profil') == '1') {
+            // Hapus foto jika diminta (Draft Delete)
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $user->foto_profil = null;
         }
 
         $user->save();

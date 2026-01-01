@@ -146,11 +146,18 @@
                                     <div class="flex items-center gap-3">
                                         <!-- Avatar Initials -->
                                         <!-- Avatar Initials -->
-                                        <div
-                                            class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden">
+                                        <div class="size-10 rounded-full bg-primary/20 dark:bg-accent/20 flex items-center justify-center text-primary-dark dark:text-accent font-bold flex-shrink-0 overflow-hidden {{ $user->foto_profil ? 'cursor-pointer group relative' : '' }}"
+                                            @if($user->foto_profil)
+                                                onclick="openImageModal('{{ asset('storage/' . $user->foto_profil) }}', '{{ $user->nama }}')"
+                                            @endif>
                                             @if($user->foto_profil)
                                                 <img src="{{ asset('storage/' . $user->foto_profil) }}" alt="{{ $user->nama }}"
-                                                    class="w-full h-full object-cover">
+                                                    class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                                <div
+                                                    class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                                    <span
+                                                        class="material-symbols-outlined text-white text-[10px] opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">zoom_in</span>
+                                                </div>
                                             @else
                                                 {{ substr($user->nama, 0, 1) }}
                                             @endif
@@ -215,6 +222,8 @@
         </main>
     </div>
 
+    <x-image-zoom-modal />
+
     <!-- MODAL TAMBAH -->
     <div id="createModal" class="fixed inset-0 z-50 transition-all duration-200 opacity-0 pointer-events-none"
         aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -238,7 +247,8 @@
                         </button>
                     </div>
 
-                    <form action="{{ route('anggota.store') }}" method="POST" class="p-6 flex flex-col gap-5">
+                    <form action="{{ route('anggota.store') }}" method="POST" enctype="multipart/form-data"
+                        class="p-6 flex flex-col gap-5">
                         @csrf
                         <div class="flex flex-col gap-2">
                             <label
@@ -247,6 +257,30 @@
                             <input type="text" name="nama"
                                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none transition-colors"
                                 required>
+                        </div>
+
+                        <!-- Upload Foto Profil (Create) -->
+                        <div class="flex flex-col gap-2">
+                            <label
+                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Foto
+                                Profil</label>
+                            <div class="flex items-center gap-4">
+                                <div id="create_preview_container"
+                                    class="hidden size-16 rounded-full overflow-hidden bg-slate-100 border border-slate-200 dark:border-white/10 shrink-0 relative">
+                                    <img id="create_preview_img" src="" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="create_foto_profil" name="foto_profil" accept="image/*"
+                                        class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB (JPG, PNG)</p>
+                                        <button type="button" id="create_cancel_btn" style="display: none"
+                                            class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1 text-[10px]">
+                                            <span class="material-symbols-outlined text-xs">delete</span> Hapus Foto
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="flex flex-col gap-2">
@@ -320,7 +354,7 @@
                             <span class="material-symbols-outlined">close</span>
                         </button>
                     </div>
-                    <form id="editForm" method="POST" class="p-6 flex flex-col gap-5">
+                    <form id="editForm" method="POST" enctype="multipart/form-data" class="p-6 flex flex-col gap-5">
                         @csrf @method('PUT')
                         <div class="flex flex-col gap-2">
                             <label
@@ -329,6 +363,42 @@
                             <input type="text" id="edit_nama" name="nama"
                                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-border-dark rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                 required>
+                        </div>
+
+                        <!-- Upload Foto Profil (Edit) -->
+                        <input type="hidden" name="remove_foto_profil" id="edit_remove_foto_profil" value="0">
+                        <div class="flex flex-col gap-2">
+                            <label
+                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Foto
+                                Profil</label>
+                            <div class="flex items-center gap-4">
+                                <div id="edit_preview_container"
+                                    class="hidden size-16 rounded-full overflow-hidden bg-slate-100 border border-slate-200 dark:border-white/10 shrink-0 relative">
+                                    <img id="edit_preview_img" src="" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="edit_foto_profil" name="foto_profil" accept="image/*"
+                                        class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
+                                    <div class="flex items-center gap-3 mt-1 h-5">
+                                        <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB. Kosongkan
+                                            jika tidak diubah.</p>
+
+                                        <!-- Buttons -->
+                                        <button type="button" id="edit_delete_btn" style="display: none"
+                                            class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1 text-[10px]">
+                                            <span class="material-symbols-outlined text-xs">delete</span> Hapus Foto
+                                        </button>
+                                        <button type="button" id="edit_restore_btn" style="display: none"
+                                            class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white font-medium transition-colors hidden inline-flex items-center gap-1 text-[10px]">
+                                            <span class="material-symbols-outlined text-xs">undo</span> Batal Hapus
+                                        </button>
+                                        <button type="button" id="edit_cancel_btn" style="display: none"
+                                            class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1 text-[10px]">
+                                            <span class="material-symbols-outlined text-xs">delete</span> Hapus Foto
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="flex flex-col gap-2">
@@ -405,10 +475,148 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'create') {
                 openModal('createModal');
-
-                // Clean URL without reloading
                 const newUrl = window.location.pathname + window.location.search.replace(/[\?&]action=create/, '') + window.location.hash;
                 window.history.replaceState({}, '', newUrl);
+            }
+
+            // --- CREATE MODAL LOGIC ---
+            const createInput = document.getElementById('create_foto_profil');
+            const createPreviewImg = document.getElementById('create_preview_img');
+            const createPreviewContainer = document.getElementById('create_preview_container');
+            const createCancelBtn = document.getElementById('create_cancel_btn');
+
+            if (createInput) {
+                createInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            createPreviewImg.src = e.target.result;
+                            createPreviewContainer.classList.remove('hidden');
+                            if (createCancelBtn) {
+                                createCancelBtn.classList.remove('hidden');
+                                createCancelBtn.style.display = 'inline-flex';
+                            }
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            if (createCancelBtn) {
+                createCancelBtn.addEventListener('click', function () {
+                    createInput.value = '';
+                    createPreviewImg.src = '';
+                    createPreviewContainer.classList.add('hidden');
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+                });
+            }
+
+            // --- EDIT MODAL LOGIC ---
+            const editInput = document.getElementById('edit_foto_profil');
+            const editPreviewImg = document.getElementById('edit_preview_img');
+            const editPreviewContainer = document.getElementById('edit_preview_container');
+            const editCancelBtn = document.getElementById('edit_cancel_btn'); // "Hapus Foto" for new draft
+            const editDeleteBtn = document.getElementById('edit_delete_btn'); // "Hapus Foto" for existing
+            const editRestoreBtn = document.getElementById('edit_restore_btn'); // "Batal Hapus"
+            const removeInput = document.getElementById('edit_remove_foto_profil');
+
+            // Handle New File Selection
+            if (editInput) {
+                editInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            editPreviewImg.src = e.target.result;
+                            editPreviewContainer.classList.remove('hidden');
+
+                            // Show "Hapus Foto" (Cancel New)
+                            if (editCancelBtn) {
+                                editCancelBtn.classList.remove('hidden');
+                                editCancelBtn.style.display = 'inline-flex';
+                            }
+                            // Hide "Hapus Foto" (Delete Existing)
+                            if (editDeleteBtn) {
+                                editDeleteBtn.classList.add('hidden');
+                                editDeleteBtn.style.display = 'none';
+                            }
+                            // Hide "Batal Hapus"
+                            if (editRestoreBtn) {
+                                editRestoreBtn.classList.add('hidden');
+                                editRestoreBtn.style.display = 'none';
+                            }
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Handle Cancel New Selection
+            if (editCancelBtn) {
+                editCancelBtn.addEventListener('click', function () {
+                    editInput.value = '';
+                    const initialSrc = editPreviewImg.dataset.initialSrc || '';
+                    editPreviewImg.src = initialSrc;
+
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+
+                    if (!initialSrc) {
+                        editPreviewContainer.classList.add('hidden');
+                    } else {
+                        // Restore state regarding existing image
+                        const isRemoved = removeInput.value === '1';
+                        if (!isRemoved) {
+                            if (editDeleteBtn) {
+                                editDeleteBtn.classList.remove('hidden');
+                                editDeleteBtn.style.display = 'inline-flex';
+                            }
+                        } else {
+                            if (editRestoreBtn) {
+                                editRestoreBtn.classList.remove('hidden');
+                                editRestoreBtn.style.display = 'inline-flex';
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Handle Delete Existing (Draft)
+            if (editDeleteBtn) {
+                editDeleteBtn.addEventListener('click', function () {
+                    editPreviewContainer.classList.add('hidden');
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+
+                    if (editRestoreBtn) {
+                        editRestoreBtn.classList.remove('hidden');
+                        editRestoreBtn.style.display = 'inline-flex';
+                    }
+                    if (removeInput) removeInput.value = '1';
+                    if (editInput) editInput.value = ''; // Clear any dropped file just in case
+                });
+            }
+
+            // Handle Restore Existing
+            if (editRestoreBtn) {
+                editRestoreBtn.addEventListener('click', function () {
+                    const initialSrc = editPreviewImg.dataset.initialSrc;
+                    if (initialSrc) {
+                        editPreviewImg.src = initialSrc;
+                        editPreviewContainer.classList.remove('hidden');
+                    }
+
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+
+                    if (editDeleteBtn) {
+                        editDeleteBtn.classList.remove('hidden');
+                        editDeleteBtn.style.display = 'inline-flex';
+                    }
+                    if (removeInput) removeInput.value = '0';
+                });
             }
         });
 
@@ -425,6 +633,46 @@
                 document.getElementById('edit_telepon').value = user.telepon || '';
                 document.getElementById('edit_alamat').value = user.alamat || '';
                 document.getElementById('edit_status').value = user.status;
+
+                // Handle Profile Photo Preview
+                const editPreviewImg = document.getElementById('edit_preview_img');
+                const editPreviewContainer = document.getElementById('edit_preview_container');
+                const editDeleteBtn = document.getElementById('edit_delete_btn');
+                const editRestoreBtn = document.getElementById('edit_restore_btn');
+                const editCancelBtn = document.getElementById('edit_cancel_btn');
+                const removeInput = document.getElementById('edit_remove_foto_profil');
+
+                // Reset states
+                if (removeInput) removeInput.value = '0';
+                document.getElementById('edit_foto_profil').value = '';
+                if (editCancelBtn) {
+                    editCancelBtn.classList.add('hidden');
+                    editCancelBtn.style.display = 'none';
+                }
+                if (editRestoreBtn) {
+                    editRestoreBtn.classList.add('hidden');
+                    editRestoreBtn.style.display = 'none';
+                }
+
+                if (user.foto_profil) {
+                    const src = `/storage/${user.foto_profil}`;
+                    editPreviewImg.src = src;
+                    editPreviewImg.dataset.initialSrc = src;
+                    editPreviewContainer.classList.remove('hidden');
+
+                    if (editDeleteBtn) {
+                        editDeleteBtn.classList.remove('hidden');
+                        editDeleteBtn.style.display = 'inline-flex';
+                    }
+                } else {
+                    editPreviewImg.src = '';
+                    editPreviewImg.dataset.initialSrc = '';
+                    editPreviewContainer.classList.add('hidden');
+                    if (editDeleteBtn) {
+                        editDeleteBtn.classList.add('hidden');
+                        editDeleteBtn.style.display = 'none';
+                    }
+                }
 
                 // PROTEKSI DIRI: Disable Status jika edit diri sendiri
                 const currentUserId = '{{ auth()->user()->id_pengguna }}';

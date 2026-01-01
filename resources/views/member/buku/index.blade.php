@@ -105,6 +105,10 @@
                                 @if($item->gambar_sampul)
                                     <div class="w-full h-full relative group-hover:scale-105 transition-transform duration-500">
                                         <img src="{{ asset('storage/' . $item->gambar_sampul) }}" alt="{{ $item->judul }}" class="w-full h-full object-cover">
+                                        <!-- Spine Shadow -->
+                                        <div class="absolute inset-y-0 left-0 w-2.5 bg-gradient-to-r from-black/30 to-transparent"></div>
+                                        <!-- Spine Edge Highlight -->
+                                        <div class="absolute inset-y-0 left-2.5 w-[1px] bg-white/10"></div>
                                         <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                                     </div>
                                 @else

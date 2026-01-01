@@ -53,7 +53,7 @@ class PengaturanController extends Controller
 
         $data = $request->except('logo');
 
-        // Handle File Upload
+        // Handle File Upload or Removal
         if ($request->hasFile('logo')) {
             // Delete old logo if exists
             if ($pengaturan->logo_path && \Illuminate\Support\Facades\Storage::exists('public/' . $pengaturan->logo_path)) {
@@ -63,6 +63,12 @@ class PengaturanController extends Controller
             // Store new logo
             $path = $request->file('logo')->store('logos', 'public');
             $data['logo_path'] = $path;
+        } elseif ($request->input('remove_logo') == '1') {
+            // Delete logo if requested (Draft Delete)
+            if ($pengaturan->logo_path && \Illuminate\Support\Facades\Storage::exists('public/' . $pengaturan->logo_path)) {
+                \Illuminate\Support\Facades\Storage::delete('public/' . $pengaturan->logo_path);
+            }
+            $data['logo_path'] = null;
         }
 
         if ($pengaturan->exists) {

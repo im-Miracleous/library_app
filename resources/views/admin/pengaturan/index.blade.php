@@ -82,10 +82,31 @@
                             @if($pengaturan->logo_path)
                                 <div class="mb-2">
                                     <p class="text-xs text-primary-mid dark:text-white/60 mb-2">Logo Saat Ini:</p>
-                                    <div
-                                        class="p-2 bg-background-light dark:bg-background-dark rounded-xl border border-primary/20 dark:border-white/10 w-fit">
-                                        <img src="{{ asset('storage/' . $pengaturan->logo_path) }}" alt="Current Logo"
-                                            class="h-16 w-auto object-contain">
+                                    <div class="p-2 bg-background-light dark:bg-background-dark rounded-xl border border-primary/20 dark:border-white/10 w-fit cursor-pointer relative group/logo shadow-sm hover:shadow-md transition-all"
+                                        onclick="openZoom()">
+                                        <img id="logo_preview_img" src="{{ asset('storage/' . $pengaturan->logo_path) }}"
+                                            data-initial-src="{{ asset('storage/' . $pengaturan->logo_path) }}"
+                                            alt="Current Logo"
+                                            class="h-16 w-auto object-contain transition-transform duration-300 group-hover/logo:scale-105">
+                                        <div
+                                            class="absolute inset-0 bg-black/0 group-hover/logo:bg-black/40 transition-colors flex items-center justify-center rounded-xl overflow-hidden">
+                                            <span
+                                                class="material-symbols-outlined text-white opacity-0 group-hover/logo:opacity-100 transition-opacity">zoom_in</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div id="logo_preview_container" class="mb-2 hidden">
+                                    <p class="text-xs text-primary-mid dark:text-white/60 mb-2">Pratinjau Logo Baru:</p>
+                                    <div class="p-2 bg-background-light dark:bg-background-dark rounded-xl border border-primary/20 dark:border-white/10 w-fit cursor-pointer relative group/logo shadow-sm hover:shadow-md transition-all"
+                                        onclick="openZoom()">
+                                        <img id="logo_preview_img" src="" data-initial-src="" alt="Logo Preview"
+                                            class="h-16 w-auto object-contain transition-transform duration-300 group-hover/logo:scale-105">
+                                        <div id="logo_zoom_overlay"
+                                            class="absolute inset-0 bg-black/0 group-hover/logo:bg-black/40 transition-colors flex items-center justify-center rounded-xl overflow-hidden">
+                                            <span
+                                                class="material-symbols-outlined text-white opacity-0 group-hover/logo:opacity-100 transition-opacity">zoom_in</span>
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -94,9 +115,30 @@
                                 <input
                                     class="w-full p-3 rounded-xl bg-background-light dark:bg-[#261C16] border border-primary/20 dark:border-white/10 text-primary-dark dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-accent focus:border-transparent transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent dark:hover:file:bg-accent/20 cursor-pointer"
                                     id="logo" name="logo" type="file" accept="image/*" />
+                                <input type="hidden" name="remove_logo" id="remove_logo" value="0">
                             </div>
-                            <p class="text-xs text-primary-mid dark:text-white/40">Format: PNG, JPG, JPEG. Maks: 2MB.
-                                Biarkan kosong jika tidak ingin mengubah.</p>
+                            <p
+                                class="text-xs text-primary-mid dark:text-white/40 mt-1 flex flex-wrap items-center gap-3">
+                                <span>Format: PNG, JPG, JPEG. Maks: 2MB.</span>
+                                @if($pengaturan->logo_path)
+                                    <button type="button" id="logo_delete_btn"
+                                        style="{{ $pengaturan->logo_path ? '' : 'display: none' }}"
+                                        class="text-red-500 hover:text-red-600 font-medium transition-colors inline-flex items-center gap-1 {{ $pengaturan->logo_path ? '' : 'hidden' }}">
+                                        <span class="material-symbols-outlined text-sm">delete</span>
+                                        Hapus Logo Perpustakaan
+                                    </button>
+                                    <button type="button" id="logo_restore_btn" style="display: none"
+                                        class="text-blue-500 hover:text-blue-600 font-medium transition-colors hidden inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">settings_backup_restore</span>
+                                        Batalkan Penghapusan
+                                    </button>
+                                @endif
+                                <button type="button" id="logo_cancel_btn" style="display: none"
+                                    class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                    Hapus Gambar
+                                </button>
+                            </p>
                         </div>
 
                         <!-- Nama Perpustakaan -->
@@ -173,7 +215,11 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-end pt-4">
+                        <div class="flex justify-end pt-4 gap-3">
+                            <button type="button" onclick="history.back()"
+                                class="px-6 py-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                Kembali
+                            </button>
                             <button type="submit"
                                 class="px-6 py-3 rounded-xl bg-primary dark:bg-accent text-white dark:text-primary-dark font-bold hover:brightness-110 active:scale-95 transition-all shadow-md">
                                 Simpan Perubahan
@@ -186,171 +232,192 @@
             </div>
         </main>
     </div>
-    <!-- Crop Modal -->
-    <div id="cropModal"
-        class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div
-            class="bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div
-                class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-[#1A1410]">
-                <h3 class="font-bold text-lg text-primary-dark dark:text-white">Sesuaikan Logo Perpustakaan</h3>
-                <button type="button" onclick="closeCropModal()"
-                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
 
-            <div class="flex-1 p-4 bg-black/50 overflow-hidden flex items-center justify-center relative min-h-[300px]">
-                <img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block">
-            </div>
 
-            <div
-                class="p-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-white dark:bg-surface-dark">
-                <button type="button" onclick="closeCropModal()"
-                    class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                    Batal
-                </button>
-                <button type="button" id="cropButton"
-                    class="px-5 py-2.5 rounded-xl bg-primary dark:bg-accent text-white dark:text-primary-dark font-bold text-sm hover:brightness-110 shadow-lg shadow-primary/20 dark:shadow-accent/20 transition-all transform active:scale-95">
-                    Potong & Simpan
-                </button>
-            </div>
-        </div>
-    </div>
+    <x-image-preview-modal />
+
+    <x-image-zoom-modal />
 
     <script>
-        const inputImage = document.getElementById('logo');
-        const modal = document.getElementById('cropModal');
-        const cropContainer = document.getElementById('imageToCrop').parentElement; // Parent div of the img
-        const cropButton = document.getElementById('cropButton');
-        let cropperCanvas = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init Image Preview
+            if (typeof initImagePreview === 'function') {
+                initImagePreview('#logo', '#logo_preview_img');
+            }     // Observer to show preview container and zoom overlay for NEW images
+            const updateCancelBtnVisibility = () => {
+                const img = document.getElementById('logo_preview_img');
+                const input = document.getElementById('logo');
+                const cancelBtn = document.getElementById('logo_cancel_btn');
+                const previewContainer = document.getElementById('logo_preview_container');
 
-        function openCropModal() {
-            modal.classList.remove('hidden');
-        }
+                const deleteBtn = document.getElementById('logo_delete_btn');
+                const restoreBtn = document.getElementById('logo_restore_btn');
+                const removeInput = document.getElementById('remove_logo');
+                const isRemoved = removeInput?.value === '1';
 
-        function closeCropModal() {
-            modal.classList.add('hidden');
-            // Clean up
-            if (cropContainer) cropContainer.innerHTML = '<img id="imageToCrop" src="" alt="Crop Preview" class="max-w-full max-h-[60vh] block hidden">';
-            inputImage.value = ''; // Reset input so change event fires again if same file selected
-        }
+                const newSrc = img.getAttribute('src') || '';
+                const initialSrc = img.dataset.initialSrc || '';
 
-        inputImage.addEventListener('change', function (e) {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-                const file = files[0];
-                const url = URL.createObjectURL(file);
+                // A "new draft" is when we HAVE a file selected AND a data/blob URL 
+                // AND it's DIFFERENT from the initial one.
+                const isNewDraft = newSrc &&
+                    newSrc.length > 0 &&
+                    newSrc !== initialSrc &&
+                    (newSrc.startsWith('data:') || newSrc.startsWith('blob:'));
 
-                openCropModal();
+                if (isNewDraft) {
+                    cancelBtn.classList.remove('hidden');
+                    cancelBtn.style.display = 'inline-flex';
+                    if (previewContainer) previewContainer.classList.remove('hidden');
 
-                // Create CropperJS v2 Elements
-                // <cropper-canvas background>
-                //   <cropper-image src="..."></cropper-image>
-                //   <cropper-shade hidden></cropper-shade>
-                //   <cropper-handle action="select" plain></cropper-handle>
-                //   <cropper-selection initial-coverage="0.8">
-                //     <cropper-grid role="grid" covered></cropper-grid>
-                //     <cropper-crosshair centered></cropper-crosshair>
-                //     <cropper-handle action="move" theme-color="rgba(255, 255, 255, 0.35)"></cropper-handle>
-                //     <cropper-handle action="n-resize"></cropper-handle>
-                //     <cropper-handle action="e-resize"></cropper-handle>
-                //     <cropper-handle action="s-resize"></cropper-handle>
-                //     <cropper-handle action="w-resize"></cropper-handle>
-                //     <cropper-handle action="ne-resize"></cropper-handle>
-                //     <cropper-handle action="nw-resize"></cropper-handle>
-                //     <cropper-handle action="se-resize"></cropper-handle>
-                //     <cropper-handle action="sw-resize"></cropper-handle>
-                //   </cropper-selection>
-                // </cropper-canvas>
-
-                cropContainer.innerHTML = '';
-
-                const canvas = document.createElement('cropper-canvas');
-                canvas.setAttribute('background', '');
-                canvas.style.height = '400px';
-                canvas.style.width = '100%';
-
-                const image = document.createElement('cropper-image');
-                image.setAttribute('src', url);
-                image.setAttribute('alt', 'Picture');
-                image.setAttribute('rotatable', 'false'); // Lock rotation for simplicity
-                image.setAttribute('scalable', 'false');
-                image.setAttribute('translatable', 'false'); // Move selection, not image
-
-                const shade = document.createElement('cropper-shade');
-                shade.setAttribute('hidden', '');
-
-                const handleSelect = document.createElement('cropper-handle');
-                handleSelect.setAttribute('action', 'select');
-                handleSelect.setAttribute('plain', '');
-
-                const selection = document.createElement('cropper-selection');
-                selection.setAttribute('initial-coverage', '0.8');
-                selection.setAttribute('movable', '');
-                selection.setAttribute('resizable', '');
-
-                const grid = document.createElement('cropper-grid');
-                grid.setAttribute('role', 'grid');
-                grid.setAttribute('covered', '');
-
-                const crosshair = document.createElement('cropper-crosshair');
-                crosshair.setAttribute('centered', '');
-
-                // Handles for resize
-                const handles = ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'];
-
-                selection.appendChild(grid);
-                selection.appendChild(crosshair);
-
-                handles.forEach(dir => {
-                    const h = document.createElement('cropper-handle');
-                    h.setAttribute('action', `${dir}-resize`);
-                    selection.appendChild(h);
-                });
-
-                canvas.appendChild(image);
-                canvas.appendChild(shade);
-                canvas.appendChild(handleSelect);
-                canvas.appendChild(selection);
-
-                cropContainer.appendChild(canvas);
-                cropperCanvas = canvas;
-            }
-        });
-
-        cropButton.addEventListener('click', async function () {
-            if (cropperCanvas) {
-                // v2 API: $canvas.toCanvas() returns a Promise resolving to HTMLCanvasElement
-                const selection = cropperCanvas.querySelector('cropper-selection');
-                if (!selection) return;
-
-                const canvas = await selection.$toCanvas({
-                    width: 500, // Reasonable default size for logo? or leave free? 
-                    // Let's verify what the user wants. Usually logos are small.
-                });
-
-                canvas.toBlob(function (blob) {
-                    // Update File Input with Cropped Blob
-                    // We need a new DataTransfer because file inputs are read-only
-                    const dataTransfer = new DataTransfer();
-                    const file = new File([blob], "logo_cropped.png", { type: "image/png" });
-                    dataTransfer.items.add(file);
-
-                    // Note: This won't trigger 'change' event again, preventing loop
-                    inputImage.files = dataTransfer.files;
-
-                    // Update UI Preview
-                    let previewDiv = document.querySelector('img[alt="Current Logo"]')?.parentElement;
-                    if (previewDiv) {
-                        const img = previewDiv.querySelector('img');
-                        if (img) img.src = canvas.toDataURL();
+                    if (deleteBtn) {
+                        deleteBtn.classList.add('hidden');
+                        deleteBtn.style.display = 'none';
                     }
+                    if (restoreBtn) {
+                        restoreBtn.classList.add('hidden');
+                        restoreBtn.style.display = 'none';
+                    }
+                } else {
+                    cancelBtn.classList.add('hidden');
+                    cancelBtn.style.display = 'none';
 
-                    closeCropModal();
-                }, 'image/png');
+                    if (initialSrc && initialSrc.length > 0) {
+                        if (isRemoved) {
+                            if (deleteBtn) {
+                                deleteBtn.classList.add('hidden');
+                                deleteBtn.style.display = 'none';
+                            }
+                            if (restoreBtn) {
+                                restoreBtn.classList.remove('hidden');
+                                restoreBtn.style.display = 'inline-flex';
+                            }
+                            if (previewContainer) previewContainer.classList.add('hidden');
+                        } else {
+                            if (deleteBtn) {
+                                deleteBtn.classList.remove('hidden');
+                                deleteBtn.style.display = 'inline-flex';
+                            }
+                            if (restoreBtn) {
+                                restoreBtn.classList.add('hidden');
+                                restoreBtn.style.display = 'none';
+                            }
+                            if (previewContainer) previewContainer.classList.remove('hidden');
+                        }
+                    } else {
+                        // No initial image and no draft
+                        if (previewContainer) previewContainer.classList.add('hidden');
+                        if (deleteBtn) {
+                            deleteBtn.classList.add('hidden');
+                            deleteBtn.style.display = 'none';
+                        }
+                        if (restoreBtn) {
+                            restoreBtn.classList.add('hidden');
+                            restoreBtn.style.display = 'none';
+                        }
+                    }
+                }
+            };
+
+            // Add listener to input change as well, for double safety
+            const logoInput = document.getElementById('logo');
+            if (logoInput) {
+                logoInput.addEventListener('change', updateCancelBtnVisibility);
+                logoInput.addEventListener('input', updateCancelBtnVisibility);
             }
+
+            // Observer to show preview container and zoom overlay for NEW images
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                        updateCancelBtnVisibility();
+                    }
+                });
+            });
+
+            const targetImg = document.getElementById('logo_preview_img');
+            if (targetImg) {
+                observer.observe(targetImg, { attributes: true });
+                // Initial check on load
+                updateCancelBtnVisibility();
+            }
+
+            // Delete (Draft) Selection Logic
+            const deleteBtn = document.getElementById('logo_delete_btn');
+            const restoreBtn = document.getElementById('logo_restore_btn');
+            const removeInput = document.getElementById('remove_logo');
+
+            if (deleteBtn && removeInput) {
+                deleteBtn.addEventListener('click', function () {
+                    const preview = document.getElementById('logo_preview_img');
+                    const previewContainer = document.getElementById('logo_preview_container');
+
+                    // Hide current logo elements
+                    preview.closest('.mb-2').classList.add('hidden');
+
+                    deleteBtn.classList.add('hidden');
+                    deleteBtn.style.display = 'none';
+                    if (restoreBtn) {
+                        restoreBtn.classList.remove('hidden');
+                        restoreBtn.style.display = 'inline-flex';
+                    }
+                    removeInput.value = '1';
+
+                    // Clear file input if any
+                    document.getElementById('logo').value = '';
+                    document.getElementById('logo_cancel_btn').classList.add('hidden');
+                    if (previewContainer) previewContainer.classList.add('hidden');
+                });
+            }
+
+            if (restoreBtn) {
+                restoreBtn.addEventListener('click', function () {
+                    const preview = document.getElementById('logo_preview_img');
+
+                    // Show current logo elements
+                    preview.closest('.mb-2').classList.remove('hidden');
+
+                    if (deleteBtn) {
+                        deleteBtn.classList.remove('hidden');
+                        deleteBtn.style.display = 'inline-flex';
+                    }
+                    if (restoreBtn) {
+                        restoreBtn.classList.add('hidden');
+                        restoreBtn.style.display = 'none';
+                    }
+                    removeInput.value = '0';
+                });
+            }
+
+            // Cancel Button Logic
+            const cancelBtn = document.getElementById('logo_cancel_btn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function () {
+                    const input = document.getElementById('logo');
+                    const preview = document.getElementById('logo_preview_img');
+                    const initialSrc = preview.dataset.initialSrc || '';
+
+                    input.value = '';
+                    preview.src = initialSrc;
+
+                    // If we reverted to an existing image, make sure delete btn is visible
+                    if (removeInput.value === '0') {
+                        if (deleteBtn) {
+                            deleteBtn.classList.remove('hidden');
+                            deleteBtn.style.display = 'inline-flex';
+                        }
+                        if (restoreBtn) {
+                            restoreBtn.classList.add('hidden');
+                            restoreBtn.style.display = 'none';
+                        }
+                    }
+                    this.classList.add('hidden');
+                });
+            }
+        }
         });
+
+
     </script>
 </body>
 

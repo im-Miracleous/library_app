@@ -86,7 +86,13 @@ class KepegawaianController extends Controller
             'peran' => 'required|in:admin,petugas',
             'telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
+            'foto_profil' => 'nullable|image|max:2048',
         ]);
+
+        $fotoPath = null;
+        if ($request->hasFile('foto_profil')) {
+            $fotoPath = $request->file('foto_profil')->store('profile_photos', 'public');
+        }
 
         Pengguna::create([
             'nama' => $validatedData['nama'],
@@ -95,6 +101,7 @@ class KepegawaianController extends Controller
             'peran' => $validatedData['peran'],
             'telepon' => $validatedData['telepon'],
             'alamat' => $validatedData['alamat'],
+            'foto_profil' => $fotoPath,
             'status' => 'aktif',
         ]);
 
@@ -156,6 +163,7 @@ class KepegawaianController extends Controller
             'telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
             'status' => 'required|in:aktif,nonaktif',
+            'foto_profil' => 'nullable|image|max:2048',
         ]);
 
         // PROTEKSI DIRI SENDIRI: Admin tidak boleh ubah Role & Status diri sendiri
@@ -176,6 +184,22 @@ class KepegawaianController extends Controller
         }
         $user->telepon = $validatedData['telepon'];
         $user->alamat = $validatedData['alamat'];
+
+        // Handle Photo Upload
+        if ($request->hasFile('foto_profil')) {
+            // Delete old photo
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $user->foto_profil = $request->file('foto_profil')->store('profile_photos', 'public');
+        }
+        // Handle Draft Delete
+        elseif ($request->input('remove_foto_profil') == '1') {
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+            $user->foto_profil = null;
+        }
 
         if (isset($validatedData['status'])) {
             $user->status = $validatedData['status'];

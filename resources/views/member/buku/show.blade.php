@@ -132,9 +132,15 @@
                             $randomColor = $colors[$colorIndex]; 
                         @endphp
                         @if($buku->gambar_sampul)
-                            <img src="{{ asset('storage/' . $buku->gambar_sampul) }}" 
-                                 alt="{{ $buku->judul }}" 
-                                 class="w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl object-cover {{ $buku->stok_tersedia <= 0 ? 'grayscale opacity-50' : '' }}">
+                            <div class="relative w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl overflow-hidden {{ $buku->stok_tersedia <= 0 ? 'grayscale opacity-50' : '' }}">
+                                <img src="{{ asset('storage/' . $buku->gambar_sampul) }}" 
+                                     alt="{{ $buku->judul }}" 
+                                     class="w-full h-full object-cover">
+                                <!-- Spine Shadow -->
+                                <div class="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/30 to-transparent"></div>
+                                <!-- Spine Edge Highlight -->
+                                <div class="absolute inset-y-0 left-3 w-[1px] bg-white/10"></div>
+                            </div>
                         @else
                             <div
                                 class="w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl bg-gradient-to-br {{ $randomColor }} relative flex items-center justify-center text-white p-6 {{ $buku->stok_tersedia <= 0 ? 'grayscale opacity-50' : '' }}">

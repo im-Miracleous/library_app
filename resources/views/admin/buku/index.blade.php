@@ -154,12 +154,38 @@
                                     {{ $item->id_buku }}
                                 </td>
                                 <td class="p-4">
-                                    <div
-                                        class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
-                                        {{ $item->judul }}
-                                    </div>
-                                    <div class="text-xs text-slate-500 dark:text-white/40">
-                                        {{ $item->isbn ?? 'No ISBN' }}
+                                    <div class="flex items-center gap-3">
+                                        <!-- Cover Image -->
+                                        @if($item->gambar_sampul)
+                                            <div class="w-10 h-14 rounded overflow-hidden shadow-sm shrink-0 border border-slate-200 dark:border-white/10 relative group cursor-pointer"
+                                                onclick="openImageModal('{{ asset('storage/' . $item->gambar_sampul) }}', '{{ $item->judul }}')">
+                                                <img src="{{ asset('storage/' . $item->gambar_sampul) }}"
+                                                    alt="{{ $item->judul }}"
+                                                    class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                                <div
+                                                    class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                                    <span
+                                                        class="material-symbols-outlined text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">zoom_in</span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div
+                                                class="w-10 h-14 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center shrink-0 border border-slate-200 dark:border-white/10">
+                                                <span
+                                                    class="material-symbols-outlined text-slate-300 dark:text-white/20 text-xl">book</span>
+                                            </div>
+                                        @endif
+
+                                        <!-- Title & ISBN -->
+                                        <div class="flex flex-col">
+                                            <div
+                                                class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
+                                                {{ $item->judul }}
+                                            </div>
+                                            <div class="text-xs text-slate-500 dark:text-white/40 font-mono mt-0.5">
+                                                {{ $item->isbn ?? 'No ISBN' }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="p-4"><span
@@ -241,16 +267,31 @@
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Gambar
                                     Sampul</label>
-                                <input type="file" name="gambar_sampul" accept="image/*"
+                                <div id="create_preview_container"
+                                    class="hidden mb-2 relative group w-24 h-36 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10">
+                                    <img id="create_preview_img" src="" alt="Preview Sampul"
+                                        class="w-full h-full object-cover">
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <p class="text-[10px] text-white font-bold text-center px-1">Ganti gambar</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="create_gambar_sampul" name="gambar_sampul" accept="image/*"
                                     class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
-                                <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB (JPG, PNG)</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB (JPG, PNG)</p>
+                                    <button type="button" id="create_cover_cancel_btn" style="display: none"
+                                        class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1 text-[10px]">
+                                        <span class="material-symbols-outlined text-xs">delete</span> Hapus Sampul
+                                    </button>
+                                </div>
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
                                     Buku</label>
                                 <input type="text" name="judul"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-normal"
                                     required>
                             </div>
 
@@ -279,7 +320,7 @@
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
                                 <input type="text" name="penulis"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-normal"
                                     required>
                             </div>
                             <div class="flex flex-col gap-2">
@@ -328,7 +369,7 @@
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
                                     Singkat</label>
                                 <textarea name="deskripsi" rows="2"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none font-normal"></textarea>
                             </div>
                         </div>
 
@@ -345,6 +386,8 @@
             </div>
         </div>
     </div>
+
+    <x-image-zoom-modal />
 
     <!-- MODAL EDIT -->
     <div id="editModal" class="fixed inset-0 z-50 transition-all duration-300 opacity-0 pointer-events-none"
@@ -385,10 +428,30 @@
                                             bawah</p>
                                     </div>
                                 </div>
-                                <input type="file" name="gambar_sampul" accept="image/*"
+                                <input type="file" id="edit_gambar_sampul" name="gambar_sampul" accept="image/*"
                                     class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
-                                <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB. Kosongkan jika tidak
-                                    diubah.</p>
+                                <input type="hidden" name="remove_gambar_sampul" id="edit_remove_gambar_sampul"
+                                    value="0">
+                                <p
+                                    class="text-[10px] text-slate-400 dark:text-white/40 mt-1 flex flex-wrap items-center gap-2">
+                                    <span id="edit_cover_helper_text">*Max 2MB. Kosongkan jika tidak diubah.</span>
+
+                                    <button type="button" id="edit_cover_delete_btn" style="display: none"
+                                        class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">delete</span> Hapus Sampul
+                                    </button>
+
+                                    <button type="button" id="edit_cover_restore_btn" style="display: none"
+                                        class="text-blue-500 hover:text-blue-600 font-medium transition-colors hidden inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">settings_backup_restore</span>
+                                        Batal Hapus
+                                    </button>
+
+                                    <button type="button" id="edit_cover_cancel_btn" style="display: none"
+                                        class="text-red-500 hover:text-red-600 font-medium transition-colors hidden inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">delete</span> Hapus Gambar
+                                    </button>
+                                </p>
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -396,7 +459,7 @@
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
                                     Buku</label>
                                 <input type="text" id="edit_judul" name="judul"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-medium"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-normal"
                                     required>
                             </div>
 
@@ -404,7 +467,7 @@
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
                                 <input type="text" id="edit_penulis" name="penulis"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-medium"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-normal"
                                     required>
                             </div>
 
@@ -462,43 +525,50 @@
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
                                     Singkat</label>
                                 <textarea id="edit_deskripsi" name="deskripsi" rows="6"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none h-full text-sm font-medium"></textarea>
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none h-full text-sm font-normal"></textarea>
                             </div>
                         </div>
 
                         <!-- BARIS SEJAJAR: STOK & INFO (UNIFIED SEGMENT) -->
-                        <div class="md:col-span-2 pt-4 mt-2 border-t border-dashed border-primary/20 dark:border-white/10">
+                        <div
+                            class="md:col-span-2 pt-4 mt-2 border-t border-dashed border-primary/20 dark:border-white/10">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Group: Input Stok -->
                                 <div class="flex flex-col gap-4">
                                     <div class="grid grid-cols-2 gap-4">
                                         <div class="flex flex-col gap-2">
-                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
+                                            <label
+                                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
                                             <div class="relative">
                                                 <select id="edit_status" name="status"
                                                     class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-2.5 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer truncate text-sm">
                                                     <option value="tersedia">Tersedia</option>
                                                     <option value="tidak_tersedia">Tidak Tersedia</option>
                                                 </select>
-                                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-white/60">
+                                                <div
+                                                    class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-white/60">
                                                     <span class="material-symbols-outlined text-sm">expand_more</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="flex flex-col gap-2">
-                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Total Stok</label>
+                                            <label
+                                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Total
+                                                Stok</label>
                                             <input type="number" id="edit_stok" name="stok_total"
                                                 class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-2.5 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm"
                                                 required>
                                         </div>
                                         <div class="flex flex-col gap-2">
-                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-amber-600 dark:text-amber-500">Rusak</label>
+                                            <label
+                                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-amber-600 dark:text-amber-500">Rusak</label>
                                             <input type="number" id="edit_rusak" name="stok_rusak"
                                                 class="bg-background-light dark:bg-[#120C0A] border border-amber-200 dark:border-amber-900/30 rounded-lg px-4 py-2.5 text-amber-700 dark:text-amber-500 focus:ring-1 focus:ring-amber-500 outline-none text-sm"
                                                 min="0">
                                         </div>
                                         <div class="flex flex-col gap-2">
-                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-red-600 dark:text-red-500">Hilang</label>
+                                            <label
+                                                class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-red-600 dark:text-red-500">Hilang</label>
                                             <input type="number" id="edit_hilang" name="stok_hilang"
                                                 class="bg-background-light dark:bg-[#120C0A] border border-red-200 dark:border-red-900/30 rounded-lg px-4 py-2.5 text-red-700 dark:text-red-500 focus:ring-1 focus:ring-red-500 outline-none text-sm"
                                                 min="0">
@@ -508,8 +578,10 @@
 
                                 <!-- Group: Info Box -->
                                 <div class="flex flex-col justify-center">
-                                    <div class="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-200/50 dark:border-blue-900/30 text-[11px] leading-relaxed text-blue-700 dark:text-blue-300 h-full flex flex-col justify-center">
-                                        <div class="font-bold mb-2 flex items-center gap-2 text-blue-800 dark:text-blue-200 text-xs">
+                                    <div
+                                        class="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-200/50 dark:border-blue-900/30 text-[11px] leading-relaxed text-blue-700 dark:text-blue-300 h-full flex flex-col justify-center">
+                                        <div
+                                            class="font-bold mb-2 flex items-center gap-2 text-blue-800 dark:text-blue-200 text-xs">
                                             <span class="material-symbols-outlined text-sm">info</span>
                                             Manajemen Stok
                                         </div>
@@ -542,6 +614,8 @@
             </div>
         </div>
     </div>
+
+    <x-image-preview-modal />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
@@ -551,6 +625,233 @@
                 // Clean URL without reloading
                 const newUrl = window.location.pathname + window.location.search.replace(/[\?&]action=create/, '') + window.location.hash;
                 window.history.replaceState({}, '', newUrl);
+            }
+
+
+
+            // Init Image Preview
+            if (typeof initImagePreview === 'function') {
+                initImagePreview('#create_gambar_sampul', '#create_preview_img');
+                initImagePreview('#edit_gambar_sampul', '#edit_preview_img');
+            }
+
+            const editPreviewImg = document.getElementById('edit_preview_img');
+
+            // Book Management Draft Delete & Preview Logic
+            const updateCancelBtnVisibility = () => {
+                const img = document.getElementById('edit_preview_img');
+                const cancelBtn = document.getElementById('edit_cover_cancel_btn');
+                const deleteBtn = document.getElementById('edit_cover_delete_btn');
+                const restoreBtn = document.getElementById('edit_cover_restore_btn');
+                const removeInput = document.getElementById('edit_remove_gambar_sampul');
+                const previewContainer = document.getElementById('edit_preview_container');
+
+                if (!img || !cancelBtn) return;
+
+                const newSrc = img.getAttribute('src') || '';
+                const initialSrc = img.dataset.initialSrc || '';
+                const isRemoved = removeInput?.value === '1';
+
+                const isNewDraft = newSrc &&
+                    newSrc.length > 0 &&
+                    newSrc !== initialSrc &&
+                    (newSrc.startsWith('data:') || newSrc.startsWith('blob:'));
+
+                if (isNewDraft) {
+                    cancelBtn.classList.remove('hidden');
+                    cancelBtn.style.display = 'inline-flex';
+                    if (previewContainer) previewContainer.classList.remove('hidden');
+
+                    if (deleteBtn) {
+                        deleteBtn.classList.add('hidden');
+                        deleteBtn.style.display = 'none';
+                    }
+                    if (restoreBtn) {
+                        restoreBtn.classList.add('hidden');
+                        restoreBtn.style.display = 'none';
+                    }
+                } else {
+                    cancelBtn.classList.add('hidden');
+                    cancelBtn.style.display = 'none';
+
+                    if (initialSrc && initialSrc.length > 0) {
+                        if (isRemoved) {
+                            if (deleteBtn) {
+                                deleteBtn.classList.add('hidden');
+                                deleteBtn.style.display = 'none';
+                            }
+                            if (restoreBtn) {
+                                restoreBtn.classList.remove('hidden');
+                                restoreBtn.style.display = 'inline-flex';
+                            }
+                            if (previewContainer) previewContainer.classList.add('hidden');
+                        } else {
+                            if (deleteBtn) {
+                                deleteBtn.classList.remove('hidden');
+                                deleteBtn.style.display = 'inline-flex';
+                            }
+                            if (restoreBtn) {
+                                restoreBtn.classList.add('hidden');
+                                restoreBtn.style.display = 'none';
+                            }
+                            if (previewContainer) previewContainer.classList.remove('hidden');
+                        }
+                    } else {
+                        if (previewContainer) previewContainer.classList.add('hidden');
+                        if (deleteBtn) {
+                            deleteBtn.classList.add('hidden');
+                            deleteBtn.style.display = 'none';
+                        }
+                        if (restoreBtn) {
+                            restoreBtn.classList.add('hidden');
+                            restoreBtn.style.display = 'none';
+                        }
+                    }
+                }
+            };
+
+            const editPreviewObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                        updateCancelBtnVisibility();
+                    }
+                });
+            });
+
+            if (editPreviewImg) {
+                editPreviewObserver.observe(editPreviewImg, { attributes: true });
+                // Initial check
+                updateCancelBtnVisibility();
+            }
+
+            // Edit Cover Delete draft logic
+            const editDeleteBtn = document.getElementById('edit_cover_delete_btn');
+            const editRestoreBtn = document.getElementById('edit_cover_restore_btn');
+            const editRemoveInput = document.getElementById('edit_remove_gambar_sampul');
+
+            if (editDeleteBtn) {
+                editDeleteBtn.addEventListener('click', function () {
+                    const previewContainer = document.getElementById('edit_preview_container');
+                    const restoreBtn = document.getElementById('edit_cover_restore_btn');
+                    const removeInput = document.getElementById('edit_remove_gambar_sampul');
+                    const cancelBtn = document.getElementById('edit_cover_cancel_btn');
+
+                    if (previewContainer) previewContainer.classList.add('hidden');
+
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+
+                    if (restoreBtn) {
+                        restoreBtn.classList.remove('hidden');
+                        restoreBtn.style.display = 'inline-flex';
+                    }
+                    if (removeInput) removeInput.value = '1';
+
+                    // Clear file input if any
+                    const input = document.getElementById('edit_gambar_sampul');
+                    if (input) input.value = '';
+
+                    if (cancelBtn) {
+                        cancelBtn.classList.add('hidden');
+                        cancelBtn.style.display = 'none';
+                    }
+                });
+            }
+
+            if (editRestoreBtn) {
+                editRestoreBtn.addEventListener('click', function () {
+                    const previewContainer = document.getElementById('edit_preview_container');
+                    const previewImg = document.getElementById('edit_preview_img');
+                    const deleteBtn = document.getElementById('edit_cover_delete_btn');
+                    const removeInput = document.getElementById('edit_remove_gambar_sampul');
+
+                    if (previewContainer && previewImg && previewImg.dataset.initialSrc) {
+                        previewImg.src = previewImg.dataset.initialSrc;
+                        previewContainer.classList.remove('hidden');
+                    }
+
+                    if (deleteBtn) {
+                        deleteBtn.classList.remove('hidden');
+                        deleteBtn.style.display = 'inline-flex';
+                    }
+
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+
+                    if (removeInput) removeInput.value = '0';
+                });
+            }
+
+            // Edit Cover Cancel selection
+            const editCancelBtn = document.getElementById('edit_cover_cancel_btn');
+            if (editCancelBtn) {
+                editCancelBtn.addEventListener('click', function () {
+                    const input = document.getElementById('edit_gambar_sampul');
+                    const previewImg = document.getElementById('edit_preview_img');
+                    const previewContainer = document.getElementById('edit_preview_container');
+                    const initialSrc = previewImg.dataset.initialSrc || '';
+
+                    input.value = '';
+                    previewImg.src = initialSrc;
+
+                    if (!initialSrc || initialSrc === '') {
+                        if (previewContainer) previewContainer.classList.add('hidden');
+                    } else {
+                        if (previewContainer) previewContainer.classList.remove('hidden');
+                        // If we reverted to an existing image, make sure delete btn is visible
+                        const removeInput = document.getElementById('edit_remove_gambar_sampul');
+                        const deleteBtn = document.getElementById('edit_cover_delete_btn');
+                        const restoreBtn = document.getElementById('edit_cover_restore_btn');
+                        if (removeInput?.value === '0') {
+                            if (deleteBtn) {
+                                deleteBtn.classList.remove('hidden');
+                                deleteBtn.style.display = 'inline-flex';
+                            }
+                            if (restoreBtn) {
+                                restoreBtn.classList.add('hidden');
+                                restoreBtn.style.display = 'none';
+                            }
+                        }
+                    }
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+                });
+            }
+            // Create Modal Cover Logic
+            const createPreviewImg = document.getElementById('create_preview_img');
+            const createCancelBtn = document.getElementById('create_cover_cancel_btn');
+
+            if (createPreviewImg) {
+                const createObserver = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                            const src = createPreviewImg.getAttribute('src');
+                            if (src && src !== '') {
+                                createCancelBtn.classList.remove('hidden');
+                                createCancelBtn.style.display = 'inline-flex';
+                            } else {
+                                createCancelBtn.classList.add('hidden');
+                                createCancelBtn.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+                createObserver.observe(createPreviewImg, { attributes: true });
+            }
+
+            if (createCancelBtn) {
+                createCancelBtn.addEventListener('click', function () {
+                    const input = document.getElementById('create_gambar_sampul');
+                    const previewContainer = document.getElementById('create_preview_container');
+                    const previewImg = document.getElementById('create_preview_img');
+
+                    if (input) input.value = '';
+                    if (previewImg) previewImg.src = '';
+                    if (previewContainer) previewContainer.classList.add('hidden');
+
+                    this.classList.add('hidden');
+                    this.style.display = 'none';
+                });
             }
         });
     </script>

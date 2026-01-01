@@ -124,7 +124,7 @@ class BukuController extends Controller
 
         $currentDipinjam = max(0, $currentDipinjam); // Safety
 
-        // Handle Image Update
+        // Handle Image Update or Removal
         if ($request->hasFile('gambar_sampul')) {
             // Delete old image if exists
             if ($buku->gambar_sampul && Storage::disk('public')->exists($buku->gambar_sampul)) {
@@ -133,6 +133,12 @@ class BukuController extends Controller
             // Store new image
             $path = $request->file('gambar_sampul')->store('covers', 'public');
             $validated['gambar_sampul'] = $path;
+        } elseif ($request->input('remove_gambar_sampul') == '1') {
+            // Delete image if requested (Draft Delete)
+            if ($buku->gambar_sampul && Storage::disk('public')->exists($buku->gambar_sampul)) {
+                Storage::disk('public')->delete($buku->gambar_sampul);
+            }
+            $validated['gambar_sampul'] = null;
         }
 
         $newTotal = $request->stok_total;
