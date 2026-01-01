@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Pengguna;
 use Illuminate\Http\Request;
@@ -60,7 +62,7 @@ class AnggotaController extends Controller
         $totalAktif = Pengguna::where('peran', 'anggota')->where('status', 'aktif')->count();
         $totalNonaktif = Pengguna::where('peran', 'anggota')->where('status', 'nonaktif')->count();
 
-        return view('administrator.anggota.index', compact('pengguna', 'totalAnggota', 'totalAktif', 'totalNonaktif'));
+        return view('admin.anggota.index', compact('pengguna', 'totalAnggota', 'totalAktif', 'totalNonaktif'));
     }
 
     public function store(Request $request)

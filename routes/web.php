@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\Admin\PeminjamanController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\PasswordResetController;
 
 // 1. Halaman Utama (Root)
@@ -72,35 +72,35 @@ Route::middleware(['auth'])->group(function () {
 
     // --- AREA KHUSUS OWNER (Super Protected) ---
     Route::middleware(['role:owner'])->group(function () {
-        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
-        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
+        Route::get('/pengaturan', [\App\Http\Controllers\Admin\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('/pengaturan', [\App\Http\Controllers\Admin\PengaturanController::class, 'update'])->name('pengaturan.update');
     });
 
     // --- AREA KHUSUS ADMIN & OWNER ---
     Route::middleware(['role:admin,owner'])->group(function () {
-        Route::resource('kepegawaian', \App\Http\Controllers\KepegawaianController::class);
+        Route::resource('kepegawaian', \App\Http\Controllers\Admin\KepegawaianController::class);
 
-        Route::resource('buku', \App\Http\Controllers\BukuController::class);
-        Route::resource('kategori', \App\Http\Controllers\KategoriController::class);
-        Route::resource('anggota', \App\Http\Controllers\AnggotaController::class);
+        Route::resource('buku', \App\Http\Controllers\Admin\BukuController::class);
+        Route::resource('kategori', \App\Http\Controllers\Admin\KategoriController::class);
+        Route::resource('anggota', \App\Http\Controllers\Admin\AnggotaController::class);
 
         // Modul Laporan
         Route::prefix('laporan')->name('laporan.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
-            Route::get('/peminjaman', [\App\Http\Controllers\LaporanController::class, 'peminjaman'])->name('peminjaman');
-            Route::get('/denda', [\App\Http\Controllers\LaporanController::class, 'denda'])->name('denda');
-            Route::post('/denda/{id}/bayar', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.bayar');
+            Route::get('/', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('index');
+            Route::get('/peminjaman', [\App\Http\Controllers\Admin\LaporanController::class, 'peminjaman'])->name('peminjaman');
+            Route::get('/denda', [\App\Http\Controllers\Admin\LaporanController::class, 'denda'])->name('denda');
+            Route::post('/denda/{id}/bayar', [\App\Http\Controllers\Admin\DendaController::class, 'update'])->name('denda.bayar');
         });
 
         // Route Update & Delete Status Denda (Outside Laporan Prefix)
-        Route::put('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'update'])->name('denda.update');
-        Route::delete('/denda/{id}', [\App\Http\Controllers\DendaController::class, 'destroy'])->name('denda.destroy');
+        Route::put('/denda/{id}', [\App\Http\Controllers\Admin\DendaController::class, 'update'])->name('denda.update');
+        Route::delete('/denda/{id}', [\App\Http\Controllers\Admin\DendaController::class, 'destroy'])->name('denda.destroy');
     });
 
     // --- AREA PETUGAS, ADMIN & OWNER (Sirkulasi) ---
     Route::middleware(['role:admin,petugas,owner'])->group(function () {
         // Rute Resource untuk Pengunjung (Sirkulasi)
-        Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
+        Route::resource('pengunjung', \App\Http\Controllers\Admin\PengunjungController::class);
 
         // Rute Resource    // Peminjaman (Sirkulasi) - Admin/Petugas
         Route::resource('peminjaman', PeminjamanController::class);
@@ -108,9 +108,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])->name('peminjaman.reject');
 
         // Rute Resource untuk Pengembalian
-        Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');
-        Route::get('/pengembalian/{id}', [\App\Http\Controllers\PengembalianController::class, 'show'])->name('pengembalian.show');
-        Route::post('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'store'])->name('pengembalian.store');
+        Route::get('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'index'])->name('pengembalian.index');
+        Route::get('/pengembalian/{id}', [\App\Http\Controllers\Admin\PengembalianController::class, 'show'])->name('pengembalian.show');
+        Route::post('/pengembalian', [\App\Http\Controllers\Admin\PengembalianController::class, 'store'])->name('pengembalian.store');
     });
 
     // --- AREA KHUSUS ANGGOTA ---

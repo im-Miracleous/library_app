@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Pengunjung;
 use Illuminate\Http\Request;
@@ -57,7 +59,7 @@ class PengunjungController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('sirkulasi.pengunjung.index', compact('pengunjung'));
+        return view('admin.sirkulasi.pengunjung.index', compact('pengunjung'));
     }
 
     /**

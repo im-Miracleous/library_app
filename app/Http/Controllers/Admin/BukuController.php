@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Buku;
 use App\Models\Kategori;
@@ -54,7 +56,7 @@ class BukuController extends Controller
         $totalBuku = Buku::count();
         $totalStok = Buku::sum('stok_total');
 
-        return view('administrator.buku.index', compact('buku', 'kategoriList', 'totalBuku', 'totalStok'));
+        return view('admin.buku.index', compact('buku', 'kategoriList', 'totalBuku', 'totalStok'));
     }
 
     public function store(Request $request)

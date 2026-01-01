@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Peminjaman;
 use App\Models\Denda;
@@ -83,7 +85,7 @@ class LaporanController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('laporan.peminjaman', compact(
+        return view('admin.laporan.peminjaman', compact(
             'startDate',
             'endDate',
             'status',
@@ -152,7 +154,7 @@ class LaporanController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('laporan.denda', compact(
+        return view('admin.laporan.denda', compact(
             'startDate',
             'endDate',
             'statusBayar',

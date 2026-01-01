@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Pengguna;
 use Illuminate\Http\Request;
@@ -68,7 +70,7 @@ class KepegawaianController extends Controller
         $totalAdmin = Pengguna::where('peran', 'admin')->count();
         $totalPetugas = Pengguna::where('peran', 'petugas')->count();
 
-        return view('administrator.kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalOwner', 'totalAdmin', 'totalPetugas'));
+        return view('admin.kepegawaian.index', compact('pegawai', 'totalPegawai', 'totalOwner', 'totalAdmin', 'totalPetugas'));
     }
 
     public function store(Request $request)

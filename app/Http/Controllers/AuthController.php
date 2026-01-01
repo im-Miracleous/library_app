@@ -219,10 +219,10 @@ class AuthController extends Controller
             // Redirect berdasarkan peran
             // Redirect berdasarkan peran
             if ($user->peran === 'anggota') {
-                return redirect()->route('member.dashboard')->with('success', 'Selamat Datang Kembali, ' . $user->nama . '!');
+                return redirect()->route('member.dashboard');
             } else {
                 // Admin, Petugas, Owner
-                return redirect()->route('dashboard')->with('success', 'Selamat Datang Kembali, ' . $user->nama . '!');
+                return redirect()->route('dashboard');
             }
         }
 

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Kategori;
 use Illuminate\Http\Request;
@@ -52,7 +54,7 @@ class KategoriController extends Controller
         $totalKategori = Kategori::count();
         $kategoriBaru = Kategori::whereMonth('created_at', date('m'))->count();
 
-        return view('administrator.kategori.index', compact('kategori', 'totalKategori', 'kategoriBaru'));
+        return view('admin.kategori.index', compact('kategori', 'totalKategori', 'kategoriBaru'));
     }
 
     public function store(Request $request)

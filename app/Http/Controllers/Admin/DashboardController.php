@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Buku;
 use App\Models\Pengguna;
@@ -35,6 +37,6 @@ class DashboardController extends Controller
             $peminjamanTerbaru = [];
         }
 
-        return view('dashboard', compact('stats', 'peminjamanTerbaru'));
+        return view('admin.dashboard', compact('stats', 'peminjamanTerbaru'));
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
@@ -59,7 +61,7 @@ class PengembalianController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('sirkulasi.pengembalian.index', compact('peminjaman'));
+        return view('admin.sirkulasi.pengembalian.index', compact('peminjaman'));
     }
 
     /**
@@ -94,7 +96,7 @@ class PengembalianController extends Controller
             }
         }
 
-        return view('sirkulasi.pengembalian.show', compact('peminjaman', 'terlambatHari', 'estimasiDenda', 'pengaturan'));
+        return view('admin.sirkulasi.pengembalian.show', compact('peminjaman', 'terlambatHari', 'estimasiDenda', 'pengaturan'));
     }
 
     /**

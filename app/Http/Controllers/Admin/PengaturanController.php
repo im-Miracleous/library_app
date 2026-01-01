@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Pengaturan;
 use Illuminate\Http\Request;
@@ -26,7 +28,7 @@ class PengaturanController extends Controller
             ]);
         }
 
-        return view('administrator.pengaturan.index', compact('pengaturan'));
+        return view('admin.pengaturan.index', compact('pengaturan'));
     }
 
     /**

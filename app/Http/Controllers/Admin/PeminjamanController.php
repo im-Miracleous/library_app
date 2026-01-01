@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\Peminjaman;
 use App\Models\DetailPeminjaman;
@@ -63,7 +65,7 @@ class PeminjamanController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('sirkulasi.peminjaman.index', compact('peminjaman'));
+        return view('admin.sirkulasi.peminjaman.index', compact('peminjaman'));
     }
 
     /**
@@ -72,7 +74,7 @@ class PeminjamanController extends Controller
     public function create()
     {
         $pengaturan = Pengaturan::first();
-        return view('sirkulasi.peminjaman.create', compact('pengaturan'));
+        return view('admin.sirkulasi.peminjaman.create', compact('pengaturan'));
     }
 
     /**
@@ -161,7 +163,7 @@ class PeminjamanController extends Controller
             return back()->with('error', 'Transaksi yang sudah selesai hanya dapat diedit oleh Owner.');
         }
 
-        return view('sirkulasi.peminjaman.edit', compact('peminjaman'));
+        return view('admin.sirkulasi.peminjaman.edit', compact('peminjaman'));
     }
 
     /**
@@ -202,7 +204,7 @@ class PeminjamanController extends Controller
                 ->markAsRead();
         }
 
-        return view('sirkulasi.peminjaman.show', compact('peminjaman'));
+        return view('admin.sirkulasi.peminjaman.show', compact('peminjaman'));
     }
 
     /**
