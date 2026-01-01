@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
         limit: new URLSearchParams(window.location.search).get('limit') || 10,
         sort: new URLSearchParams(window.location.search).get('sort') || 'id_peminjaman',
         direction: new URLSearchParams(window.location.search).get('direction') || 'desc',
-        start_date: new URLSearchParams(window.location.search).get('start_date') || '',
-        end_date: new URLSearchParams(window.location.search).get('end_date') || '',
-        status: new URLSearchParams(window.location.search).get('status') || ''
+        start_date: new URLSearchParams(window.location.search).get('start_date') || document.querySelector('input[name="start_date"]')?.value || '',
+        end_date: new URLSearchParams(window.location.search).get('end_date') || document.querySelector('input[name="end_date"]')?.value || '',
+        status: new URLSearchParams(window.location.search).get('status') || document.querySelector('select[name="status"]')?.value || ''
     };
 
     // Elements
@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupControls();
 
     function setupControls() {
-        // LIMIT SELECT
-        const limitSelect = document.querySelector('select');
+        // LIMIT SELECT (Be more specific to avoid picking up Status select)
+        const limitSelect = document.querySelector('select[name="limit"]') || document.querySelector('.flex.items-center.gap-2 select');
         if (limitSelect) {
             limitSelect.removeAttribute('onchange'); // Remove inline handler if exists
 
@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderTable(json.data);
                 updatePagination(json);
                 updateSortIcons(); // Update sort visual indicators
+                if (json.stats) updateSummaryCards(json.stats);
             }
         } catch (error) {
             console.error('Fetch error:', error);
@@ -313,5 +314,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    }
+    function updateSummaryCards(stats) {
+        // Find cards by their title or index
+        const cards = document.querySelectorAll('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4 .text-3xl.font-bold');
+        if (cards.length >= 4) {
+            cards[0].textContent = new Intl.NumberFormat('id-ID').format(stats.total_transaksi);
+            cards[1].textContent = new Intl.NumberFormat('id-ID').format(stats.total_buku);
+            cards[2].textContent = new Intl.NumberFormat('id-ID').format(stats.berjalan);
+            cards[3].textContent = new Intl.NumberFormat('id-ID').format(stats.selesai);
+        }
     }
 });

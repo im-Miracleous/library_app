@@ -25,8 +25,8 @@ class PengembalianController extends Controller
         $limit = $request->input('limit', 10);
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
-        $sort = $request->input('sort') ?: 'tanggal_jatuh_tempo';
-        $direction = $request->input('direction') ?: 'asc';
+        $sort = $request->input('sort') ?: 'id_peminjaman';
+        $direction = $request->input('direction') ?: 'desc';
 
         // Call SP (Implicitly filters status='berjalan')
         $data = DB::select('CALL sp_get_pengembalian_list(?, ?, ?, ?, ?, @total)', [
@@ -212,7 +212,9 @@ class PengembalianController extends Controller
                 $msg .= " Total Denda Tercatat: Rp " . number_format($totalDenda, 0, ',', '.');
             }
 
-            return redirect()->route('pengembalian.index')->with('success', $msg);
+            return redirect()->route('pengembalian.index')
+                ->with('success', $msg)
+                ->with('detail_url', route('peminjaman.show', $peminjaman->id_peminjaman));
 
         } catch (\Exception $e) {
             DB::rollBack();

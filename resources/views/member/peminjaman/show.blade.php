@@ -91,6 +91,7 @@
                                         <th class="p-4">Judul Buku</th>
                                         <th class="p-4">Penulis</th>
                                         <th class="p-4 text-center">Jumlah</th>
+                                        <th class="p-4 text-center">Kondisi</th>
                                         @if($peminjaman->status_transaksi == 'selesai')
                                             <th class="p-4 text-center">Status</th>
                                         @endif
@@ -105,8 +106,37 @@
                                             <td class="p-4 text-primary-mid dark:text-white/60">{{ $detail->buku->penulis }}
                                             </td>
                                             <td class="p-4 text-center font-bold">{{ $detail->jumlah }}</td>
+                                            <td class="p-4">
+                                                @php
+                                                    $conditionDenda = $detail->denda->whereIn('jenis_denda', ['rusak', 'hilang'])->first();
+                                                    $condition = $conditionDenda ? $conditionDenda->jenis_denda : ($detail->status_buku == 'dikembalikan' ? 'baik' : null);
+                                                @endphp
+
+                                                <div class="flex justify-center">
+                                                    @if($condition == 'baik')
+                                                        <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                                                            Baik
+                                                        </div>
+                                                    @elseif($condition == 'rusak')
+                                                        <div class="flex items-center gap-1.5 text-orange-600 dark:text-orange-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">warning</span>
+                                                            Rusak
+                                                        </div>
+                                                    @elseif($condition == 'hilang')
+                                                        <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">dangerous</span>
+                                                            Hilang
+                                                        </div>
+                                                    @else
+                                                        <span class="text-slate-400 dark:text-white/20">-</span>
+                                                    @endif
+                                                </div>
+                                            </td>
                                             @if($peminjaman->status_transaksi == 'selesai')
-                                                <td class="p-4 text-center font-bold text-green-600">Dikembalikan</td>
+                                                <td class="p-4 text-center">
+                                                    <span class="text-green-600 dark:text-green-400 font-bold">Dikembalikan</span>
+                                                </td>
                                             @endif
                                         </tr>
                                     @endforeach
@@ -143,67 +173,72 @@
                         </div>
                     </div>
 
-                    <!-- Informasi Peminjaman -->
-                    <div class="mb-8">
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="material-symbols-outlined text-primary">calendar_clock</span>
-                            <h2 class="text-xl font-bold text-primary-dark dark:text-white">Informasi Peminjaman</h2>
-                        </div>
+                    <!-- Informasi Denda -->
+                    @php
+                        $allFines = $peminjaman->details->flatMap->denda;
+                    @endphp
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div
-                                class="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
-                                <p
-                                    class="text-xs text-blue-600 dark:text-blue-300 uppercase font-bold tracking-widest mb-1">
-                                    Waktu Pengajuan</p>
-                                <p class="font-bold text-lg text-blue-800 dark:text-blue-100">
-                                    {{ \Carbon\Carbon::parse($peminjaman->created_at)->translatedFormat('d F Y, H:i:s') }}
-                                </p>
+                    @if($allFines->count() > 0)
+                        @php
+                            $isAllPaid = $allFines->every(fn($f) => $f->status_bayar == 'lunas');
+                        @endphp
+                        <div class="mb-8 border-b border-primary/5 dark:border-white/5 pb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-red-500">payments</span>
+                                <h2 class="text-xl font-bold text-primary-dark dark:text-white">Informasi Denda</h2>
                             </div>
 
-                            @if($peminjaman->status_transaksi == 'berjalan' || $peminjaman->status_transaksi == 'selesai')
-                                <div
-                                    class="p-4 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20">
-                                    <p
-                                        class="text-xs text-orange-600 dark:text-orange-300 uppercase font-bold tracking-widest mb-1">
-                                        Status Pengajuan</p>
-                                    <p class="font-bold text-lg text-orange-800 dark:text-orange-100">
-                                        Diverifikasi
-                                    </p>
-                                </div>
-                                <div
-                                    class="p-4 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20">
-                                    <p
-                                        class="text-xs text-teal-600 dark:text-teal-300 uppercase font-bold tracking-widest mb-1">
-                                        Tanggal Mulai Pinjam</p>
-                                    <p class="font-bold text-lg text-teal-800 dark:text-teal-100">
-                                        {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->translatedFormat('d F Y') }}
-                                    </p>
-                                </div>
-                                <div
-                                    class="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20">
-                                    <p
-                                        class="text-xs text-rose-600 dark:text-rose-300 uppercase font-bold tracking-widest mb-1">
-                                        Batas Pengembalian</p>
-                                    <p class="font-bold text-lg text-rose-800 dark:text-rose-100">
-                                        {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
-                                    </p>
-                                </div>
-                            @else
-                                <div
-                                    class="p-4 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20">
-                                    <p
-                                        class="text-xs text-orange-600 dark:text-orange-300 uppercase font-bold tracking-widest mb-1">
-                                        Status Pengajuan</p>
-                                    <p class="font-bold text-lg text-orange-800 dark:text-orange-100">
-                                        Menunggu Verifikasi
-                                    </p>
-                                    <p class="text-xs text-orange-600/80 dark:text-orange-300/80 mt-1">*Tanggal pinjam &
-                                        kembali akan ditetapkan saat verifikasi.</p>
-                                </div>
-                            @endif
+                            <div class="bg-red-50/50 dark:bg-red-500/5 rounded-2xl border border-red-100 dark:border-red-500/20 overflow-hidden">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-red-100/50 dark:bg-red-500/10 text-red-800 dark:text-red-300 font-bold">
+                                        <tr>
+                                            <th class="p-4">Jenis Denda</th>
+                                            <th class="p-4">Buku</th>
+                                            <th class="p-4 text-right">Jumlah</th>
+                                            <th class="p-4 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-red-100 dark:divide-red-500/10">
+                                        @foreach($allFines as $fine)
+                                            <tr class="hover:bg-red-100/20 dark:hover:bg-red-500/5 transition-colors">
+                                                <td class="p-4 font-bold text-red-900 dark:text-red-200 uppercase text-xs">
+                                                    {{ str_replace('_', ' ', $fine->jenis_denda) }}
+                                                </td>
+                                                <td class="p-4 text-slate-600 dark:text-red-300/70">
+                                                    {{ $fine->detail->buku->judul ?? '-' }}
+                                                </td>
+                                                <td class="p-4 text-right font-bold text-red-700 dark:text-red-400">
+                                                    Rp {{ number_format($fine->jumlah_denda, 0, ',', '.') }}
+                                                </td>
+                                                <td class="p-4 text-center">
+                                                    @if($fine->status_bayar == 'lunas')
+                                                        <span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] font-bold uppercase">Lunas</span>
+                                                    @else
+                                                        <span class="px-2 py-1 rounded-lg bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 text-[10px] font-bold uppercase">Belum Bayar</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-red-100/30 dark:bg-red-500/10 font-bold">
+                                        <tr>
+                                            <td colspan="2" class="p-4 text-red-800 dark:text-red-300">Total Denda</td>
+                                            <td class="p-4 text-right text-red-900 dark:text-red-200">
+                                                Rp {{ number_format($allFines->sum('jumlah_denda'), 0, ',', '.') }}
+                                            </td>
+                                            <td class="p-4 text-center">
+                                                @if($isAllPaid)
+                                                    <span class="text-emerald-600 dark:text-emerald-400 text-xs uppercase font-bold">Lunas</span>
+                                                @else
+                                                    <span class="text-red-600 dark:text-red-400 text-xs uppercase font-bold">Belum Tuntas</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
-                    </div>
+                    @endif
 
                     <!-- Action Buttons -->
                     <div

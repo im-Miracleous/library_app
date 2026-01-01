@@ -55,10 +55,19 @@
                 @endif
 
                 @if (session('success'))
-                    <div class="mb-4 lg:mb-6 p-4 flex items-center gap-3 text-sm font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl animate-enter"
+                    <div class="mb-4 lg:mb-6 p-4 flex items-center justify-between gap-3 text-sm font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl animate-enter"
                         role="alert">
-                        <span class="material-symbols-outlined text-xl">check_circle</span>
-                        {{ session('success') }}
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-xl">check_circle</span>
+                            {{ session('success') }}
+                        </div>
+                        @if (session('detail_url'))
+                            <a href="{{ session('detail_url') }}"
+                                class="shrink-0 flex items-center gap-2 px-4 py-2 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 rounded-lg text-xs font-bold hover:bg-emerald-300 dark:hover:bg-emerald-700 transition-all active:scale-95 shadow-sm">
+                                <span class="material-symbols-outlined text-sm">visibility</span>
+                                Lihat Detail
+                            </a>
+                        @endif
                     </div>
                 @endif
 

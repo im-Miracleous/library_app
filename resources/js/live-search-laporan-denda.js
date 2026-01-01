@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
         limit: new URLSearchParams(window.location.search).get('limit') || 10,
         sort: new URLSearchParams(window.location.search).get('sort') || '',
         direction: new URLSearchParams(window.location.search).get('direction') || '',
-        start_date: new URLSearchParams(window.location.search).get('start_date') || '',
-        end_date: new URLSearchParams(window.location.search).get('end_date') || '',
-        status_bayar: new URLSearchParams(window.location.search).get('status_bayar') || ''
+        start_date: new URLSearchParams(window.location.search).get('start_date') || document.querySelector('input[name="start_date"]')?.value || '',
+        end_date: new URLSearchParams(window.location.search).get('end_date') || document.querySelector('input[name="end_date"]')?.value || '',
+        status_bayar: new URLSearchParams(window.location.search).get('status_bayar') || document.querySelector('select[name="status_bayar"]')?.value || ''
     };
 
     // Elements
@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupControls();
 
     function setupControls() {
-        // LIMIT SELECT
-        const limitSelect = document.querySelector('select');
+        // LIMIT SELECT (More specific to avoid Status select)
+        const limitSelect = document.querySelector('select[name="limit"]') || document.querySelector('.flex.items-center.gap-2 select');
         if (limitSelect) {
             limitSelect.removeAttribute('onchange');
 
@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderTable(json.data);
                 updatePagination(json);
                 updateSortIcons();
+                if (json.stats) updateSummaryCards(json.stats);
             }
         } catch (error) {
             console.error('Fetch error:', error);
@@ -350,5 +351,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    }
+    function updateSummaryCards(stats) {
+        const cards = document.querySelectorAll('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4 .text-3xl.font-bold');
+        if (cards.length >= 3) {
+            cards[0].textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(stats.total_denda).replace('Rp', 'Rp ');
+            cards[1].textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(stats.total_dibayar).replace('Rp', 'Rp ');
+            cards[2].textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(stats.total_belum_bayar).replace('Rp', 'Rp ');
+        }
     }
 });

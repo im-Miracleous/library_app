@@ -9,9 +9,9 @@ class DetailPeminjaman extends Model
 {
     use HasFactory;
     protected $table = 'detail_peminjaman';
-    
+
     protected $primaryKey = 'id_detail_peminjaman';
-    
+
     protected $guarded = ['id_detail_peminjaman'];
 
     protected $casts = ['tanggal_kembali_aktual' => 'date'];
@@ -28,6 +28,6 @@ class DetailPeminjaman extends Model
 
     public function denda()
     {
-        return $this->hasOne(Denda::class, 'id_detail_peminjaman', 'id_detail_peminjaman');
+        return $this->hasMany(Denda::class, 'id_detail_peminjaman', 'id_detail_peminjaman');
     }
 }

@@ -21,9 +21,9 @@ class PeminjamanController extends Controller
         $userId = Auth::user()->id_pengguna;
         $tab = $request->get('tab', 'diajukan'); // Default tab: diajukan
 
-        $query = Peminjaman::with(['details.buku']) // Assuming no denda model effectively used yet or eager load if exists
+        $query = Peminjaman::with(['details.buku', 'details.denda'])
             ->where('id_pengguna', $userId)
-            ->latest();
+            ->orderBy('id_peminjaman', 'desc');
 
         if ($tab == 'diajukan') {
             $query->whereIn('status_transaksi', ['menunggu_verifikasi', 'ditolak']);
@@ -106,6 +106,22 @@ class PeminjamanController extends Controller
                 throw new \Exception("Melebihi batas total peminjaman (Maks $limitPeminjaman Buku).");
             }
 
+            // 2b. Validate Duplicate Books in Active Loans
+            foreach ($items as $item) {
+                $isAlreadyBorrowed = DB::table('detail_peminjaman')
+                    ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+                    ->where('peminjaman.id_pengguna', $userId)
+                    ->where('detail_peminjaman.id_buku', $item->id_buku)
+                    ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
+                    ->where('detail_peminjaman.status_buku', 'dipinjam')
+                    ->exists();
+
+                if ($isAlreadyBorrowed) {
+                    $buku = Buku::find($item->id_buku);
+                    throw new \Exception("Buku '{$buku->judul}' sudah Anda pinjam dan belum dikembalikan.");
+                }
+            }
+
             // 3. Create Header (Trigger will generate ID)
             $peminjaman = new Peminjaman();
             $peminjaman->id_pengguna = $userId;
@@ -150,7 +166,9 @@ class PeminjamanController extends Controller
 
             DB::commit();
 
-            return redirect()->route('member.peminjaman.index')->with('success', 'Pengajuan peminjaman berhasil!');
+            return redirect()->route('member.peminjaman.index')
+                ->with('success', 'Pengajuan peminjaman berhasil!')
+                ->with('detail_url', route('member.peminjaman.show', $newId));
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -161,7 +179,7 @@ class PeminjamanController extends Controller
     {
         $userId = Auth::user()->id_pengguna;
 
-        $peminjaman = Peminjaman::with(['details.buku'])
+        $peminjaman = Peminjaman::with(['details.buku', 'details.denda'])
             ->where('id_pengguna', $userId)
             ->where('id_peminjaman', $id)
             ->firstOrFail();

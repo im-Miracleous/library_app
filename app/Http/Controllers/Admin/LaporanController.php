@@ -28,8 +28,8 @@ class LaporanController extends Controller
      */
     public function peminjaman(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $status = $request->input('status');
 
         // Common parameters
@@ -54,27 +54,31 @@ class LaporanController extends Controller
         ]);
         $total = DB::select('SELECT @total as total')[0]->total;
 
-        if ($request->ajax()) {
-            return response()->json([
-                'data' => $data,
-                'total' => $total
-            ]);
-        }
-
-        // Summary Calculations (Using simple Eloquent queries for stats)
+        // Summary Calculations (Move here to use in AJAX too)
         $query = Peminjaman::whereBetween('tanggal_pinjam', [$startDate, $endDate]);
         if ($status) {
             $query->where('status_transaksi', $status);
         }
 
         $totalTransaksi = $query->count();
-
-        // Optimization: Get IDs first, then count details
         $peminjamanIds = $query->pluck('id_peminjaman');
-        $totalBukuDipinjam = DetailPeminjaman::whereIn('id_peminjaman', $peminjamanIds)->count();
+        $totalBukuDipinjam = DetailPeminjaman::whereIn('id_peminjaman', $peminjamanIds)->sum('jumlah');
 
         $transaksiSelesai = $query->clone()->where('status_transaksi', 'selesai')->count();
         $transaksiBerjalan = $query->clone()->where('status_transaksi', 'berjalan')->count();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'stats' => [
+                    'total_transaksi' => $totalTransaksi,
+                    'total_buku' => $totalBukuDipinjam,
+                    'selesai' => $transaksiSelesai,
+                    'berjalan' => $transaksiBerjalan
+                ]
+            ]);
+        }
 
         // Create Paginator for Initial View
         $peminjaman = new LengthAwarePaginator(
@@ -102,8 +106,8 @@ class LaporanController extends Controller
      */
     public function denda(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
         $statusBayar = $request->input('status_bayar');
 
         // Common parameters
@@ -128,14 +132,7 @@ class LaporanController extends Controller
         ]);
         $total = DB::select('SELECT @total as total')[0]->total;
 
-        if ($request->ajax()) {
-            return response()->json([
-                'data' => $data,
-                'total' => $total
-            ]);
-        }
-
-        // Summary Calculations
+        // Summary Calculations (Move here for AJAX)
         $query = Denda::whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
         if ($statusBayar) {
             $query->where('status_bayar', $statusBayar);
@@ -144,6 +141,18 @@ class LaporanController extends Controller
         $totalDenda = $query->sum('jumlah_denda');
         $totalDibayar = $query->clone()->where('status_bayar', 'lunas')->sum('jumlah_denda');
         $totalBelumBayar = $query->clone()->where('status_bayar', 'belum_bayar')->sum('jumlah_denda');
+
+        if ($request->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'total' => $total,
+                'stats' => [
+                    'total_denda' => $totalDenda,
+                    'total_dibayar' => $totalDibayar,
+                    'total_belum_bayar' => $totalBelumBayar
+                ]
+            ]);
+        }
 
         // Create Paginator for Initial View
         $denda = new LengthAwarePaginator(

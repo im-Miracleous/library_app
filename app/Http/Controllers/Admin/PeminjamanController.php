@@ -28,7 +28,7 @@ class PeminjamanController extends Controller
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
         $status = $request->input('status');
-        $sort = $request->input('sort') ?: 'created_at';
+        $sort = $request->input('sort') ?: 'id_peminjaman';
         $direction = $request->input('direction') ?: 'desc';
 
         // Call SP
@@ -144,7 +144,14 @@ class PeminjamanController extends Controller
                 return back()->with('error', 'Gagal memproses peminjaman: ' . $result)->withInput();
             }
 
-            return redirect()->route('peminjaman.index')->with('success', 'Transaksi peminjaman berhasil dibuat (via Stored Procedure).');
+            // Get the newly created ID to provide the detail link
+            $newId = Peminjaman::where('id_pengguna', $idPengguna)
+                ->orderBy('created_at', 'desc')
+                ->value('id_peminjaman');
+
+            return redirect()->route('peminjaman.index')
+                ->with('success', 'Transaksi peminjaman berhasil dibuat (via Stored Procedure).')
+                ->with('detail_url', route('peminjaman.show', $newId));
 
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage())->withInput();
@@ -195,7 +202,7 @@ class PeminjamanController extends Controller
      */
     public function show($id)
     {
-        $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
+        $peminjaman = Peminjaman::with(['pengguna', 'details.buku', 'details.denda'])->findOrFail($id);
 
         // Auto-mark notification as read for this loan
         if (Auth::check()) {

@@ -71,15 +71,51 @@ class PeminjamanSeeder extends Seeder
                 }
             }
 
+            // Pengecekan Limit untuk Peminjaman Berjalan
+            if ($statusTrans == 'berjalan') {
+                $currentActiveBooks = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($member) {
+                    $q->where('id_pengguna', $member->id_pengguna)
+                        ->where('status_transaksi', 'berjalan');
+                })->where('status_buku', 'dipinjam')->count();
+
+                $maxLoan = Pengaturan::first()->maksimal_buku_pinjam;
+                $remainingQuota = $maxLoan - $currentActiveBooks;
+
+                if ($remainingQuota <= 0) {
+                    return;
+                }
+                $bookCount = rand(1, min(3, $remainingQuota));
+            } else {
+                $bookCount = rand(1, 3);
+            }
+
+            // Book Selection
+            $borrowedInActiveStatus = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($member) {
+                $q->where('id_pengguna', $member->id_pengguna)
+                    ->whereIn('status_transaksi', ['berjalan', 'menunggu_verifikasi']);
+            })->where('status_buku', 'dipinjam')->pluck('id_buku')->toArray();
+
+            $availableForThisMember = $books->whereNotIn('id_buku', $borrowedInActiveStatus);
+
+            if ($availableForThisMember->isEmpty()) {
+                return;
+            }
+
+            $randomBooks = $availableForThisMember->random(min($bookCount, $availableForThisMember->count()));
+
+            if ($randomBooks->isEmpty()) {
+                return;
+            }
+
+            // PREPARE ID
             $newId = $generateId($tglPinjam);
 
-            // Create Header Peminjaman (Tanpa kolom denda dan tanggal_kembali)
+            // CREATE HEADER
             $peminjaman = Peminjaman::create([
                 'id_peminjaman' => $newId,
                 'id_pengguna' => $member->id_pengguna,
                 'tanggal_pinjam' => $tglPinjam,
                 'tanggal_jatuh_tempo' => $jatuhTempo,
-                // Pastikan status_transaksi sesuai enum ('berjalan', 'selesai')
                 'status_transaksi' => $statusTrans,
                 'keterangan' => Arr::random([
                     'Keperluan tugas akhir',
@@ -95,40 +131,7 @@ class PeminjamanSeeder extends Seeder
                 ])
             ]);
 
-            // Jika sudah kembali, kita update tanggal_kembali di header? 
-            // Cek skema: tabel peminjaman tidak ada kolom tanggal_kembali (ada di detail? Cek migration lagi)
-            // Migration TABEL PEMINJAMAN: id, kode, id_pengguna, tgl_pinjam, tgl_jatuh_tempo, status_transaksi...
-            // TIDAK ADA tanggal_kembali di Header Peminjaman di migration 2025_12_17_190402_create_library_transaction_tables_v2.php
-            // Ada tanggal_kembali_aktual di DETAIL PEMINJAMAN.
-
-            // Jadi Header Peminjaman tidak nyimpan tanggal kembali.
-
-            // Pengecekan Limit untuk Peminjaman Berjalan
-            if ($statusTrans == 'berjalan') {
-                // Hitung jumlah buku yang SEDANG dipinjam user ini (active)
-                $currentActiveBooks = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($member) {
-                    $q->where('id_pengguna', $member->id_pengguna)
-                        ->where('status_transaksi', 'berjalan');
-                })->where('status_buku', 'dipinjam')->count();
-
-                $maxLoan = Pengaturan::first()->maksimal_buku_pinjam;
-                $remainingQuota = $maxLoan - $currentActiveBooks;
-
-                if ($remainingQuota <= 0) {
-                    // Limit habis, batalkan pembuatan dummy transaction ini untuk user ini
-                    // Atau bisa `return` saja agar tidak error
-                    return;
-                }
-
-                // Sesuaikan jumlah buku yang akan dipinjam dengan sisa kuota
-                $bookCount = rand(1, min(3, $remainingQuota));
-            } else {
-                // Untuk status 'selesai', tidak memakan kuota aktif, jadi bebas 1-3
-                $bookCount = rand(1, 3);
-            }
-
-            $randomBooks = $books->random($bookCount);
-
+            // CREATE DETAILS
             foreach ($randomBooks as $book) {
                 $detail = DetailPeminjaman::create([
                     'id_peminjaman' => $peminjaman->id_peminjaman,
@@ -138,15 +141,8 @@ class PeminjamanSeeder extends Seeder
                     'tanggal_kembali_aktual' => $isReturned ? $tglKembali : null
                 ]);
 
-                // Handle Denda jika Terlambat dan Selesai (atau status denda bisa muncul walau belum selesai? Biasanya denda dihitung saat kembali)
-                // Requirement: "2 row/record sudah berstatus Selesai, dikembalikan terlambat sehingga memunculkan Denda"
-                // Dan "Satu record dibuat "Belum Dibayar", dan satu recordnya lagi dibuat sudah "Lunas"."
-
                 if ($isLate && $isReturned) {
-                    $dendaAmount = $daysLate * 1000; // 1000 per hari per buku
-
-                    // Pastikan Model Denda ada. Jika tidak, pakai DB::table
-                    // Asumsi Model Denda ada di App\Models\Denda
+                    $dendaAmount = $daysLate * 1000;
                     try {
                         Denda::create([
                             'id_detail_peminjaman' => $detail->id_detail_peminjaman,
@@ -157,7 +153,6 @@ class PeminjamanSeeder extends Seeder
                             'keterangan' => "Telat $daysLate hari"
                         ]);
                     } catch (\Exception $e) {
-                        // Fallback jika Model Denda belum dibuat tapi tabel ada
                         DB::table('denda')->insert([
                             'id_detail_peminjaman' => $detail->id_detail_peminjaman,
                             'jenis_denda' => 'terlambat',

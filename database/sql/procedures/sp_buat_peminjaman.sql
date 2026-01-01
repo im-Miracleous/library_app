@@ -56,6 +56,19 @@ BEGIN
                 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stok buku habis';
             END IF;
 
+            -- Check if book already borrowed by this user (Active/Pending)
+            IF EXISTS (
+                SELECT 1 
+                FROM detail_peminjaman dp
+                JOIN peminjaman p ON dp.id_peminjaman = p.id_peminjaman
+                WHERE p.id_pengguna = p_id_pengguna
+                AND dp.id_buku = v_id_buku
+                AND p.status_transaksi IN ('berjalan', 'menunggu_verifikasi')
+                AND dp.status_buku = 'dipinjam'
+            ) THEN
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User sedang meminjam buku ini';
+            END IF;
+
             -- Insert Detail (Trigger tr_kurangi_stok_buku will run after this)
             INSERT INTO detail_peminjaman (id_peminjaman, id_buku, jumlah, status_buku, created_at, updated_at)
             VALUES (v_id_peminjaman, v_id_buku, 1, 'dipinjam', NOW(), NOW());

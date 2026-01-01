@@ -39,10 +39,18 @@
                 <x-breadcrumb-component parent="Sirkulasi" middle="Peminjaman" :middleLink="route('peminjaman.index')"
                     current="Detail" class="mb-6 animate-enter" />
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-enter delay-100">
+                @php
+                    $canApproveReject = $peminjaman->status_transaksi == 'menunggu_verifikasi';
+                    $canReturn = $peminjaman->status_transaksi == 'berjalan';
+                    $canEdit = ($peminjaman->status_transaksi == 'berjalan') || ($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran == 'owner');
+                    $canDelete = auth()->user()->peran == 'owner';
+                    $hasAnyAction = $canApproveReject || $canReturn || $canEdit || $canDelete;
+                @endphp
+
+                <div class="grid grid-cols-1 {{ $hasAnyAction ? 'lg:grid-cols-3' : '' }} gap-6 animate-enter delay-100">
 
                     <!-- Left Column: Transaction Details -->
-                    <div class="lg:col-span-2 flex flex-col gap-6">
+                    <div class="{{ $hasAnyAction ? 'lg:col-span-2' : '' }} flex flex-col gap-6">
                         <div
                             class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-6">
@@ -123,6 +131,15 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <div class="mt-6 pt-6 border-t border-slate-100 dark:border-white/10 flex justify-between items-center">
+                                <div class="text-[10px] text-slate-400 dark:text-white/40 uppercase tracking-widest font-bold">
+                                    System Record Item
+                                </div>
+                                <div class="text-xs text-slate-400 dark:text-white/40 font-medium">
+                                    Dibuat pada {{ $peminjaman->created_at->translatedFormat('d M Y, H:i') }}
+                                </div>
+                            </div>
                         </div>
 
                         <div
@@ -143,6 +160,7 @@
                                         <tr>
                                             <th class="p-3 pl-4">Judul Buku</th>
                                             <th class="p-3">Status</th>
+                                            <th class="p-3">Kondisi</th>
                                             <th class="p-3 text-right pr-4">Tgl Kembali</th>
                                         </tr>
                                     </thead>
@@ -163,9 +181,37 @@
                                                     @elseif($detail->status_buku == 'dikembalikan')
                                                         <span
                                                             class="bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase">Dikembalikan</span>
+                                                    @elseif($detail->status_buku == 'hilang')
+                                                        <span
+                                                            class="bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase">Hilang</span>
                                                     @else
                                                         <span
                                                             class="bg-gray-100 dark:bg-white/10 text-slate-600 dark:text-white/60 text-xs px-2 py-0.5 rounded-full font-bold uppercase">{{ $detail->status_buku }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="p-3">
+                                                    @php
+                                                        $conditionDenda = $detail->denda->whereIn('jenis_denda', ['rusak', 'hilang'])->first();
+                                                        $condition = $conditionDenda ? $conditionDenda->jenis_denda : ($detail->status_buku == 'dikembalikan' ? 'baik' : null);
+                                                    @endphp
+
+                                                    @if($condition == 'baik')
+                                                        <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                                                            Baik
+                                                        </div>
+                                                    @elseif($condition == 'rusak')
+                                                        <div class="flex items-center gap-1.5 text-orange-600 dark:text-orange-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">warning</span>
+                                                            Rusak
+                                                        </div>
+                                                    @elseif($condition == 'hilang')
+                                                        <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-bold text-xs uppercase">
+                                                            <span class="material-symbols-outlined text-sm">dangerous</span>
+                                                            Hilang
+                                                        </div>
+                                                    @else
+                                                        <span class="text-slate-400 dark:text-white/20">-</span>
                                                     @endif
                                                 </td>
                                                 <td class="p-3 text-right pr-4 font-mono text-xs">
@@ -195,82 +241,73 @@
                     </div>
 
                     <!-- Right Column: Actions -->
-                    <div class="flex flex-col gap-6">
-                        <div
-                            class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm sticky top-6">
-                            @if($peminjaman->status_transaksi == 'menunggu_verifikasi')
-                                <div class="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-orange-100 dark:border-white/5 mb-6">
-                                    <div class="text-sm font-bold text-orange-800 dark:text-orange-400 mb-2 flex items-center gap-2">
-                                        <span class="material-symbols-outlined">verified_user</span>
-                                        Verifikasi Diperlukan
+                    @if($hasAnyAction)
+                        <div class="flex flex-col gap-6">
+                            <div
+                                class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm sticky top-6">
+                                @if($canApproveReject)
+                                    <div class="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-orange-100 dark:border-white/5 mb-6">
+                                        <div class="text-sm font-bold text-orange-800 dark:text-orange-400 mb-2 flex items-center gap-2">
+                                            <span class="material-symbols-outlined">verified_user</span>
+                                            Verifikasi Diperlukan
+                                        </div>
+                                        <p class="text-xs text-orange-700 dark:text-orange-400/80 mb-4">
+                                            Setujui untuk menetapkan tanggal pinjam hari ini, atau tolak untuk membatalkan pengajuan.
+                                        </p>
+                                        
+                                        <form id="approveForm" action="{{ route('peminjaman.approve', $peminjaman->id_peminjaman) }}" method="POST" class="mb-2">
+                                            @csrf
+                                            <button type="button" onclick="showApproveModal()"
+                                                class="w-full py-2.5 bg-green-600 text-white hover:bg-green-700 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2">
+                                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                                Setujui Peminjaman
+                                            </button>
+                                        </form>
+
+                                        <form id="rejectForm" action="{{ route('peminjaman.reject', $peminjaman->id_peminjaman) }}" method="POST">
+                                            @csrf
+                                            <button type="button" onclick="showRejectModal()"
+                                                class="w-full py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 dark:bg-transparent dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                                                <span class="material-symbols-outlined text-[18px]">cancel</span>
+                                                Tolak Pengajuan
+                                            </button>
+                                        </form>
                                     </div>
-                                    <p class="text-xs text-orange-700 dark:text-orange-400/80 mb-4">
-                                        Setujui untuk menetapkan tanggal pinjam hari ini, atau tolak untuk membatalkan pengajuan.
-                                    </p>
-                                    
-                                    <form id="approveForm" action="{{ route('peminjaman.approve', $peminjaman->id_peminjaman) }}" method="POST" class="mb-2">
+                                @endif
+
+                                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6">Aksi</h3>
+
+                                @if($canReturn)
+                                    <a href="{{ route('pengembalian.show', $peminjaman->id_peminjaman) }}"
+                                        class="w-full py-3.5 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-xl font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 mb-3">
+                                        <span class="material-symbols-outlined">assignment_return</span>
+                                        Proses Pengembalian
+                                    </a>
+                                @endif
+
+                                @if($canEdit)
+                                    <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}"
+                                        class="w-full py-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/30 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 mb-3">
+                                        <span class="material-symbols-outlined">edit_square</span>
+                                        Edit Transaksi
+                                    </a>
+                                @endif
+
+                                @if($canDelete)
+                                    <form action="{{ route('peminjaman.destroy', $peminjaman->id_peminjaman) }}" method="POST"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat transaksi ini? Data tidak dapat dikembalikan.');">
                                         @csrf
-                                        <button type="button" onclick="showApproveModal()"
-                                            class="w-full py-2.5 bg-green-600 text-white hover:bg-green-700 rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center justify-center gap-2">
-                                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                                            Setujui Peminjaman
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="w-full py-3 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined">delete</span>
+                                            Hapus Transaksi
                                         </button>
                                     </form>
-
-                                    <form id="rejectForm" action="{{ route('peminjaman.reject', $peminjaman->id_peminjaman) }}" method="POST">
-                                        @csrf
-                                        <button type="button" onclick="showRejectModal()"
-                                            class="w-full py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 dark:bg-transparent dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10 rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                                            <span class="material-symbols-outlined text-[18px]">cancel</span>
-                                            Tolak Pengajuan
-                                        </button>
-                                    </form>
-                                </div>
-                            @endif
-
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6">Aksi</h3>
-
-                            @if($peminjaman->status_transaksi == 'berjalan')
-                                <a href="{{ route('pengembalian.show', $peminjaman->id_peminjaman) }}"
-                                    class="w-full py-3.5 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-xl font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 mb-3">
-                                    <span class="material-symbols-outlined">assignment_return</span>
-                                    Proses Pengembalian
-                                </a>
-
-                                <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}"
-                                    class="w-full py-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/30 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 mb-3">
-                                    <span class="material-symbols-outlined">edit_square</span>
-                                    Edit Transaksi
-                                </a>
-                            @elseif($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran == 'owner')
-                                {{-- Owner privilege: Edit finished transactions --}}
-                                <a href="{{ route('peminjaman.edit', $peminjaman->id_peminjaman) }}"
-                                    class="w-full py-3 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-500/30 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 mb-3">
-                                    <span class="material-symbols-outlined">edit_square</span>
-                                    Edit Transaksi
-                                </a>
-                            @endif
-
-                            @if(auth()->user()->peran == 'owner')
-                                <form action="{{ route('peminjaman.destroy', $peminjaman->id_peminjaman) }}" method="POST"
-                                    onsubmit="return confirm('Apakah Anda yakin ingin menghapus riwayat transaksi ini? Data tidak dapat dikembalikan.');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="w-full py-3 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
-                                        <span class="material-symbols-outlined">delete</span>
-                                        Hapus Transaksi
-                                    </button>
-                                </form>
-                            @endif
-
-                            <div class="mt-6 pt-6 border-t border-slate-100 dark:border-white/10">
-                                <div class="text-xs text-slate-400 dark:text-white/40 text-center">
-                                    Dibuat: {{ $peminjaman->created_at->format('d M Y H:i') }}
-                                </div>
+                                @endif
                             </div>
                         </div>
-                    </div>
+                    @endif
 
                 </div>
             </div>

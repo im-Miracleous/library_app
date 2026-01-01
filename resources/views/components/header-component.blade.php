@@ -10,7 +10,7 @@
 <header
     class="animate-enter flex items-center justify-between gap-4 lg:gap-8 sticky top-0 bg-surface/90 dark:bg-background-dark/95 backdrop-blur-sm z-30 px-4 sm:px-8 py-4 border-b border-primary/20 dark:border-border-dark">
 
-    <div class="flex items-center w-auto xl:w-[280px] min-w-0 shrink">
+    <div class="flex items-center w-auto xl:w-[450px] min-w-0 shrink-0">
 
         <!-- Mobile Actions Group -->
         <div class="flex items-center gap-3 mr-6 pt-1 lg:hidden flex-shrink-0">
@@ -25,8 +25,9 @@
             </button>
         </div>
 
-        <h2 class="text-primary-dark dark:text-white text-xl sm:text-2xl font-bold tracking-tight truncate">{{ $title }}
-        </h2>
+        <h2
+            class="text-primary-dark dark:text-white text-xl sm:text-2xl font-bold tracking-tight truncate whitespace-nowrap">
+            {!! $title !!}</h2>
     </div>
 
     <div class="flex-1 max-w-xl px-4 lg:px-8 mx-4 hidden md:flex justify-end lg:justify-center min-w-[320px]">
@@ -158,8 +159,8 @@
                                             };
                                         @endphp
                                         <div class="size-10 rounded-xl flex items-center justify-center 
-                                                    {{ $ncolor }} 
-                                                    dark:bg-white/5 group-hover:scale-110 transition-transform">
+                                                        {{ $ncolor }} 
+                                                        dark:bg-white/5 group-hover:scale-110 transition-transform">
                                             <span class="material-symbols-outlined text-[20px]">
                                                 {{ $nicon }}
                                             </span>
