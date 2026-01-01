@@ -21,8 +21,17 @@ class GlobalSearchController extends Controller
         }
 
         // Search Books (Judul OR ISBN)
-        $buku = Buku::where('judul', 'like', "%{$query}%")
-            ->orWhere('isbn', 'like', "%{$query}%")
+        $bukuQuery = Buku::query();
+
+        // Members only see available books in search
+        if (auth()->check() && auth()->user()->peran === 'anggota') {
+            $bukuQuery->where('status', 'tersedia');
+        }
+
+        $buku = $bukuQuery->where(function ($q) use ($query) {
+            $q->where('judul', 'like', "%{$query}%")
+                ->orWhere('isbn', 'like', "%{$query}%");
+        })
             ->limit(5)
             ->get(['id_buku', 'judul', 'penulis', 'isbn']);
 

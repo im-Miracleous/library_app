@@ -16,7 +16,7 @@ class BukuController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Buku::query()->with('kategori');
+        $query = Buku::query()->where('status', 'tersedia')->with('kategori');
 
         // Filter by Category
         if ($request->has('kategori') && $request->kategori != '') {
@@ -77,6 +77,10 @@ class BukuController extends Controller
     public function show($id)
     {
         $buku = Buku::with('kategori')->findOrFail($id);
+
+        if ($buku->status !== 'tersedia') {
+            abort(404);
+        }
 
         // Check if book is bookmarked by user
         $isBookmarked = false;

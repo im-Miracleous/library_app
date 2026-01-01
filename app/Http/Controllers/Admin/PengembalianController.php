@@ -133,28 +133,27 @@ class PengembalianController extends Controller
                 if ($detail->status_buku !== 'dipinjam')
                     continue;
 
-                // Update Detail
-                $detail->update([
-                    'status_buku' => 'dikembalikan',
-                    'tanggal_kembali_aktual' => $hariIni,
-                ]);
-
-                // Increment Book Stock -> HANDLED BY TRIGGER 'tr_kembalikan_stok_buku'
-                // $buku = Buku::find($detail->id_buku);
-                // $buku->increment('stok_tersedia');
-
                 // Calculate Fine for THIS book
                 $condition = $request->input("kondisi.{$detailId}", 'baik');
                 $dendaConditionAmount = 0;
                 $conditionNote = '';
+                $statusBuku = 'dikembalikan';
 
                 if ($condition === 'rusak') {
                     $dendaConditionAmount = $pengaturan->denda_rusak ?? 0;
                     $conditionNote = 'Kondisi: Rusak';
+                    $statusBuku = 'rusak';
                 } elseif ($condition === 'hilang') {
                     $dendaConditionAmount = $pengaturan->denda_hilang ?? 0;
                     $conditionNote = 'Kondisi: Hilang';
+                    $statusBuku = 'hilang';
                 }
+
+                // Update Detail
+                $detail->update([
+                    'status_buku' => $statusBuku,
+                    'tanggal_kembali_aktual' => $hariIni,
+                ]);
 
                 if ($dendaConditionAmount > 0) {
                     $totalDenda += $dendaConditionAmount;

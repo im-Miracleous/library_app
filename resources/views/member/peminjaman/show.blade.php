@@ -76,6 +76,39 @@
                         </div>
                     </div>
 
+                    <!-- Informasi Peminjaman -->
+                    <div class="mb-8 border-b border-primary/5 dark:border-white/5 pb-8">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-primary">calendar_month</span>
+                            <h2 class="text-xl font-bold text-primary-dark dark:text-white">Informasi Peminjaman</h2>
+                        </div>
+
+                        @if($peminjaman->status_transaksi == 'berjalan' && \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->isPast())
+                            <div class="mb-4 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 flex items-start gap-3 animate-pulse">
+                                <span class="material-symbols-outlined text-red-500">warning</span>
+                                <div>
+                                    <p class="text-sm font-bold text-red-800 dark:text-red-400">Peminjaman Melewati Batas Waktu!</p>
+                                    <p class="text-xs text-red-600 dark:text-red-400/70">Harap segera mengembalikan buku ke perpustakaan untuk menghindari akumulasi denda keterlambatan.</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-primary/5 dark:border-white/5">
+                                <p class="text-xs text-primary-mid dark:text-white/40 uppercase font-bold tracking-widest mb-1">Tanggal Pinjam</p>
+                                <p class="font-bold text-lg text-primary-dark dark:text-white">
+                                    {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->translatedFormat('d F Y') }}
+                                </p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-primary/5 dark:border-white/5">
+                                <p class="text-xs text-primary-mid dark:text-white/40 uppercase font-bold tracking-widest mb-1">Jatuh Tempo</p>
+                                <p class="font-bold text-lg {{ $peminjaman->status_transaksi == 'berjalan' && \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->isPast() ? 'text-red-600 dark:text-red-400' : 'text-primary-dark dark:text-white' }}">
+                                    {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Informasi Pustaka -->
                     <div class="mb-8 border-b border-primary/5 dark:border-white/5 pb-8">
                         <div class="flex items-center gap-2 mb-4">

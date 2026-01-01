@@ -185,6 +185,8 @@ window.openEditBuku = function (id) {
             document.getElementById('edit_penerbit').value = data.penerbit || '';
             document.getElementById('edit_tahun').value = data.tahun_terbit;
             document.getElementById('edit_stok').value = data.stok_total;
+            document.getElementById('edit_rusak').value = data.stok_rusak || 0;
+            document.getElementById('edit_hilang').value = data.stok_hilang || 0;
             document.getElementById('edit_isbn').value = data.isbn || '';
             document.getElementById('edit_dewey').value = data.kode_dewey || '';
             document.getElementById('edit_deskripsi').value = data.deskripsi || '';
@@ -192,6 +194,20 @@ window.openEditBuku = function (id) {
             // Select Status
             const statusSelect = document.getElementById('edit_status');
             if (statusSelect) statusSelect.value = data.status;
+
+            // Handle Image Preview
+            const previewContainer = document.getElementById('edit_preview_container');
+            const previewImg = document.getElementById('edit_preview_img');
+
+            if (previewContainer && previewImg) {
+                if (data.gambar_sampul) {
+                    previewImg.src = `/storage/${data.gambar_sampul}`;
+                    previewContainer.classList.remove('hidden');
+                } else {
+                    previewImg.src = '';
+                    previewContainer.classList.add('hidden');
+                }
+            }
 
             window.openModal('editModal');
         })

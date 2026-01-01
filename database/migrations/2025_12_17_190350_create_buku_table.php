@@ -20,9 +20,11 @@ return new class extends Migration {
             $table->integer('tahun_terbit');
             $table->integer('stok_total');
             $table->integer('stok_tersedia');
+            $table->integer('stok_rusak')->default(0);
+            $table->integer('stok_hilang')->default(0);
             $table->text('deskripsi')->nullable();
             $table->string('gambar_sampul')->nullable();
-            $table->enum('status', ['tersedia', 'rusak', 'hilang'])->default('tersedia');
+            $table->enum('status', ['tersedia', 'tidak_tersedia'])->default('tersedia');
             $table->timestamps();
         });
 

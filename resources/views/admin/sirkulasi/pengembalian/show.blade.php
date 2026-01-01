@@ -108,11 +108,11 @@
                                         class="text-xs text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1">
                                         Jatuh Tempo</div>
                                     <div
-                                        class="font-bold {{ $terlambatHari > 0 ? 'text-red-600' : 'text-slate-800 dark:text-white' }}">
+                                        class="font-bold {{ $terlambatHari > 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-800 dark:text-white' }}">
                                         {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
                                     </div>
                                     @if($terlambatHari > 0)
-                                        <div class="text-xs text-red-500 mt-1 font-medium">Telat {{ $terlambatHari }} Hari
+                                        <div class="text-xs text-red-500 dark:text-red-400 mt-1 font-medium italic">Telat {{ $terlambatHari }} Hari
                                         </div>
                                     @endif
                                 </div>
@@ -166,13 +166,17 @@
                                                             </div>
                                                         </td>
                                                         <td class="p-3">
-                                                            <select
-                                                                name="kondisi[{{ $detail->id_detail_peminjaman }}]"
-                                                                class="w-full p-2 text-sm rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                                <option value="baik">Baik</option>
-                                                                <option value="rusak">Rusak</option>
-                                                                <option value="hilang">Hilang</option>
-                                                            </select>
+                                                            <div class="relative">
+                                                                <select name="kondisi[{{ $detail->id_detail_peminjaman }}]"
+                                                                    class="w-full p-2 pr-8 text-sm rounded-lg bg-slate-50 dark:bg-[#120C0A] border border-slate-200 dark:border-[#36271F] text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none">
+                                                                    <option value="baik" class="dark:bg-surface-dark">Baik</option>
+                                                                    <option value="rusak" class="dark:bg-surface-dark">Rusak</option>
+                                                                    <option value="hilang" class="dark:bg-surface-dark">Hilang</option>
+                                                                </select>
+                                                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-slate-400">
+                                                                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                         <td class="p-3">
                                                             <span
@@ -227,7 +231,7 @@
 
                             <div class="flex justify-between items-center mb-6">
                                 <span class="text-slate-500 dark:text-white/60 text-sm">Estimasi Denda</span>
-                                <span class="font-bold text-red-600 text-xl" id="dendaDisplay">rp 0</span>
+                                <span class="font-bold text-red-500 dark:text-red-400 text-xl" id="dendaDisplay">rp 0</span>
                             </div>
 
                             <!-- Info Box -->

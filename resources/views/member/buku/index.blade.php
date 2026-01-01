@@ -83,7 +83,7 @@
                     class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 animate-enter delay-100 pb-10">
                     @forelse($buku as $item)
                         <!-- Card Buku -->
-                        <div class="group bg-white dark:bg-surface-dark rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-primary/10 dark:border-white/5 overflow-hidden flex flex-col h-full relative cursor-pointer"
+                        <div class="group bg-white dark:bg-surface-dark rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-primary/10 dark:border-white/5 overflow-hidden flex flex-col h-full relative cursor-pointer {{ $item->stok_tersedia <= 0 ? 'grayscale opacity-60' : '' }}"
                             onclick="if(!event.target.closest('.bookmark-btn')) window.location.href='{{ route('member.buku.show', $item->id_buku) }}'">
 
                             <!-- Cover Image Area -->
@@ -102,22 +102,29 @@
                                     $randomColor = $colors[$colorIndex];
                                 @endphp
 
-                                <div
-                                    class="w-full h-full bg-gradient-to-br {{ $randomColor }} opacity-80 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-6">
-                                    <div
-                                        class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat">
+                                @if($item->gambar_sampul)
+                                    <div class="w-full h-full relative group-hover:scale-105 transition-transform duration-500">
+                                        <img src="{{ asset('storage/' . $item->gambar_sampul) }}" alt="{{ $item->judul }}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                                     </div>
+                                @else
+                                    <div
+                                        class="w-full h-full bg-gradient-to-br {{ $randomColor }} opacity-80 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center p-6">
+                                        <div
+                                            class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-repeat">
+                                        </div>
 
-                                    <div
-                                        class="text-center text-white p-4 items-center flex flex-col gap-2 transform group-hover:scale-105 transition-transform duration-300">
-                                        <span
-                                            class="material-symbols-outlined text-[48px] drop-shadow-md">auto_stories</span>
-                                        <p
-                                            class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-t-2 border-white/50 pt-2 mt-2 line-clamp-3 leading-tight drop-shadow-lg text-white">
-                                            {{ $item->judul }}
-                                        </p>
+                                        <div
+                                            class="text-center text-white p-4 items-center flex flex-col gap-2 transform group-hover:scale-105 transition-transform duration-300">
+                                            <span
+                                                class="material-symbols-outlined text-[48px] drop-shadow-md">auto_stories</span>
+                                            <p
+                                                class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-t-2 border-white/50 pt-2 mt-2 line-clamp-3 leading-tight drop-shadow-lg text-white">
+                                                {{ $item->judul }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
 
                                 <!-- Overlay Actions -->
                                 <div
@@ -198,7 +205,11 @@
                                             <span class="text-green-600 dark:text-green-400 font-bold">Tersedia
                                                 ({{ $item->stok_tersedia }})</span>
                                         @else
-                                            <span class="text-red-500 font-bold">Habis</span>
+                                            <span
+                                                class="text-red-500 font-bold uppercase tracking-tight flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-[14px]">block</span>
+                                                Habis
+                                            </span>
                                         @endif
                                     </div>
                                 </div>

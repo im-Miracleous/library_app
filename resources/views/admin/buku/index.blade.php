@@ -64,9 +64,29 @@
 
                 @if (session('success'))
                     <div
-                        class="mb-6 p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-green-700 dark:text-green-400 flex items-center gap-3 animate-enter">
+                        class="mb-6 p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl text-green-700 dark:text-green-400 flex items-center gap-3 animate-enter shadow-sm">
                         <span class="material-symbols-outlined">check_circle</span>
                         {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div
+                        class="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-700 dark:text-red-400 flex items-center gap-3 animate-enter shadow-sm">
+                        <span class="material-symbols-outlined">error</span>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div
+                        class="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-700 dark:text-red-400 flex flex-col gap-1 animate-enter shadow-sm text-sm">
+                        @foreach ($errors->all() as $error)
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px]">error</span>
+                                {{ $error }}
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
@@ -147,12 +167,25 @@
                                 </td>
                                 <td class="p-4">{{ $item->penulis }}</td>
                                 <td class="p-4 text-center">
-                                    <span
-                                        class="font-bold {{ $item->stok_tersedia > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $item->stok_tersedia }}</span>
-                                    <span class="text-slate-400 dark:text-white/30 text-xs">/{{ $item->stok_total }}</span>
+                                    <div class="flex flex-col items-center">
+                                        <div>
+                                            <span
+                                                class="font-bold {{ $item->stok_tersedia > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $item->stok_tersedia }}</span>
+                                            <span
+                                                class="text-slate-400 dark:text-white/30 text-xs">/{{ $item->stok_total }}</span>
+                                        </div>
+                                        <div class="text-[10px] flex gap-2 mt-0.5">
+                                            @if($item->stok_rusak > 0) <span class="text-amber-600 dark:text-amber-400"
+                                            title="Rusak">R:{{$item->stok_rusak}}</span> @endif
+                                            @if($item->stok_hilang > 0) <span class="text-red-600 dark:text-red-400"
+                                            title="Hilang">H:{{$item->stok_hilang}}</span> @endif
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="p-4"><span
-                                        class="px-2 py-1 rounded text-xs font-bold uppercase {{ $item->status == 'tersedia' ? 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10' }}">{{ $item->status }}</span>
+                                        class="px-2 py-1 rounded text-xs font-bold uppercase {{ $item->status == 'tersedia' ? 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10' }}">
+                                        {{ $item->status == 'tersedia' ? 'Tersedia' : 'Tidak Tersedia' }}
+                                    </span>
                                 </td>
                                 <td class="p-4 pr-6 text-right flex justify-end gap-2">
                                     <button onclick="openEditBuku('{{ $item->id_buku }}')"
@@ -198,11 +231,20 @@
                             class="text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white transition-colors"><span
                                 class="material-symbols-outlined">close</span></button>
                     </div>
-                    <form action="{{ route('buku.store') }}" method="POST"
+                    <form action="{{ route('buku.store') }}" method="POST" enctype="multipart/form-data"
                         class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                         @csrf
                         <!-- Kiri -->
                         <div class="flex flex-col gap-4">
+                            <!-- Input Gambar Sampul -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Gambar
+                                    Sampul</label>
+                                <input type="file" name="gambar_sampul" accept="image/*"
+                                    class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
+                                <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB (JPG, PNG)</p>
+                            </div>
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
@@ -322,20 +364,50 @@
                             class="text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white transition-colors"><span
                                 class="material-symbols-outlined">close</span></button>
                     </div>
-                    <form id="editForm" method="POST" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <form id="editForm" method="POST" enctype="multipart/form-data"
+                        class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                         @csrf @method('PUT')
-                        <!-- Kiri -->
+
+                        <!-- BARIS 1, KOLOM 1: INFO UTAMA -->
                         <div class="flex flex-col gap-4">
+                            <!-- Input Gambar Sampul -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Gambar
+                                    Sampul</label>
+                                <div id="edit_preview_container"
+                                    class="hidden mb-2 relative group w-24 h-36 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10">
+                                    <img id="edit_preview_img" src="" alt="Preview Sampul"
+                                        class="w-full h-full object-cover">
+                                    <div
+                                        class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <p class="text-[10px] text-white font-bold text-center px-1">Ganti gambar di
+                                            bawah</p>
+                                    </div>
+                                </div>
+                                <input type="file" name="gambar_sampul" accept="image/*"
+                                    class="block w-full text-sm text-slate-500 dark:text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 dark:file:bg-accent/10 dark:file:text-accent cursor-pointer">
+                                <p class="text-[10px] text-slate-400 dark:text-white/40">*Max 2MB. Kosongkan jika tidak
+                                    diubah.</p>
+                            </div>
+
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Judul
                                     Buku</label>
                                 <input type="text" id="edit_judul" name="judul"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-medium"
                                     required>
                             </div>
 
-                            <!-- BAGIAN KATEGORI EDIT (UPDATED) -->
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
+                                <input type="text" id="edit_penulis" name="penulis"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none font-medium"
+                                    required>
+                            </div>
+
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kategori</label>
@@ -353,87 +425,116 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penulis</label>
-                                <input type="text" id="edit_penulis" name="penulis"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
-                                    required>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
-                                <input type="text" id="edit_penerbit" name="penerbit"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
-                            </div>
-
-                            <!-- STATUS EDIT (UPDATED) -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
-                                <div class="relative">
-                                    <select id="edit_status" name="status"
-                                        class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer">
-                                        <option value="tersedia">Tersedia</option>
-                                        <option value="rusak">Rusak</option>
-                                        <option value="hilang">Hilang</option>
-                                    </select>
-                                    <div
-                                        class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-white/60">
-                                        <span class="material-symbols-outlined">expand_more</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-                        <!-- Kanan -->
+
+                        <!-- BARIS 1, KOLOM 2: DETAIL & DESKRIPSI -->
                         <div class="flex flex-col gap-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="flex flex-col gap-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun
-                                        Terbit</label>
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Penerbit</label>
+                                    <input type="text" id="edit_penerbit" name="penerbit"
+                                        class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Tahun</label>
                                     <input type="number" id="edit_tahun" name="tahun_terbit"
                                         class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
                                         required>
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Stok
-                                        Total</label>
-                                    <input type="number" id="edit_stok" name="stok_total"
-                                        class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none"
-                                        required>
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
+                                    <input type="text" id="edit_isbn" name="isbn"
+                                        class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm">
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Dewey</label>
+                                    <input type="text" id="edit_dewey" name="kode_dewey"
+                                        class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm">
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">ISBN</label>
-                                <input type="text" id="edit_isbn" name="isbn"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Kode
-                                    Dewey</label>
-                                <input type="text" id="edit_dewey" name="kode_dewey"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none">
-                            </div>
-                            <div class="flex flex-col gap-2">
+
+                            <div class="flex flex-col gap-2 h-full">
                                 <label
                                     class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Deskripsi
                                     Singkat</label>
-                                <textarea id="edit_deskripsi" name="deskripsi" rows="2"
-                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none"></textarea>
+                                <textarea id="edit_deskripsi" name="deskripsi" rows="6"
+                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-3 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none resize-none h-full text-sm font-medium"></textarea>
                             </div>
                         </div>
 
+                        <!-- BARIS SEJAJAR: STOK & INFO (UNIFIED SEGMENT) -->
+                        <div class="md:col-span-2 pt-4 mt-2 border-t border-dashed border-primary/20 dark:border-white/10">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Group: Input Stok -->
+                                <div class="flex flex-col gap-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Status</label>
+                                            <div class="relative">
+                                                <select id="edit_status" name="status"
+                                                    class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-2.5 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer truncate text-sm">
+                                                    <option value="tersedia">Tersedia</option>
+                                                    <option value="tidak_tersedia">Tidak Tersedia</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500 dark:text-white/60">
+                                                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider">Total Stok</label>
+                                            <input type="number" id="edit_stok" name="stok_total"
+                                                class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-2.5 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none text-sm"
+                                                required>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-amber-600 dark:text-amber-500">Rusak</label>
+                                            <input type="number" id="edit_rusak" name="stok_rusak"
+                                                class="bg-background-light dark:bg-[#120C0A] border border-amber-200 dark:border-amber-900/30 rounded-lg px-4 py-2.5 text-amber-700 dark:text-amber-500 focus:ring-1 focus:ring-amber-500 outline-none text-sm"
+                                                min="0">
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-xs font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider text-red-600 dark:text-red-500">Hilang</label>
+                                            <input type="number" id="edit_hilang" name="stok_hilang"
+                                                class="bg-background-light dark:bg-[#120C0A] border border-red-200 dark:border-red-900/30 rounded-lg px-4 py-2.5 text-red-700 dark:text-red-500 focus:ring-1 focus:ring-red-500 outline-none text-sm"
+                                                min="0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Group: Info Box -->
+                                <div class="flex flex-col justify-center">
+                                    <div class="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-200/50 dark:border-blue-900/30 text-[11px] leading-relaxed text-blue-700 dark:text-blue-300 h-full flex flex-col justify-center">
+                                        <div class="font-bold mb-2 flex items-center gap-2 text-blue-800 dark:text-blue-200 text-xs">
+                                            <span class="material-symbols-outlined text-sm">info</span>
+                                            Manajemen Stok
+                                        </div>
+                                        <ul class="space-y-1.5 opacity-90">
+                                            <li class="flex items-start gap-2">
+                                                <span class="mt-1 w-1 h-1 rounded-full bg-blue-400 shrink-0"></span>
+                                                <span>Total = Tersedia + Pinjam + Rusak + Hilang</span>
+                                            </li>
+                                            <li class="flex items-start gap-2">
+                                                <span class="mt-1 w-1 h-1 rounded-full bg-blue-400 shrink-0"></span>
+                                                <span>Perubahan angka di atas akan mengubah Stok Tersedia.</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TOMBOL AKSI -->
                         <div
                             class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
                             <button type="button" onclick="closeModal('editModal')"
                                 class="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold">Batal</button>
                             <button type="submit"
-                                class="px-4 py-2 rounded-lg bg-surface dark:bg-accent text-primary-dark text-sm font-bold hover:brightness-110 transition-all shadow-sm dark:shadow-md">Update
+                                class="px-4 py-2 rounded-lg bg-surface dark:bg-accent text-primary-dark text-sm font-bold hover:brightness-110 transition-all shadow-sm">Update
                                 Buku</button>
                         </div>
                     </form>

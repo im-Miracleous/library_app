@@ -204,8 +204,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="p-4">${penulisHighlighted}</td>
                     <td class="p-4 text-center">
-                        <span class="font-bold ${stockClass}">${item.stok_tersedia}</span>
-                        <span class="text-slate-400 dark:text-white/30 text-xs">/${item.stok_total}</span>
+                        <div class="flex flex-col items-center">
+                            <div>
+                                <span class="font-bold ${stockClass}">${item.stok_tersedia}</span>
+                                <span class="text-slate-400 dark:text-white/30 text-xs">/${item.stok_total}</span>
+                            </div>
+                            <div class="text-[10px] flex gap-2 mt-0.5">
+                                ${item.stok_rusak > 0 ? `<span class="text-amber-600 dark:text-amber-400" title="Rusak">R:${item.stok_rusak}</span>` : ''}
+                                ${item.stok_hilang > 0 ? `<span class="text-red-600 dark:text-red-400" title="Hilang">H:${item.stok_hilang}</span>` : ''}
+                            </div>
+                        </div>
                     </td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded text-xs font-bold uppercase ${statusClass}">

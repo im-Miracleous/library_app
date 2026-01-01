@@ -71,13 +71,17 @@
                                             Menunggu Verifikasi
                                         </span>
                                     @elseif($loan->status_transaksi == 'berjalan')
-                                        <span
-                                            class="px-2 py-1 rounded-md bg-blue-100 text-blue-600 text-[10px] font-bold uppercase tracking-wider block w-fit whitespace-nowrap">
-                                            Sedang Berjalan
-                                        </span>
-                                        <p class="text-[10px] text-slate-500 mt-1 whitespace-nowrap">
-                                            Jatuh Tempo: {{ \Carbon\Carbon::parse($loan->tanggal_jatuh_tempo)->format('d/m/Y') }}
-                                        </p>
+                                                            <span
+                                                                class="px-2 py-1 rounded-md bg-blue-100 text-blue-600 text-[10px] font-bold uppercase tracking-wider block w-fit whitespace-nowrap">
+                                                                Sedang Berjalan
+                                                            </span>
+                                                            @php
+                                                                $isOverdue = \Carbon\Carbon::parse($loan->tanggal_jatuh_tempo)->isPast();
+                                                            @endphp
+                                         <p
+                                                                class="text-[10px] mt-1 whitespace-nowrap {{ $isOverdue ? 'text-red-600 dark:text-red-400 font-bold animate-pulse' : 'text-slate-500 dark:text-white/40' }}">
+                                                                Jatuh Tempo: {{ \Carbon\Carbon::parse($loan->tanggal_jatuh_tempo)->format('d/m/Y') }}
+                                                            </p>
                                     @elseif($loan->status_transaksi == 'selesai')
                                         <span
                                             class="px-2 py-1 rounded-md bg-green-100 text-green-600 text-[10px] font-bold uppercase tracking-wider block w-fit whitespace-nowrap">

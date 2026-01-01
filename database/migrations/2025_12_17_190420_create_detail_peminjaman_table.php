@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->foreign('id_buku')->references('id_buku')->on('buku')->onDelete('cascade');
 
             $table->integer('jumlah')->default(1);
-            $table->enum('status_buku', ['dipinjam', 'dikembalikan', 'terlambat', 'hilang', 'diajukan', 'ditolak'])->default('diajukan');
+            $table->enum('status_buku', ['dipinjam', 'dikembalikan', 'terlambat', 'hilang', 'rusak', 'diajukan', 'ditolak'])->default('diajukan');
             $table->date('tanggal_kembali_aktual')->nullable();
             $table->timestamps();
         });

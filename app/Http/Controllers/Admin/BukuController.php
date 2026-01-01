@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Buku;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class BukuController extends Controller
 {
@@ -71,10 +72,17 @@ class BukuController extends Controller
             'stok_total' => 'required|integer|min:0',
             'deskripsi' => 'nullable|string',
             'kode_dewey' => 'nullable|string',
+            'gambar_sampul' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
         // Stok tersedia awal = stok total
         $validated['stok_tersedia'] = $validated['stok_total'];
+
+        // Handle File Upload
+        if ($request->hasFile('gambar_sampul')) {
+            $path = $request->file('gambar_sampul')->store('covers', 'public');
+            $validated['gambar_sampul'] = $path;
+        }
 
         Buku::create($validated);
 
@@ -100,19 +108,62 @@ class BukuController extends Controller
             'isbn' => 'nullable|string|unique:buku,isbn,' . $id . ',id_buku',
             'stok_total' => 'required|integer|min:0',
             'deskripsi' => 'nullable|string',
-            'status' => 'required|in:tersedia,rusak,hilang',
+            'status' => 'required|in:tersedia,tidak_tersedia',
             'kode_dewey' => 'nullable|string',
+            'stok_rusak' => 'nullable|integer|min:0',
+            'stok_hilang' => 'nullable|integer|min:0',
+            'gambar_sampul' => 'nullable|image|max:2048',
         ]);
+
+        // Hitung Stock Tersedia Baru (Formula: Tersedia = Total - Dipinjam - Rusak - Hilang)
+        // Kita butuh 'Dipinjam' saat ini, yang bisa didapat dari snapshot sebelumnya.
+        // Dipinjam = OldTotal - OldTersedia - OldRusak - OldHilang
+
+        $currentDipinjam = $buku->stok_total - $buku->stok_tersedia - $buku->stok_rusak - $buku->stok_hilang;
+
+
+        $currentDipinjam = max(0, $currentDipinjam); // Safety
+
+        // Handle Image Update
+        if ($request->hasFile('gambar_sampul')) {
+            // Delete old image if exists
+            if ($buku->gambar_sampul && Storage::disk('public')->exists($buku->gambar_sampul)) {
+                Storage::disk('public')->delete($buku->gambar_sampul);
+            }
+            // Store new image
+            $path = $request->file('gambar_sampul')->store('covers', 'public');
+            $validated['gambar_sampul'] = $path;
+        }
+
+        $newTotal = $request->stok_total;
+        $newRusak = $request->input('stok_rusak', $buku->stok_rusak); // Default ke old value jika tidak ada input
+        $newHilang = $request->input('stok_hilang', $buku->stok_hilang); // Default ke old value
+
+        // Calculate New Available
+        $newTersedia = $newTotal - $currentDipinjam - $newRusak - $newHilang;
+
+        if ($newTersedia < 0) {
+            return back()->with('error', 'Update gagal. Stok Total tidak cukup untuk menutupi buku yang sedang dipinjam/rusak/hilang.');
+        }
+
+        $validated['stok_rusak'] = $newRusak;
+        $validated['stok_hilang'] = $newHilang;
+        $validated['stok_tersedia'] = $newTersedia;
 
         // Update data
         $buku->update($validated);
 
-        return redirect()->back()->with('success', 'Data buku berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data buku & stok berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         $buku = Buku::findOrFail($id);
+
+        if ($buku->gambar_sampul && Storage::disk('public')->exists($buku->gambar_sampul)) {
+            Storage::disk('public')->delete($buku->gambar_sampul);
+        }
+
         $buku->delete();
         return redirect()->back()->with('success', 'Buku berhasil dihapus.');
     }

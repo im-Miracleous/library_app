@@ -2,8 +2,24 @@
 
 @php
     $pendingVerificationCount = 0;
-    if (Auth::check() && in_array(Auth::user()->peran, ['admin', 'petugas', 'owner'])) {
-        $pendingVerificationCount = \App\Models\Peminjaman::where('status_transaksi', 'menunggu_verifikasi')->count();
+    $overdueLoansCount = 0;
+
+    if (Auth::check()) {
+        if (in_array(Auth::user()->peran, ['admin', 'petugas', 'owner'])) {
+            $pendingVerificationCount = \App\Models\Peminjaman::where('status_transaksi', 'menunggu_verifikasi')->count();
+        } elseif (Auth::user()->peran === 'anggota') {
+            $overdueLoansCount = \App\Models\Peminjaman::where('id_pengguna', Auth::user()->id_pengguna)
+                ->where('status_transaksi', 'berjalan')
+                ->where('tanggal_jatuh_tempo', '<', now())
+                ->count();
+        }
+    }
+
+    $unreadNotifications = collect();
+    if (Auth::check()) {
+        $unreadNotifications = auth()->user()->unreadNotifications->reject(function ($notification) {
+            return ($notification->data['title'] ?? '') === 'Peminjaman Jatuh Tempo';
+        })->take(5);
     }
 @endphp
 
@@ -27,7 +43,8 @@
 
         <h2
             class="text-primary-dark dark:text-white text-xl sm:text-2xl font-bold tracking-tight truncate whitespace-nowrap">
-            {!! $title !!}</h2>
+            {!! $title !!}
+        </h2>
     </div>
 
     <div class="flex-1 max-w-xl px-4 lg:px-8 mx-4 hidden md:flex justify-end lg:justify-center min-w-[320px]">
@@ -84,10 +101,10 @@
                 class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-surface-dark text-primary-dark dark:text-white hover:bg-primary/10 dark:hover:bg-[#36271F] transition-all duration-500 relative shadow-sm border border-primary/20 dark:border-transparent cursor-pointer shrink-0">
                 <span class="material-symbols-outlined">notifications</span>
 
-                @if(auth()->user()->unreadNotifications->count() > 0 || $pendingVerificationCount > 0)
+                @if(auth()->user()->unreadNotifications->count() > 0 || $pendingVerificationCount > 0 || $overdueLoansCount > 0)
                     <span
-                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark {{ $pendingVerificationCount > 0 ? 'animate-ping' : 'animate-pulse' }}"></span>
-                    @if($pendingVerificationCount > 0)
+                        class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark {{ ($pendingVerificationCount > 0 || $overdueLoansCount > 0) ? 'animate-ping' : 'animate-pulse' }}"></span>
+                    @if($pendingVerificationCount > 0 || $overdueLoansCount > 0)
                         <span
                             class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-surface-dark"></span>
                     @endif
@@ -142,8 +159,38 @@
                         </a>
                     @endif
 
+                    {{-- Overdue Warnings (High Priority for Members) --}}
+                    @if($overdueLoansCount > 0)
+                        <a href="{{ route('member.peminjaman.index', ['tab' => 'berjalan']) }}"
+                            class="no-bounce block px-4 py-4 bg-red-50/50 dark:bg-red-400/5 hover:bg-red-100/50 dark:hover:bg-red-400/10 transition-all border-b border-red-100 dark:border-red-900/30 group">
+                            <div class="flex gap-4">
+                                <div class="shrink-0">
+                                    <div
+                                        class="size-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform animate-pulse">
+                                        <span class="material-symbols-outlined text-[20px]">warning</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <h4 class="text-xs font-bold text-red-800 dark:text-red-300">Peminjaman Terlambat
+                                        </h4>
+                                        <div class="flex items-center gap-1">
+                                            <span class="size-1.5 rounded-full bg-red-500 animate-ping"></span>
+                                            <span
+                                                class="text-[10px] text-red-600 dark:text-red-400 font-bold uppercase">Segera</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-red-700/70 dark:text-red-400/50 font-medium leading-relaxed">
+                                        Ada {{ $overdueLoansCount }} peminjaman yang melewati batas waktu. Harap segera
+                                        kembalikan buku.
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    @endif
+
                     <div id="unread-notification-list">
-                        @forelse(auth()->user()->unreadNotifications->take(5) as $notification)
+                        @forelse($unreadNotifications as $notification)
                             <form action="{{ route('notifikasi.read', $notification->id) }}" method="POST" class="block">
                                 @csrf
                                 <button type="submit"
@@ -159,8 +206,8 @@
                                             };
                                         @endphp
                                         <div class="size-10 rounded-xl flex items-center justify-center 
-                                                        {{ $ncolor }} 
-                                                        dark:bg-white/5 group-hover:scale-110 transition-transform">
+                                                            {{ $ncolor }} 
+                                                            dark:bg-white/5 group-hover:scale-110 transition-transform">
                                             <span class="material-symbols-outlined text-[20px]">
                                                 {{ $nicon }}
                                             </span>
@@ -182,7 +229,7 @@
                                 </button>
                             </form>
                         @empty
-                            @if($pendingVerificationCount == 0)
+                            @if($pendingVerificationCount == 0 && $overdueLoansCount == 0)
                                 <div class="p-8 text-center text-gray-400 dark:text-white/20">
                                     <span class="material-symbols-outlined text-4xl mb-2 opacity-50">notifications_off</span>
                                     <p class="text-sm">Tidak ada notifikasi baru</p>

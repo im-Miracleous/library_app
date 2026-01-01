@@ -131,18 +131,24 @@
                             $colorIndex = abs(crc32($buku->id_buku)) % count($colors);
                             $randomColor = $colors[$colorIndex]; 
                         @endphp
-                        <div
-                            class="w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl bg-gradient-to-br {{ $randomColor }} relative flex items-center justify-center text-white p-6">
-                            <div class="absolute inset-y-0 left-0 w-3 bg-white/20"></div>
-                            <div class="text-center">
-                                <span
-                                    class="material-symbols-outlined text-[80px] drop-shadow-xl mb-4">auto_stories</span>
-                                <h2
-                                    class="text-xl font-black uppercase tracking-widest drop-shadow-md border-t-2 border-white/40 pt-4">
-                                    {{ $buku->judul }}
-                                </h2>
+                        @if($buku->gambar_sampul)
+                            <img src="{{ asset('storage/' . $buku->gambar_sampul) }}" 
+                                 alt="{{ $buku->judul }}" 
+                                 class="w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl object-cover {{ $buku->stok_tersedia <= 0 ? 'grayscale opacity-50' : '' }}">
+                        @else
+                            <div
+                                class="w-full max-w-[240px] md:max-w-none aspect-[2/3] md:h-full md:max-h-[500px] shadow-2xl rounded-tr-2xl rounded-br-2xl bg-gradient-to-br {{ $randomColor }} relative flex items-center justify-center text-white p-6 {{ $buku->stok_tersedia <= 0 ? 'grayscale opacity-50' : '' }}">
+                                <div class="absolute inset-y-0 left-0 w-3 bg-white/20"></div>
+                                <div class="text-center">
+                                    <span
+                                        class="material-symbols-outlined text-[80px] drop-shadow-xl mb-4">auto_stories</span>
+                                    <h2
+                                        class="text-xl font-black uppercase tracking-widest drop-shadow-md border-t-2 border-white/40 pt-4">
+                                        {{ $buku->judul }}
+                                    </h2>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
 
                     <!-- Details Section -->
@@ -271,10 +277,15 @@
                                     @endif
                                 @endif
                             @else
-                                <button disabled
-                                    class="w-full bg-slate-200 dark:bg-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed">
-                                    Stok Habis
-                                </button>
+                                <div class="w-full p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-center gap-3">
+                                    <div class="size-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-red-600 dark:text-red-400">inventory_2</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-red-800 dark:text-red-400">Buku Tidak Tersedia</p>
+                                        <p class="text-xs text-red-600 dark:text-red-400/70">Maaf, semua unit buku ini sedang dipinjam atau sedang tidak tersedia saat ini.</p>
+                                    </div>
+                                </div>
                             @endif
                         </div>
                     </div>

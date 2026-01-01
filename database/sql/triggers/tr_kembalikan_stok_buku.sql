@@ -10,10 +10,24 @@ BEGIN
         WHERE id_buku = NEW.id_buku;
     END IF;
 
-    -- 2. Bertambah saat status berubah dari 'dipinjam' ke 'dikembalikan' (Pengembalian buku)
+    -- 2. Bertambah saat status berubah dari 'dipinjam' ke 'dikembalikan' (Pengembalian buku normal)
     IF OLD.status_buku = 'dipinjam' AND NEW.status_buku = 'dikembalikan' THEN
         UPDATE buku 
         SET stok_tersedia = stok_tersedia + OLD.jumlah 
+        WHERE id_buku = NEW.id_buku;
+    END IF;
+
+    -- 3. Bertambah stok rusak (Pengembalian buku rusak)
+    IF OLD.status_buku = 'dipinjam' AND NEW.status_buku = 'rusak' THEN
+        UPDATE buku 
+        SET stok_rusak = stok_rusak + OLD.jumlah 
+        WHERE id_buku = NEW.id_buku;
+    END IF;
+
+    -- 4. Bertambah stok hilang (Pengembalian buku hilang)
+    IF OLD.status_buku = 'dipinjam' AND NEW.status_buku = 'hilang' THEN
+        UPDATE buku 
+        SET stok_hilang = stok_hilang + OLD.jumlah 
         WHERE id_buku = NEW.id_buku;
     END IF;
 END
