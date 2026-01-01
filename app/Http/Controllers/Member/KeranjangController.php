@@ -17,8 +17,20 @@ class KeranjangController extends Controller
     {
         $userId = Auth::user()->id_pengguna;
         $items = Keranjang::with('buku')->where('id_pengguna', $userId)->get();
+        // Get current total (active loans + cart) from settings
+        $pengaturan = \App\Models\Pengaturan::first();
+        $maxBuku = $pengaturan->maksimal_buku_pinjam ?? 3;
 
-        return view('member.keranjang.index', compact('items'));
+        $activeBooksCount = DB::table('detail_peminjaman')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->where('peminjaman.id_pengguna', $userId)
+            ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
+            ->where('detail_peminjaman.status_buku', 'dipinjam')
+            ->sum('detail_peminjaman.jumlah');
+
+        $limitReached = ($activeBooksCount + $items->count()) >= $maxBuku;
+
+        return view('member.keranjang.index', compact('items', 'limitReached'));
     }
 
     public function store(Request $request)
@@ -30,10 +42,23 @@ class KeranjangController extends Controller
         $userId = Auth::user()->id_pengguna;
         $bookId = $request->id_buku;
 
-        // Check duplicates
+        // Check duplicates in cart
         $exists = Keranjang::where('id_pengguna', $userId)->where('id_buku', $bookId)->exists();
         if ($exists) {
             return response()->json(['status' => 'error', 'message' => 'Buku sudah ada di keranjang']);
+        }
+
+        // Check if already borrowed (active/pending)
+        $isBorrowed = DB::table('detail_peminjaman')
+            ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
+            ->where('peminjaman.id_pengguna', $userId)
+            ->where('detail_peminjaman.id_buku', $bookId)
+            ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
+            ->where('detail_peminjaman.status_buku', 'dipinjam')
+            ->exists();
+
+        if ($isBorrowed) {
+            return response()->json(['status' => 'error', 'message' => 'Anda sedang meminjam buku ini. Harap kembalikan terlebih dahulu sebelum meminjam ulang.']);
         } // Check stock
         $buku = Buku::find($bookId);
         if ($buku->stok_tersedia <= 0) {
@@ -50,8 +75,11 @@ class KeranjangController extends Controller
 
         $currentCartCount = Keranjang::where('id_pengguna', $userId)->count();
 
-        if (($activeBooksCount + $currentCartCount) >= 3) {
-            return response()->json(['status' => 'error', 'message' => 'Batas peminjaman maks 3 buku tercapai.']);
+        $pengaturan = \App\Models\Pengaturan::first();
+        $maxBuku = $pengaturan->maksimal_buku_pinjam ?? 3;
+
+        if (($activeBooksCount + $currentCartCount) >= $maxBuku) {
+            return response()->json(['status' => 'error', 'message' => "Batas peminjaman maks $maxBuku buku tercapai."]);
         }
 
         Keranjang::create([

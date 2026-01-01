@@ -51,6 +51,29 @@
                     </div>
                 @endif
 
+                {{-- Pending Verifications Notification --}}
+                @if(($stats['pending_verifications'] ?? 0) > 0)
+                    <div class="animate-enter mb-2 p-4 flex items-center justify-between gap-4 text-sm font-medium text-blue-800 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-sm"
+                        role="alert">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="size-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                <span class="material-symbols-outlined">notification_important</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-base">Permintaan Verifikasi</h4>
+                                <p class="text-blue-700/70 dark:text-blue-300/60 font-medium">Ada
+                                    {{ $stats['pending_verifications'] }} peminjaman baru yang menunggu persetujuan Anda.
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('peminjaman.index', ['status' => 'menunggu_verifikasi']) }}"
+                            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-500/20 hover:scale-[1.02] active:scale-95 shrink-0">
+                            Cek Sekarang
+                        </a>
+                    </div>
+                @endif
+
                 <div class="animate-enter flex justify-between items-end">
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white">Selamat Datang,
@@ -107,9 +130,18 @@
                                             </p>
                                         </div>
                                     </div>
+                                    @php
+                                        $badgeClass = match($pinjam->status_transaksi) {
+                                            'berjalan' => 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+                                            'selesai' => 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                                            'menunggu_verifikasi' => 'bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500',
+                                            'ditolak', 'dibatalkan' => 'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400',
+                                            default => 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/50'
+                                        };
+                                    @endphp
                                     <span
-                                        class="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 text-xs font-bold uppercase">
-                                        {{ $pinjam->status_transaksi }}
+                                        class="px-3 py-1 rounded-full {{ $badgeClass }} text-[10px] font-bold uppercase tracking-wider transition-colors">
+                                        {{ str_replace('_', ' ', $pinjam->status_transaksi) }}
                                     </span>
                                 </a>
                             @empty

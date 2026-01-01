@@ -217,12 +217,12 @@ class AuthController extends Controller
                 $user->update(['login_attempts' => 0, 'lockout_time' => null, 'is_locked' => false]);
             }
             // Redirect berdasarkan peran
-            if ($user->peran === 'admin' || $user->peran === 'owner') {
-                return redirect()->intended('/dashboard')->with('success', 'Selamat Datang!');
-            } elseif ($user->peran === 'petugas') {
-                return redirect()->intended('/dashboard')->with('success', 'Selamat Datang!'); // Petugas juga akses dashboard yang sama saat ini
+            // Redirect berdasarkan peran
+            if ($user->peran === 'anggota') {
+                return redirect()->route('member.dashboard')->with('success', 'Selamat Datang Kembali, ' . $user->nama . '!');
             } else {
-                return redirect()->intended('/')->with('success', 'Selamat Datang!');
+                // Admin, Petugas, Owner
+                return redirect()->route('dashboard')->with('success', 'Selamat Datang Kembali, ' . $user->nama . '!');
             }
         }
 

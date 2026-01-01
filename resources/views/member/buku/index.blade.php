@@ -127,6 +127,24 @@
                                         <span class="material-symbols-outlined">visibility</span>
                                     </div>
                                 </div>
+
+                                @if(in_array($item->id_buku, $cartItemIds ?? []))
+                                    <div class="absolute top-2 right-2 z-20">
+                                        <div class="bg-primary/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-md flex items-center gap-1 border border-white/20"
+                                            title="Sudah di keranjang">
+                                            <span class="material-symbols-outlined text-[14px]">shopping_cart</span>
+                                            <span class="hidden sm:inline">Di Keranjang</span>
+                                        </div>
+                                    </div>
+                                @elseif(in_array($item->id_buku, $borrowedBookIds ?? []))
+                                    <div class="absolute top-2 right-2 z-20">
+                                        <div class="bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-md flex items-center gap-1 border border-white/20"
+                                            title="Buku sedang Anda pinjam">
+                                            <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                            <span class="hidden sm:inline">Sedang Dipinjam</span>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Card Footer Info -->
@@ -138,6 +156,7 @@
                                         {{ $item->kategori->nama_kategori ?? 'Umum' }}
                                     </span>
                                 </div>
+
 
                                 <div class="mt-2 flex-1">
                                     <div class="flex justify-between items-start gap-2">
@@ -204,7 +223,7 @@
             event.stopPropagation();
             const btn = document.getElementById(`bookmark-${id}`);
             const icon = btn.querySelector('span');
-            
+
             try {
                 const response = await fetch(`{{ url('/member/buku') }}/${id}/bookmark`, {
                     method: 'POST',
@@ -214,16 +233,16 @@
                         'Accept': 'application/json'
                     }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.status === 'added') {
                     icon.classList.add('filled');
                     icon.style.fontVariationSettings = "'FILL' 1";
                 } else {
                     icon.classList.remove('filled');
                     icon.style.fontVariationSettings = "'FILL' 0";
-                    
+
                     // If we are on the bookmarks filter page, we might want to hide the card
                     if (window.location.search.includes('filter=bookmarks')) {
                         const card = btn.closest('.group');

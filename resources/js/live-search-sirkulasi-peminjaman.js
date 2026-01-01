@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const badges = {
                 'berjalan': 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
                 'selesai': 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
+                'menunggu_verifikasi': 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+                'ditolak': 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
                 'terlambat': 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
             };
             const badgeClass = badges[item.status_transaksi] || 'bg-slate-100 text-slate-600';
@@ -222,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </td>
                 <td class="p-4">
                     <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${badgeClass}">
-                        ${item.status_transaksi}
+                        ${item.status_transaksi.replace(/_/g, ' ')}
                     </span>
                 </td>
                 <td class="p-4 text-right pr-6">

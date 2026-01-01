@@ -71,11 +71,20 @@
                                     </button>
                                 </form>
                             @endif
-                            <a href="{{ route('member.buku.index') }}"
-                                class="text-sm font-bold text-primary hover:text-primary-dark transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[18px]">add</span>
-                                Tambah Buku
-                            </a>
+                            @if($limitReached)
+                                <span
+                                    class="text-sm font-bold text-slate-400 flex items-center gap-1 cursor-not-allowed opacity-60"
+                                    title="Batas peminjaman 3 buku tercapai">
+                                    <span class="material-symbols-outlined text-[18px]">block</span>
+                                    Tambah Buku
+                                </span>
+                            @else
+                                <a href="{{ route('member.buku.index') }}"
+                                    class="text-sm font-bold text-primary hover:text-primary-dark transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[18px]">add</span>
+                                    Tambah Buku
+                                </a>
+                            @endif
                         </div>
                     </div>
 

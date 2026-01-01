@@ -55,15 +55,30 @@
                     </div>
                 @endif
 
+                <!-- Tabs Navigation -->
+                <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-400 dark:border-white/10 pb-1">
+                    <a href="{{ route('peminjaman.index') }}"
+                        class="px-4 py-2 text-sm font-bold transition-all {{ !request('status') ? 'border-b-2 border-primary text-primary dark:text-accent dark:border-accent' : 'text-gray-500 hover:text-primary dark:text-white/60 dark:hover:text-white border-b-2 border-transparent' }}">
+                        Semua
+                    </a>
+                    <a href="{{ route('peminjaman.index', ['status' => 'menunggu_verifikasi']) }}"
+                        class="px-4 py-2 text-sm font-bold transition-all {{ request('status') == 'menunggu_verifikasi' ? 'border-b-2 border-orange-600 text-orange-600 dark:text-orange-400 dark:border-orange-400' : 'text-gray-500 hover:text-orange-600 dark:text-white/60 dark:hover:text-orange-400 border-b-2 border-transparent' }}">
+                        Menunggu Verifikasi
+                    </a>
+                    <a href="{{ route('peminjaman.index', ['status' => 'berjalan']) }}"
+                        class="px-4 py-2 text-sm font-bold transition-all {{ request('status') == 'berjalan' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-white/60 dark:hover:text-blue-400 border-b-2 border-transparent' }}">
+                        Sedang Berjalan
+                    </a>
+                    <a href="{{ route('peminjaman.index', ['status' => 'selesai']) }}"
+                        class="px-4 py-2 text-sm font-bold transition-all {{ request('status') == 'selesai' ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400 dark:border-green-400' : 'text-gray-500 hover:text-green-600 dark:text-white/60 dark:hover:text-green-400 border-b-2 border-transparent' }}">
+                        Selesai
+                    </a>
+                </div>
+
                 <!-- Table Container replaced with x-datatable -->
                 <x-datatable :data="$peminjaman" search-placeholder="Cari Kode atau Peminjam..." search-id="searchInput" :search-value="request('search')">
                     <x-slot:filters>
-                        <select name="status" id="statusFilter"
-                            class="bg-white dark:bg-[#120C0A] border border-primary/20 dark:border-primary/20 rounded-lg px-3 py-2 text-primary-dark dark:text-white text-sm focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none cursor-pointer h-full shadow-sm">
-                            <option value="">Semua Status</option>
-                            <option value="berjalan" {{ request('status') == 'berjalan' ? 'selected' : '' }}>Berjalan</option>
-                            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        </select>
+                        <!-- Filter Slot is now handled by Tabs above -->
                     </x-slot:filters>
 
                     <x-slot:header>
@@ -149,12 +164,13 @@
                                         $badgeClass = match($item->status_transaksi) {
                                             'berjalan' => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
                                             'selesai' => 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400',
-                                            'terlambat' => 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400',
+                                            'menunggu_verifikasi' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+                                            'ditolak' => 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
                                             default => 'bg-slate-100 text-slate-600'
                                         };
                                     @endphp
                                     <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide {{ $badgeClass }}">
-                                        {{ $item->status_transaksi }}
+                                        {{ str_replace('_', ' ', $item->status_transaksi) }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-right pr-6">

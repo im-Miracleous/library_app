@@ -1,13 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasswordResetController;
 
 // 1. Halaman Utama (Root)
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    if (auth()->check()) {
+        if (auth()->user()->peran === 'anggota') {
+            return redirect()->route('member.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 });
 
 // 2. Rute Guest - Hanya bisa diakses jika BELUM login
@@ -95,8 +102,10 @@ Route::middleware(['auth'])->group(function () {
         // Rute Resource untuk Pengunjung (Sirkulasi)
         Route::resource('pengunjung', \App\Http\Controllers\PengunjungController::class);
 
-        // Rute Resource untuk Peminjaman
-        Route::resource('peminjaman', \App\Http\Controllers\PeminjamanController::class);
+        // Rute Resource    // Peminjaman (Sirkulasi) - Admin/Petugas
+        Route::resource('peminjaman', PeminjamanController::class);
+        Route::post('/peminjaman/{id}/approve', [PeminjamanController::class, 'approve'])->name('peminjaman.approve');
+        Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])->name('peminjaman.reject');
 
         // Rute Resource untuk Pengembalian
         Route::get('/pengembalian', [\App\Http\Controllers\PengembalianController::class, 'index'])->name('pengembalian.index');

@@ -63,10 +63,11 @@ class PeminjamanController extends Controller
 
         $cartCount = $items->count();
 
-        // Max 3 books
-        if (($activeBooksCount + $cartCount) > 3) {
+        $maxPeminjaman = \App\Models\Pengaturan::first()->maksimal_buku_pinjam ?? 3;
+
+        if (($activeBooksCount + $cartCount) > $maxPeminjaman) {
             return redirect()->route('member.keranjang.index')
-                ->with('error', "Batas peminjaman maks 3 buku. Sedang dipinjam: $activeBooksCount, Keranjang: $cartCount.");
+                ->with('error', "Batas peminjaman maks $maxPeminjaman buku. Sedang dipinjam: $activeBooksCount, Keranjang: $cartCount.");
         }
 
         return view('member.peminjaman.confirm', compact('items'));
@@ -100,15 +101,16 @@ class PeminjamanController extends Controller
                 ->where('detail_peminjaman.status_buku', 'dipinjam')
                 ->sum('detail_peminjaman.jumlah');
 
-            if (($activeBooksCount + $items->count()) > 3) {
-                throw new \Exception("Melebihi batas total peminjaman (Maks 3 Buku).");
+            $limitPeminjaman = \App\Models\Pengaturan::first()->maksimal_buku_pinjam ?? 3;
+            if (($activeBooksCount + $items->count()) > $limitPeminjaman) {
+                throw new \Exception("Melebihi batas total peminjaman (Maks $limitPeminjaman Buku).");
             }
 
             // 3. Create Header (Trigger will generate ID)
             $peminjaman = new Peminjaman();
             $peminjaman->id_pengguna = $userId;
-            $peminjaman->tanggal_pinjam = now()->toDateString();
-            $peminjaman->tanggal_jatuh_tempo = now()->addDays(7)->toDateString();
+            $peminjaman->tanggal_pinjam = now();
+            $peminjaman->tanggal_jatuh_tempo = now()->addDays(7);
             $peminjaman->status_transaksi = 'menunggu_verifikasi';
             $peminjaman->save();
 
@@ -132,12 +134,19 @@ class PeminjamanController extends Controller
                     'status_buku' => 'dipinjam'
                 ]);
 
-                // Decrement Stock
-                Buku::where('id_buku', $item->id_buku)->decrement('stok_tersedia');
+                // Decrement Stock: 
+                // Removed because database trigger 'tr_kurangi_stok_buku' 
+                // already handles this on DetailPeminjaman insert.
+                // Buku::where('id_buku', $item->id_buku)->decrement('stok_tersedia');
             }
 
             // 6. Clear Cart
             Keranjang::where('id_pengguna', $userId)->delete();
+
+            // 7. Consolidation:
+            // Discrete notifications are removed to avoid "notification overload".
+            // The system now uses a status-based "Verification Task" card in the 
+            // dashboard and notification dropdown that automatically aggregates counts.
 
             DB::commit();
 

@@ -8,8 +8,13 @@ class NotifikasiController extends Controller
 {
     public function index()
     {
+        $pendingVerificationCount = 0;
+        if (auth()->check() && in_array(auth()->user()->peran, ['admin', 'petugas', 'owner'])) {
+            $pendingVerificationCount = \App\Models\Peminjaman::where('status_transaksi', 'menunggu_verifikasi')->count();
+        }
+
         $notifications = auth()->user()->notifications()->paginate(10);
-        return view('notifikasi.index', compact('notifications'));
+        return view('notifikasi.index', compact('notifications', 'pendingVerificationCount'));
     }
 
     public function markAsRead($id)
@@ -19,8 +24,8 @@ class NotifikasiController extends Controller
 
         // Redirect logic with dynamic route regeneration
         if (isset($notification->data['peminjaman_id'])) {
-            // Regenerate route to ensure correct domain/port (fixing localhost vs library_app.test issue)
-            return redirect()->route('peminjaman.show', $notification->data['peminjaman_id']);
+            $routeName = (auth()->user()->peran === 'anggota') ? 'member.peminjaman.show' : 'peminjaman.show';
+            return redirect()->route($routeName, $notification->data['peminjaman_id']);
         }
 
         if (isset($notification->data['link'])) {

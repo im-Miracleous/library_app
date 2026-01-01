@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property \Carbon\Carbon|null $tanggal_pinjam
+ * @property \Carbon\Carbon|null $tanggal_jatuh_tempo
+ */
 class Peminjaman extends Model
 {
     use HasFactory;
@@ -17,10 +21,13 @@ class Peminjaman extends Model
 
     protected $guarded = ['id_peminjaman'];
 
-    protected $casts = [
-        'tanggal_pinjam' => 'date',
-        'tanggal_jatuh_tempo' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'tanggal_pinjam' => 'date',
+            'tanggal_jatuh_tempo' => 'date',
+        ];
+    }
 
     public function pengguna()
     {

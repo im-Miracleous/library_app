@@ -211,20 +211,59 @@
 
                         <div class="mt-auto flex flex-col sm:flex-row gap-4">
                             @if($buku->stok_tersedia > 0)
-                                <button onclick="addToCart('{{ $buku->id_buku }}')" id="btn-add-cart"
-                                    class="flex-1 bg-white dark:bg-primary/5 border-2 border-primary text-primary font-bold py-3 px-6 rounded-xl hover:bg-primary/5 dark:hover:bg-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 btn-loading-state disabled:opacity-70 disabled:cursor-not-allowed">
-                                    <span class="material-symbols-outlined default-icon">add_shopping_cart</span>
-                                    <span
-                                        class="material-symbols-outlined loading-spinner animate-spin-fast">progress_activity</span>
-                                    <span class="btn-text">Tambah Ke Keranjang</span>
-                                </button>
-                                <button onclick="loanNow('{{ $buku->id_buku }}')" id="btn-loan-now"
-                                    class="flex-1 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 btn-loading-state disabled:opacity-70 disabled:cursor-not-allowed">
-                                    <span class="material-symbols-outlined default-icon">assignment_add</span>
-                                    <span
-                                        class="material-symbols-outlined loading-spinner animate-spin-fast">progress_activity</span>
-                                    <span class="btn-text">Ajukan Peminjaman</span>
-                                </button>
+                                @if($isBorrowed)
+                                    <button disabled
+                                        class="w-full bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-500/50 text-emerald-600 dark:text-emerald-400 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 cursor-default">
+                                        <span class="material-symbols-outlined">check_circle</span>
+                                        Anda Sedang Meminjam Buku Ini
+                                    </button>
+                                @elseif($isInCart)
+                                    <button disabled
+                                        class="flex-1 bg-slate-100 dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined">shopping_cart_checkout</span>
+                                        Sudah di Keranjang
+                                    </button>
+                                @elseif($limitReached)
+                                    <button disabled
+                                        class="flex-1 bg-slate-100 dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+                                        title="Batas peminjaman maks 3 buku tercapai">
+                                        <span class="material-symbols-outlined text-[20px]">block</span>
+                                        Limit Tercapai
+                                    </button>
+                                @else
+                                    <button onclick="addToCart('{{ $buku->id_buku }}')" id="btn-add-cart"
+                                        class="flex-1 bg-white dark:bg-primary/5 border-2 border-primary text-primary font-bold py-3 px-6 rounded-xl hover:bg-primary/5 dark:hover:bg-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 btn-loading-state disabled:opacity-70 disabled:cursor-not-allowed">
+                                        <span class="material-symbols-outlined default-icon">add_shopping_cart</span>
+                                        <span
+                                            class="material-symbols-outlined loading-spinner animate-spin-fast">progress_activity</span>
+                                        <span class="btn-text">Tambah Ke Keranjang</span>
+                                    </button>
+                                @endif
+
+                                @if(!$isBorrowed)
+                                    @if($isInCart)
+                                        <button onclick="window.location.href='{{ route('member.keranjang.index') }}'"
+                                            id="btn-loan-now"
+                                            class="flex-1 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined">rocket_launch</span>
+                                            <span class="btn-text">Proses Pengajuan</span>
+                                        </button>
+                                    @elseif($limitReached)
+                                        <button disabled
+                                            class="flex-1 bg-slate-200 dark:bg-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined">block</span>
+                                            <span class="btn-text">Batas Maksimum</span>
+                                        </button>
+                                    @else
+                                        <button onclick="loanNow('{{ $buku->id_buku }}')" id="btn-loan-now"
+                                            class="flex-1 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary-dark hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 btn-loading-state disabled:opacity-70 disabled:cursor-not-allowed">
+                                            <span class="material-symbols-outlined default-icon">assignment_add</span>
+                                            <span
+                                                class="material-symbols-outlined loading-spinner animate-spin-fast">progress_activity</span>
+                                            <span class="btn-text">Ajukan Peminjaman</span>
+                                        </button>
+                                    @endif
+                                @endif
                             @else
                                 <button disabled
                                     class="w-full bg-slate-200 dark:bg-white/10 text-slate-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed">
@@ -295,7 +334,8 @@
                 if (data.status === 'success') {
                     if (!isQuickLoan) {
                         alert('Berhasil: ' + data.message);
-                        window.location.href = "{{ route('member.keranjang.index') }}";
+                        // Redirect to Catalog instead of Cart
+                        window.location.href = "{{ route('member.buku.index') }}";
                     }
                     return true;
                 } else {

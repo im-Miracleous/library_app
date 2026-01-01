@@ -20,9 +20,12 @@ class DashboardController extends Controller
         // Note: status_transaksi 'berjalan' means active. 
         // We need to check if we should count 'menunggu_verifikasi' as separate or not. 
         // User asked for "jumlah buku yang sedang dipinjam".
-        $activeLoansCount = Peminjaman::where('id_pengguna', $userId)
-            ->where('status_transaksi', 'berjalan')
-            ->count();
+        // Hitung TOTAL BUKU yang sedang dipinjam (bukan jumlah transaksi)
+        $activeLoansCount = \App\Models\DetailPeminjaman::whereHas('peminjaman', function ($q) use ($userId) {
+            $q->where('id_pengguna', $userId)
+                ->where('status_transaksi', 'berjalan');
+        })->where('status_buku', 'dipinjam')
+            ->sum('jumlah');
 
         // Count waiting verification
         $pendingLoansCount = Peminjaman::where('id_pengguna', $userId)

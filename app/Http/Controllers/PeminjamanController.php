@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pengaturan;
+use App\Notifications\LoanStatusNotification;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -193,7 +194,84 @@ class PeminjamanController extends Controller
     public function show($id)
     {
         $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])->findOrFail($id);
+
+        // Auto-mark notification as read for this loan
+        if (Auth::check()) {
+            Auth::user()->unreadNotifications
+                ->where('data.peminjaman_id', $id)
+                ->markAsRead();
+        }
+
         return view('sirkulasi.peminjaman.show', compact('peminjaman'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function approve($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+
+        if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
+            return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat disetujui.');
+        }
+
+        $pengaturan = Pengaturan::first();
+        $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
+
+        $peminjaman->update([
+            'status_transaksi' => 'berjalan',
+            'tanggal_pinjam' => now(),
+            'tanggal_jatuh_tempo' => now()->addDays($batasHari),
+        ]);
+
+        // Mark as read after approval
+        Auth::user()->unreadNotifications
+            ->where('data.peminjaman_id', $id)
+            ->markAsRead();
+
+        // Notify Member
+        try {
+            $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'disetujui'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to notify member about loan approval: " . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
+    }
+
+    public function reject($id)
+    {
+        $peminjaman = Peminjaman::with('details.buku')->findOrFail($id);
+
+        if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
+            return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat ditolak.');
+        }
+
+        DB::transaction(function () use ($peminjaman, $id) {
+            // Restore stock
+            foreach ($peminjaman->details as $detail) {
+                $detail->buku->increment('stok_tersedia', $detail->jumlah);
+            }
+
+            $peminjaman->update([
+                'status_transaksi' => 'ditolak',
+            ]);
+
+            // Mark as read after rejection
+            Auth::user()->unreadNotifications
+                ->where('data.peminjaman_id', $id)
+                ->markAsRead();
+        });
+
+        // Notify Member
+        try {
+            $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'ditolak'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to notify member about loan rejection: " . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Peminjaman berhasil ditolak.');
     }
 
     /**
