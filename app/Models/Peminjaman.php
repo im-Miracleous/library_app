@@ -26,6 +26,7 @@ class Peminjaman extends Model
         return [
             'tanggal_pinjam' => 'date',
             'tanggal_jatuh_tempo' => 'date',
+            'is_extended' => 'boolean',
         ];
     }
 

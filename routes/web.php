@@ -104,6 +104,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Rute Resource    // Peminjaman (Sirkulasi) - Admin/Petugas
         Route::resource('peminjaman', PeminjamanController::class);
+        Route::get('/peminjaman/{id}/extend', [PeminjamanController::class, 'extendForm'])->name('peminjaman.extend.form');
+        Route::put('/peminjaman/{id}/extend', [PeminjamanController::class, 'processExtend'])->name('peminjaman.extend.process');
         Route::post('/peminjaman/{id}/approve', [PeminjamanController::class, 'approve'])->name('peminjaman.approve');
         Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])->name('peminjaman.reject');
 

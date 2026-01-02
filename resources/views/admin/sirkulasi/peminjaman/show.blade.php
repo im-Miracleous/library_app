@@ -9,20 +9,22 @@
 
 @section('content')
     <div class="p-4 sm:p-0">
-        <!-- Breadcrumbs -->
         <x-breadcrumb-component parent="Sirkulasi" middle="Peminjaman" :middleLink="route('peminjaman.index')"
             current="Detail" class="mb-6 animate-enter" />
 
         @php
+            $now = \Carbon\Carbon::now();
+            $jatuhTempo = \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo);
+            $isOverdue = $now->greaterThan($jatuhTempo) && $peminjaman->status_transaksi == 'berjalan';
+            $canExtend = ($peminjaman->status_transaksi == 'berjalan') && !$isOverdue;
             $canApproveReject = $peminjaman->status_transaksi == 'menunggu_verifikasi';
             $canReturn = $peminjaman->status_transaksi == 'berjalan';
             $canEdit = ($peminjaman->status_transaksi == 'berjalan') || ($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran == 'owner');
             $canDelete = auth()->user()->peran == 'owner';
-            $hasAnyAction = $canApproveReject || $canReturn || $canEdit || $canDelete;
+            $hasAnyAction = $canApproveReject || $canReturn || $canEdit || $canDelete || $canExtend;
         @endphp
 
         <div class="grid grid-cols-1 {{ $hasAnyAction ? 'lg:grid-cols-3' : '' }} gap-6 animate-enter delay-100">
-
             <!-- Left Column: Transaction Details -->
             <div class="{{ $hasAnyAction ? 'lg:col-span-2' : '' }} flex flex-col gap-6">
                 <div
@@ -34,15 +36,32 @@
                             </div>
                             Informasi Transaksi
                         </h3>
-                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide 
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide 
                                     @if($peminjaman->status_transaksi == 'berjalan') bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400
                                     @elseif($peminjaman->status_transaksi == 'menunggu_verifikasi') bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400
                                     @elseif($peminjaman->status_transaksi == 'selesai') bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400
                                     @elseif($peminjaman->status_transaksi == 'ditolak') bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400
                                     @else bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-400 @endif">
-                            {{ str_replace('_', ' ', $peminjaman->status_transaksi) }}
-                        </span>
+                                {{ str_replace('_', ' ', $peminjaman->status_transaksi) }}
+                            </span>
+                        </div>
                     </div>
+
+                    {{-- Indikator Visual Jika Sudah Diperpanjang --}}
+                    @if($peminjaman->is_extended)
+                        <div class="mb-6 p-3 bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-100 dark:border-cyan-500/20 rounded-xl flex items-center gap-3">
+                            <div class="size-8 rounded-full bg-cyan-100 dark:bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-cyan-600 dark:text-cyan-400 text-sm">update</span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-wide">Status Perpanjangan</div>
+                                <div class="text-xs text-cyan-700 dark:text-cyan-400/80">
+                                    Transaksi ini <strong>telah diperpanjang</strong> dari tanggal sebelumnya.
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
@@ -74,12 +93,9 @@
                             <div
                                 class="text-[10px] text-slate-500 dark:text-white/60 uppercase tracking-wider mb-1 font-bold">
                                 Jatuh Tempo</div>
-                            @php
-                                $isOverdue = \Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)) && $peminjaman->status_transaksi == 'berjalan';
-                            @endphp
                             <div
                                 class="font-bold {{ $isOverdue ? 'text-red-600 dark:text-red-400 animate-pulse' : 'text-slate-800 dark:text-white' }} flex items-center gap-2">
-                                {{ \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo)->translatedFormat('d F Y') }}
+                                {{ $jatuhTempo->translatedFormat('d F Y') }}
                                 @if($isOverdue)
                                     <span
                                         class="text-[10px] uppercase bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-500/30 animate-none">Terlambat</span>
@@ -185,7 +201,6 @@
                                             @if($detail->tanggal_kembali_aktual)
                                                 @php
                                                     $tglKembali = \Carbon\Carbon::parse($detail->tanggal_kembali_aktual);
-                                                    $jatuhTempo = \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo);
                                                     $isLateReturn = $tglKembali->startOfDay()->gt($jatuhTempo->startOfDay());
                                                 @endphp
                                                 <span class="{{ $isLateReturn ? 'text-red-600 dark:text-red-400 font-bold' : '' }}">
@@ -211,6 +226,8 @@
                 <div class="flex flex-col gap-6">
                     <div
                         class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm lg:sticky lg:top-6">
+                        
+                        {{-- APPROVE / REJECT --}}
                         @if($canApproveReject)
                             <div
                                 class="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-orange-100 dark:border-white/5 mb-6">
@@ -246,6 +263,15 @@
 
                         <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-6">Aksi</h3>
 
+    
+                        @if($canExtend)
+                             <a href="{{ route('peminjaman.extend.form', $peminjaman->id_peminjaman) }}"
+                                class="w-full py-3.5 bg-orange-500 text-white hover:bg-orange-600 rounded-xl font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 mb-3">
+                                <span class="material-symbols-outlined">more_time</span>
+                                Perpanjang Peminjaman
+                            </a>
+                        @endif
+
                         @if($canReturn)
                             <a href="{{ route('pengembalian.show', $peminjaman->id_peminjaman) }}"
                                 class="w-full py-3.5 bg-primary text-white dark:bg-accent dark:text-primary-dark rounded-xl font-bold shadow-lg hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 mb-3">
@@ -280,6 +306,7 @@
 
         </div>
     </div>
+
 
     <!-- MODALS -->
     <!-- Approve Modal -->
