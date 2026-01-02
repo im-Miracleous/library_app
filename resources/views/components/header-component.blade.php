@@ -267,7 +267,7 @@
 
         <!-- Profile Shortcut Button -->
         <a href="{{ route('profile.edit') }}"
-            class="flex items-center gap-3 p-1.5 sm:pr-4 sm:pl-1.5 rounded-full bg-white dark:bg-surface-dark border border-primary/20 dark:border-transparent hover:bg-primary/5 dark:hover:bg-[#36271F] transition-all cursor-pointer group shadow-sm shrink-0">
+            class="flex items-center gap-3 p-1 rounded-full bg-white dark:bg-surface-dark border border-primary/20 dark:border-transparent hover:bg-primary/5 dark:hover:bg-[#36271F] transition-all cursor-pointer group shadow-sm shrink-0 lg:pr-4 lg:pl-1">
             <div
                 class="size-8 rounded-full bg-primary/10 dark:bg-accent/10 flex items-center justify-center text-primary dark:text-accent font-bold group-hover:bg-primary/20 dark:group-hover:bg-accent/20 transition-colors overflow-hidden">
                 @if(Auth::user()->foto_profil)
@@ -277,7 +277,7 @@
                     {{ substr(Auth::user()->nama, 0, 1) }}
                 @endif
             </div>
-            <div class="hidden sm:flex flex-col items-start text-left">
+            <div class="hidden lg:flex flex-col items-start text-left">
                 <span
                     class="text-primary-dark dark:text-white text-xs font-bold leading-tight truncate max-w-[120px]">{{ Auth::user()->nama }}</span>
                 <span

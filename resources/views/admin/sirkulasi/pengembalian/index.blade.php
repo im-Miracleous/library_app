@@ -126,5 +126,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/live-search-sirkulasi-pengembalian.js'])
+    @vite(['resources/js/live-search/live-search-sirkulasi-pengembalian.js'])
 @endpush

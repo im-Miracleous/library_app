@@ -60,12 +60,8 @@ class KepegawaianController extends Controller
 
         // Statistik (Respect Visibility)
         $currentUserPeran = auth()->user()->peran;
-        $allowedRoles = ['admin', 'petugas'];
-        if ($currentUserPeran === 'owner') {
-            $allowedRoles[] = 'owner';
-        }
-
-        $totalPegawai = Pengguna::whereIn('peran', $allowedRoles)->count();
+        // Total Pegawai hanya menghitung Admin & Petugas (Owner tidak termasuk)
+        $totalPegawai = Pengguna::whereIn('peran', ['admin', 'petugas'])->count();
         $totalOwner = $currentUserPeran === 'owner' ? Pengguna::where('peran', 'owner')->count() : 0;
         $totalAdmin = Pengguna::where('peran', 'admin')->count();
         $totalPetugas = Pengguna::where('peran', 'petugas')->count();

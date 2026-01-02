@@ -157,3 +157,52 @@ button:not(:disabled):active, .btn-animated:active {
 .animate-spin-fast {
     animation: spin 0.8s linear infinite;
 }
+
+/* --- LOADING STATES FOR BUTTONS --- */
+.btn-loading-state {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.btn-loading-state.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Light Mode Loading */
+.btn-loading-state.loading.bg-white {
+    background-color: #f1f5f9 !important; /* slate-100 */
+    border-color: #cbd5e1 !important; /* slate-300 */
+    color: #64748b !important; /* slate-500 */
+}
+
+/* Dark Mode Loading */
+.dark .btn-loading-state.loading.bg-white {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Primary Button Loading States */
+.btn-loading-state.loading.bg-primary {
+    background-color: var(--color-primary-mid) !important;
+    opacity: 0.9;
+}
+
+.dark .btn-loading-state.loading.bg-primary {
+    background-color: #451a03 !important; /* very dark brown */
+    opacity: 0.8;
+}
+
+/* Content Toggling during Loading */
+.loading-spinner {
+    display: none;
+}
+
+.loading .loading-spinner {
+    display: block;
+}
+
+.loading .default-icon {
+    display: none;
+}

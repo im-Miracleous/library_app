@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Library App')</title>
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -44,7 +45,7 @@
         <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10 w-full">
             <x-header-component :title="$__env->yieldContent('header-title', 'Dashboard')" />
 
-            <div class="p-4 sm:p-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full">
+            <div class="px-4 sm:px-8 pt-5 sm:pt-8 pb-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full flex-1">
                 {{-- Flash Messages --}}
                 @if (session('error'))
                     <div class="mb-4 lg:mb-6 p-4 flex items-center gap-3 text-sm font-medium text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl animate-enter"
