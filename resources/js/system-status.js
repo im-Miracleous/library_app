@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Polling Function
     function checkSystemStatus() {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // Increase to 10s
 
         fetch('/api/system-status', { signal: controller.signal })
             .then(response => {
@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStatusUI('server', true);
             })
             .catch(error => {
+                // Only mark as offline if it's truly a failure, not just a slow response sometimes
+                console.warn('System check failed:', error.message);
+                if (error.name === 'AbortError') {
+                    // If it just timed out, maybe don't immediately turn it red
+                    // to avoid "flickering" on slow local dev environments
+                    return;
+                }
                 updateStatusUI('db', false);
                 updateStatusUI('server', false);
             });
@@ -67,5 +74,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial Check & Interval
     checkSystemStatus();
-    setInterval(checkSystemStatus, 10000); // Check every 10 seconds
+    setInterval(checkSystemStatus, 15000); // Check every 15 seconds instead of 10
 });

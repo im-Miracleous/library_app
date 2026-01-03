@@ -8,143 +8,240 @@
 </p>
 <br/>
 
-# Panduan Instalasi Project Library App (Laravel 12 + Vite)
+# 📚 Library App - Sistem Manajemen Perpustakaan Digital
 
-Halo semua! 👋 Berikut adalah panduan lengkap untuk menjalankan project ini di komputer kalian masing-masing. Ikuti langkah-langkah ini secara berurutan agar tidak terjadi error.
+Aplikasi manajemen perpustakaan berbasis web menggunakan **Laravel 12** dengan **Docker** untuk environment yang konsisten dan mudah di-deploy.
 
-## 1. Persiapan Software (Prerequisites)
+---
 
-Pastikan komputer kalian sudah terinstal aplikasi berikut:
+## 🚀 Quick Start dengan Docker (Recommended)
 
-1.  **Git**: [Download di sini](https://www.google.com/search?q=https://git-scm.com/downloads "null") (Untuk download kodingan).
-    
-2.  **Laragon** (Rekomendasi) atau **XAMPP**: (Untuk Database MySQL dan PHP).
-    
-    -   _Pastikan PHP versi 8.2 ke atas._
-        
-3.  **Composer**: [Download di sini](https://getcomposer.org/download/ "null") (Untuk install library PHP/Laravel).
-    
-4.  **Node.js** (Versi LTS terbaru): [Download di sini](https://nodejs.org/ "null") (Wajib untuk menjalankan Tailwind CSS/Vite).
-    
+### Prasyarat
+- **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop))
+- **Git** ([Download](https://git-scm.com/downloads))
 
-## 2. Mengambil Project (Clone)
+### Instalasi
 
-1.  Buka folder `www` (jika pakai Laragon) atau `htdocs` (jika pakai XAMPP).
-    
-2.  Klik kanan di ruang kosong > Pilih **Git Bash Here** (atau buka Terminal).
-    
-3.  Ketik perintah ini (ganti URL dengan link repo Github kita):
-    
-    ```
-    git clone [GANTI_INI_DENGAN_URL_GITHUB_ANDA]
-    ```
-    
-4.  Masuk ke folder project:
-    
-    ```
-    cd library_app
-    ```
-    
+1. **Clone Repository**
+   ```bash
+   git clone [URL_REPOSITORY_ANDA]
+   cd library_app
+   ```
 
-## 3. Instalasi Library (PENTING!)
+2. **Setup Environment**
+   ```bash
+   # Copy file .env.example ke .env
+   cp .env.example .env
+   ```
 
-Project ini butuh dua jenis "bumbu" (library) agar bisa jalan. Jalankan perintah ini di terminal **di dalam folder library_app**:
+3. **Start Development Environment**
+   
+   **Windows (PowerShell):**
+   ```powershell
+   .\docker.ps1 dev up
+   ```
+   
+   **Linux/Mac:**
+   ```bash
+   ./docker.sh dev up
+   ```
 
-**A. Install Backend (PHP/Laravel):**
+4. **Build Frontend Assets**
+   ```powershell
+   # Windows
+   .\docker.ps1 dev npm run build
+   
+   # Linux/Mac
+   ./docker.sh dev npm run build
+   ```
 
+5. **Akses Aplikasi**
+   - **Aplikasi**: http://localhost:8000
+   - **phpMyAdmin**: http://localhost:8080
+
+### 🔑 Contoh Akun Login Dummy
+
+- **Admin**: `super@admin.library.com`
+- **Petugas**: `budi@petugas.library.com`
+- **Anggota**: *(Dibuat acak saat seeding database)*
+- **Password**: `password123`
+
+---
+
+## 🐳 Alur Kerja & Environment (Workflow)
+
+Project ini menggunakan pendekatan **Dual-Environment** dengan Docker:
+
+### 1. Development Environment (`dev`) 🛠️
+Digunakan untuk **sehari-hari saat coding**.
+- **Fitur**: Hot Reload (Vite), Debug Mode On, phpMyAdmin.
+- **URL**: `http://localhost:8000`
+- **Cara Pakai**:
+  ```powershell
+  # Start
+  .\docker.ps1 dev up
+  
+  # Coding Frontend (Hot Reload) - Biarkan terminal terbuka
+  .\docker.ps1 dev npm run dev
+  ```
+
+### 2. Production Simulation (`prod`) 🚀
+Digunakan untuk **mengetes hasil akhir** sebelum deploy ke server asli.
+- **Fitur**: Performa tinggi (Opcache/JIT), Security Headers, Caching Agresif, Gzip.
+- **URL**: `http://localhost` (Port 80)
+- **Cara Pakai**:
+  ```powershell
+  # Pastikan dev dimatikan dulu agar port tidak bentrok
+  .\docker.ps1 dev down
+  
+  # Start Production
+  .\docker.ps1 prod up
+  
+  # Reset Total (Jika ada error/cache membandel)
+  .\docker.ps1 prod fresh
+  ```
+
+---
+
+## 🛠️ Command Helper (Cheatsheet)
+
+Script `docker.ps1` (Windows) dan `docker.sh` (Linux/Mac) adalah teman terbaik Anda.
+
+### 🔍 Cek Status
+```powershell
+.\docker.ps1 status
+# Menampilkan environment mana yang aktif dan port-nya.
 ```
+
+### 🧹 Reset & troubleshooting (Jurus Andalan)
+Jika ada error aneh, database nyangkut, atau config tidak berubah:
+```powershell
+# Reset Development (Hapus container + volume + seed ulang DB)
+.\docker.ps1 dev fresh
+
+# Reset Production (Rebuild image + clear cache + fresh DB)
+.\docker.ps1 prod fresh
+```
+
+### 🎨 Frontend
+```powershell
+# Build untuk Production (Wajib dijalankan jika ingin update asset di Prod)
+.\docker.ps1 dev npm run build
+```
+
+### 🗄️ Database & Artisan
+```powershell
+# Masuk ke shell container app
+.\docker.ps1 dev bash
+
+# Management Database
+.\docker.ps1 dev artisan migrate                   # Update struktur tabel
+.\docker.ps1 dev artisan db:seed                   # Isi data dummy/awal
+.\docker.ps1 dev artisan migrate:fresh --seed      # Reset Total (Hapus semua & ulang dari awal)
+
+# Artisan command lainnya (jalankan di app container)
+.\docker.ps1 dev artisan route:list
+```
+
+---
+
+## 🔧 Troubleshooting (Masalah Umum)
+
+### 1. Error "502 Bad Gateway" di Production
+- **Penyebab**: Container `webapp` (Nginx) sudah jalan, tapi `app` (PHP-FPM) belum selesai startup atau crash.
+- **Solusi**:
+  1. Tunggu 10-30 detik (migrasi database di Windows agak lama).
+  2. Cek logs: `.\docker.ps1 prod logs`.
+  3. Jika stuck, gunakan jurus andalan: `.\docker.ps1 prod fresh`.
+
+### 2. Aplikasi Terasa Lambat
+- **Penyebab**: Docker di Windows menggunakan filesystem NTFS yang lambat untuk banyak file kecil (seperti `vendor/` dan `node_modules/`).
+- **Solusi**:
+  - Gunakan **WSL 2** (Ubuntu) untuk menyimpan project code.
+  - Development environment sudah di-tuning dengan Opcache, tapi Production environment akan jauh lebih ngebut.
+
+### 3. "View path not found" atau Error Cache
+- Melakukan `.\docker.ps1 prod fresh` biasanya menyelesaikan masalah ini karena perintah tersebut akan membuat ulang struktur direktori cache yang dibutuhkan.
+
+---
+
+## � Instalasi Manual (Tanpa Docker)
+
+Jika Anda lebih memilih menggunakan XAMPP atau Laragon:
+
+### 1. Persiapan Software
+Pastikan sudah terinstal:
+1. **Git** - [Download](https://git-scm.com/downloads)
+2. **Laragon** atau **XAMPP** - PHP 8.2+
+3. **Composer** - [Download](https://getcomposer.org/download/)
+4. **Node.js** (LTS) - [Download](https://nodejs.org/)
+
+### 2. Clone Project
+```bash
+git clone [URL_REPOSITORY_ANDA]
+cd library_app
+```
+
+### 3. Install Dependencies
+```bash
+# Backend
 composer install
-```
 
-_(Tunggu sampai selesai. Ini akan mendownload folder `vendor`)_.
-
-**B. Install Frontend (Tailwind/Vite):**
-
-```
+# Frontend
 npm install
 ```
 
-_(Tunggu sampai selesai. Ini akan mendownload folder `node_modules`)_.
+### 4. Setup Environment
+```bash
+# Copy .env
+cp .env.example .env
 
-## 4. Konfigurasi Environment (.env)
+# Generate key
+php artisan key:generate
 
-Laravel butuh file pengaturan rahasia bernama `.env`. Kalian harus membuatnya sendiri.
-
-1.  Duplikat file contoh `.env.example` dan ubah namanya menjadi `.env`.
-    
-2.  Generate Kunci Rahasia Aplikasi: Ketik di terminal:
-    
-    ```
-    php artisan key:generate
-    ```
-    
-3.  Edit file `.env` (Buka pakai Notepad/VS Code): Sesuaikan konfigurasi database kalian.
-    
-    **Jika pakai XAMPP (MySQL versi lama/MariaDB):** Tambahkan baris ini di bawah password agar tidak error (Collation Mismatch):
-    
-    ```
-    DB_COLLATION=utf8mb4_unicode_ci
-    ```
-    
-    ⚠️ Setelah menyimpan perubahan pada file .env, wajib jalankan perintah ini di terminal agar konfigurasi terbaca:
-    
-    ```
-    php artisan config:clear
-    ```
-    
-
-## 5. Siapkan Database
-
-1.  Buka aplikasi Database Client kalian (HeidiSQL di Laragon, atau phpMyAdmin di XAMPP). _(Pastikan MySQL/MariaDB sudah berjalan!)_
-    
-2.  Buat database baru dengan nama: **`library_db`**.
-    
-3.  Kembali ke terminal, jalankan perintah ini untuk membuat tabel otomatis & isi data dummy (Migration & Seeder):
-    
-    ```
-    php artisan migrate:fresh --seed
-    ```
-    
-    _(Jika muncul tulisan hijau "DONE", berarti sukses!)_.
-    
-
-## 6. Menjalankan Aplikasi (Run) 🚀
-
-Kalian harus menjalankan **DUA TERMINAL** sekaligus.
-
-**Terminal 1 (Untuk menjalankan Server PHP):**
-
+# Edit .env sesuaikan username/password database Anda
 ```
+
+### 5. Setup Database
+1. Buat database baru bernama `library_db` di phpMyAdmin/HeidiSQL.
+2. Jalankan migrasi:
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+
+### 6. Jalankan Aplikasi
+Buka 2 terminal berbeda:
+
+**Terminal 1 (PHP Server):**
+```bash
 php artisan serve
 ```
 
-_(Biarkan terminal ini terbuka. Jangan diclose)_.
-
-**Terminal 2 (Untuk menjalankan CSS/Tailwind):** Buka tab terminal baru, lalu ketik:
-
-```
+**Terminal 2 (Vite/Tailwind):**
+```bash
 npm run dev
 ```
 
-_(Wajib jalan terus agar tampilan website tidak hancur/putih)_.
+**Akses:** http://127.0.0.1:8000
 
-## 7. Buka di Browser
+---
 
-Akses alamat ini di browser kalian: 👉 **http://127.0.0.1:8000**
+## �📖 Dokumentasi Lengkap
 
-**Akun Login (Data Dummy):**
+- **[Peta Dokumentasi](docs/DOCUMENTATION_MAP.md)** - Mulai dari sini untuk melihat struktur folder
+- **[Laporan Arsitektur](docs/ARCHITECTURE_REPORT.md)** - Detail teknis konfigurasi Production vs Development
+- **[Walkthrough Terakhir](docs/walkthrough.md)** - Log pengerjaan dan perbaikan sistem
 
--   **Admin:** `admin@library.com`
-    
--   **Petugas:** `budi@library.com`
-    
--   **Password:** `Library@2025!` (atau `password123` jika belum diubah).
-    
+---
 
-## Troubleshooting (Jika Error)
+## 💡 Tips untuk Developer Baru
 
--   **Error "Vite manifest not found":** Artinya kalian lupa menjalankan `npm run dev`.
-    
--   **Error Database "Connection Refused":** Cek apakah Laragon/XAMPP (MySQL) sudah di-start?
-    
--   **Tampilan Berantakan:** Pastikan terminal `npm run dev` sedang berjalan.
+1. **Jangan jalankan `dev` dan `prod` bersamaan** kecuali Anda paham mapping port-nya, karena keduanya menggunakan resource database yang berbeda (terisolasi).
+2. **Setup Awal**: Cukup jalankan `cp .env.example .env` lalu `.\docker.ps1 dev fresh`. Anda langsung siap coding!
+3. **Login App**:
+   - **Admin**: `admin@library.com` (Pass: `password123`)
+   - **Petugas**: `budi@library.com` (Pass: `password123`)
+
+---
+
+**Dibuat dengan ❤️ menggunakan Laravel 12 & Docker**
