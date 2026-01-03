@@ -56,11 +56,6 @@
                                 <h4 class="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">
                                     {{ $detail->buku->judul }}
                                 </h4>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] uppercase tracking-wider font-bold bg-slate-100 dark:bg-white/10 text-slate-500 px-1.5 py-0.5 rounded">
-                                        Kode: {{ $detail->buku->kode_buku ?? 'N/A' }}
-                                    </span>
-                                </div>
                             </div>
                         </div>
                         @endforeach
