@@ -69,7 +69,8 @@ class PengunjungController extends Controller
     {
         $request->validate([
             'nama_pengunjung' => 'required|string|max:255',
-            'jenis_pengunjung' => 'required|in:umum,anggota,petugas,admin',
+            // PERUBAHAN DISINI: Hapus 'in:...' ganti jadi 'string|max:255'
+            'jenis_pengunjung' => 'required|string|max:255', 
             'keperluan' => 'nullable|string',
             'id_pengguna' => 'nullable|exists:pengguna,id_pengguna',
         ]);
@@ -86,7 +87,8 @@ class PengunjungController extends Controller
     {
         $request->validate([
             'nama_pengunjung' => 'required|string|max:255',
-            'jenis_pengunjung' => 'required|in:umum,anggota,petugas,admin',
+            // PERUBAHAN DISINI JUGA: Hapus 'in:...' ganti jadi 'string|max:255'
+            'jenis_pengunjung' => 'required|string|max:255',
             'keperluan' => 'nullable|string',
         ]);
 
