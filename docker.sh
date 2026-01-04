@@ -3,12 +3,18 @@
 # Docker Helper Script for Library App
 # Usage: ./docker.sh [dev|prod] [command]
 
-ENV=${1:-dev}
-COMMAND=${2:-up}
+# Handle special case where first param is a command (like 'status')
+if [ "$1" = "status" ]; then
+    COMMAND="status"
+    ENV="dev" # Default, not used for status
+else
+    ENV=${1:-dev}
+    COMMAND=${2:-up}
+fi
 
 COMPOSE_FILE="compose.${ENV}.yaml"
 
-if [ ! -f "$COMPOSE_FILE" ]; then
+if [ "$COMMAND" != "status" ] && [ ! -f "$COMPOSE_FILE" ]; then
     echo "❌ Error: $COMPOSE_FILE not found!"
     echo "Usage: ./docker.sh [dev|prod] [command]"
     exit 1

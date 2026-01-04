@@ -18,13 +18,8 @@ else
     echo "✅ Composer dependencies already installed"
 fi
 
-# Install/update npm dependencies (as current user)
-if [ ! -d "node_modules" ]; then
-    echo "📦 Installing NPM dependencies..."
-    npm install
-else
-    echo "✅ NPM dependencies already installed"
-fi
+# NPM/Frontend assets info
+echo "ℹ️  Note: Frontend assets (NPM/Vite) are handled by the 'workspace' container."
 
 # Generate app key if not exists
 if ! grep -q "APP_KEY=base64:" .env 2>/dev/null; then

@@ -41,18 +41,30 @@ Aplikasi manajemen perpustakaan berbasis web menggunakan **Laravel 12** dengan *
    .\docker.ps1 dev up
    ```
    
-   **Linux/Mac:**
+   **Linux/Mac/WSL:**
+   > **Penting:** Pastikan file script memiliki izin eksekusi.
    ```bash
+   # Beri izin eksekusi (Hanya perlu sekali di awal)
+   chmod +x docker.sh
+   chmod +x docker/development/php-fpm/entrypoint.sh
+   
+   # Jalankan environment
    ./docker.sh dev up
    ```
 
-4. **Build Frontend Assets**
-   ```powershell
-   # Windows
-   .\docker.ps1 dev npm run build
+4. **Install & Run Frontend Assets**
+   Agar tampilan web normal (tidak berantakan), Anda harus menginstal dependensi frontend.
    
-   # Linux/Mac
-   ./docker.sh dev npm run build
+   **Windows:**
+   ```powershell
+   .\docker.ps1 dev npm install
+   .\docker.ps1 dev npm run dev
+   ```
+   
+   **Linux/Mac/WSL:**
+   ```bash
+   ./docker.sh dev npm install
+   ./docker.sh dev npm run dev
    ```
 
 5. **Akses Aplikasi**
@@ -230,7 +242,7 @@ npm run dev
 
 - **[Peta Dokumentasi](docs/DOCUMENTATION_MAP.md)** - Mulai dari sini untuk melihat struktur folder
 - **[Laporan Arsitektur](docs/ARCHITECTURE_REPORT.md)** - Detail teknis konfigurasi Production vs Development
-- **[Walkthrough Terakhir](docs/walkthrough.md)** - Log pengerjaan dan perbaikan sistem
+- **[Panduan Environment](docs/ENVIRONMENT_GUIDE.md)** - Panduan lengkap development vs production dan troubleshooting
 
 ---
 
