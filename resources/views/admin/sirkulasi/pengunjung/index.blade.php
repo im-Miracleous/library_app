@@ -9,7 +9,6 @@
 
 @section('content')
     <div class="flex flex-col gap-6">
-        <!-- Header & Breadcrumb -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-enter">
             <x-breadcrumb-component parent="Sirkulasi" current="Data Pengunjung" />
 
@@ -22,9 +21,7 @@
             </div>
         </div>
 
-        <!-- Input Section (Guest Book) -->
-        <div
-            class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter shadow-sm">
+        <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter shadow-sm">
             <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-6 flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-primary/10 dark:bg-accent/10 flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary dark:text-accent">edit_note</span>
@@ -34,14 +31,35 @@
             <form action="{{ route('pengunjung.store') }}" method="POST"
                 class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 @csrf
-                <x-input id="nama_pengunjung" name="nama_pengunjung" label="Nama Pengunjung" placeholder="Masukkan nama..."
-                    required />
+                <x-input id="nama_pengunjung" name="nama_pengunjung" label="Nama Pengunjung" placeholder="Masukkan nama..." required />
 
-                <x-select id="jenis_pengunjung" name="jenis_pengunjung" label="Status / Role" placeholder="">
-                    <option value="umum">Umum</option>
-                    <option value="anggota">Anggota</option>
-                    <option value="petugas">Staff / Petugas</option>
-                    <option value="admin">Admin</option>
+                <x-select id="jenis_pengunjung" name="jenis_pengunjung" label="Status / Kategori" required placeholder="">
+                    
+                    <optgroup label="Personal & Akademik">
+                        <option value="Umum">Umum / Tamu</option>
+                        <option value="Anggota / Mahasiswa">Anggota / Mahasiswa</option>
+                        <option value="Pelajar / Siswa">Pelajar / Siswa Sekolah</option>
+                        <option value="Dosen / Staff PJS">Dosen / Staff Pengajar</option>
+                        <option value="Peneliti">Peneliti / Riset</option>
+                    </optgroup>
+
+                    <optgroup label="Organisasi & Komunitas">
+                        <option value="Organisasi Internal">Organisasi Internal Kampus</option>
+                        <option value="Organisasi Eksternal">Organisasi / Komunitas Luar</option>
+                        <option value="Nonprofit">Yayasan / Nonprofit / NGO</option>
+                    </optgroup>
+
+                    <optgroup label="Instansi & Perusahaan">
+                        <option value="Pemerintahan">Pemerintahan / Dinas</option>
+                        <option value="Korporasi">Korporasi / Perusahaan Swasta</option>
+                    </optgroup>
+
+                    <optgroup label="Kunjungan Khusus">
+                        <option value="Tamu Undangan">Tamu Undangan / VIP</option>
+                        <option value="Media / Pers">Media / Jurnalis</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </optgroup>
+
                 </x-select>
 
                 <x-input id="keperluan" name="keperluan" label="Keperluan (Opsional)"
@@ -55,7 +73,6 @@
             </form>
         </div>
 
-        <!-- Table Section -->
         <x-datatable :data="$pengunjung" search-placeholder="Cari nama atau keperluan..." search-id="searchInput"
             :search-value="request('search')">
             <x-slot:header>
@@ -65,8 +82,7 @@
                     <div class="flex items-center gap-1">
                         Nama Pengunjung
                         @if(request('sort') == 'nama_pengunjung')
-                            <span
-                                class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                            <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
                         @else
                             <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                         @endif
@@ -77,8 +93,7 @@
                     <div class="flex items-center gap-1">
                         Status
                         @if(request('sort') == 'jenis_pengunjung')
-                            <span
-                                class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                            <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
                         @else
                             <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                         @endif
@@ -90,8 +105,7 @@
                     <div class="flex items-center gap-1">
                         Tanggal Masuk
                         @if(request('sort') == 'created_at')
-                            <span
-                                class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                            <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
                         @else
                             <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
                         @endif
@@ -109,8 +123,7 @@
                         <td class="p-4">
                             <span class="font-bold text-slate-800 dark:text-white">{{ $item->nama_pengunjung }}</span>
                             @if($item->id_pengguna)
-                                <div
-                                    class="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5 font-bold">
+                                <div class="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5 font-bold">
                                     <span class="material-symbols-outlined text-[12px]">verified</span>Terdaftar
                                 </div>
                             @endif
@@ -118,16 +131,31 @@
                         <td class="p-4">
                             @php
                                 $badgeClass = match ($item->jenis_pengunjung) {
-                                    'umum' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
-                                    'anggota' => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
-                                    'petugas' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
-                                    'admin' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
-                                    default => 'bg-slate-100'
+                                    // Kategori Umum
+                                    'Umum', 'Lainnya' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
+                                    
+                                    // Kategori Akademik
+                                    'Anggota / Mahasiswa', 'anggota' => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
+                                    'Pelajar / Siswa' => 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400',
+                                    'Dosen / Staff PJS', 'Peneliti' => 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
+                                    
+                                    // Kategori Organisasi
+                                    'Organisasi Internal', 'Organisasi Eksternal' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
+                                    'Korporasi', 'Nonprofit' => 'bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-400',
+                                    
+                                    // Kategori Resmi/VIP
+                                    'Pemerintahan', 'petugas' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+                                    'Tamu Undangan', 'Media / Pers' => 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400',
+                                    
+                                    // Admin
+                                    'admin' => 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400',
+                                    
+                                    default => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'
                                 };
-                                $roleDisplay = $item->jenis_pengunjung === 'petugas' ? 'Staff' : ucfirst($item->jenis_pengunjung);
+                                
+                                $roleDisplay = ucwords($item->jenis_pengunjung);
                             @endphp
-                            <span
-                                class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide {{ $badgeClass }}">
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide {{ $badgeClass }}">
                                 {{ $roleDisplay }}
                             </span>
                         </td>
@@ -170,7 +198,6 @@
         </x-datatable>
     </div>
 
-    <!-- MODAL EDIT -->
     <x-modal id="editModal" title="Edit Data Pengunjung" maxWidth="lg">
         <x-slot:title_icon>
             <span class="material-symbols-outlined text-blue-500">edit_note</span>
@@ -183,10 +210,32 @@
             <x-input id="edit_nama" name="nama_pengunjung" label="Nama Pengunjung" required />
 
             <x-select id="edit_jenis" name="jenis_pengunjung" label="Status / Role" required placeholder="">
-                <option value="umum">Umum</option>
-                <option value="anggota">Anggota</option>
-                <option value="petugas">Staff / Petugas</option>
-                <option value="admin">Admin</option>
+                
+                <optgroup label="Personal & Akademik">
+                    <option value="Umum">Umum / Tamu</option>
+                    <option value="Anggota / Mahasiswa">Anggota / Mahasiswa</option>
+                    <option value="Pelajar / Siswa">Pelajar / Siswa Sekolah</option>
+                    <option value="Dosen / Staff PJS">Dosen / Staff Pengajar</option>
+                    <option value="Peneliti">Peneliti / Riset</option>
+                </optgroup>
+
+                <optgroup label="Organisasi & Komunitas">
+                    <option value="Organisasi Internal">Organisasi Internal Kampus</option>
+                    <option value="Organisasi Eksternal">Organisasi / Komunitas Luar</option>
+                    <option value="Nonprofit">Yayasan / Nonprofit / NGO</option>
+                </optgroup>
+
+                <optgroup label="Instansi & Perusahaan">
+                    <option value="Pemerintahan">Pemerintahan / Dinas</option>
+                    <option value="Korporasi">Korporasi / Perusahaan Swasta</option>
+                </optgroup>
+
+                <optgroup label="Kunjungan Khusus">
+                    <option value="Tamu Undangan">Tamu Undangan / VIP</option>
+                    <option value="Media / Pers">Media / Jurnalis</option>
+                    <option value="Lainnya">Lainnya</option>
+                </optgroup>
+
             </x-select>
 
             <x-input id="edit_keperluan" name="keperluan" label="Keperluan" />

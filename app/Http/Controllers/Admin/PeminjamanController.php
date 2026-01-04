@@ -308,4 +308,47 @@ class PeminjamanController extends Controller
         $peminjaman->delete();
         return redirect()->route('peminjaman.index')->with('success', 'Transaksi berhasil dihapus.');
     }
+
+    
+    public function extendForm($id)
+    {
+    
+        $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])
+                        ->where('id_peminjaman', $id)
+                        ->firstOrFail();
+
+        $isOverdue = Carbon::now()->gt($peminjaman->tanggal_jatuh_tempo);
+
+        if ($peminjaman->status_transaksi !== 'berjalan' || $isOverdue) {
+            return redirect()->back()->with('error', 'Peminjaman tidak memenuhi syarat untuk diperpanjang (Sudah lewat waktu atau status tidak valid).');
+        }
+
+        
+        $pengaturan = Pengaturan::first();
+        $daysToAdd = $pengaturan->batas_peminjaman_hari ?? 7; 
+
+    
+        $newStartDate = Carbon::now(); 
+        $newDueDate = Carbon::now()->addDays($daysToAdd);
+
+        return view('admin.sirkulasi.peminjaman.extend', compact('peminjaman', 'newStartDate', 'newDueDate', 'daysToAdd'));
+    }
+
+    public function processExtend($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        
+        // Ambil setting lagi untuk keamanan kalkulasi
+        $pengaturan = Pengaturan::first();
+        $daysToAdd = $pengaturan->batas_peminjaman_hari ?? 7;
+
+        // Update Database
+        $peminjaman->update([
+            'tanggal_jatuh_tempo' => Carbon::now()->addDays($daysToAdd),
+            'is_extended' => true, 
+        ]);
+
+        return redirect()->route('peminjaman.show', $peminjaman->id_peminjaman)
+                        ->with('success', 'Berhasil! Masa peminjaman telah diperpanjang.');
+    }
 }
