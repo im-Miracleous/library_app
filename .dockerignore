@@ -1,0 +1,54 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Documentation
+README.md
+*.md
+
+# Development files
+.editorconfig
+.env.example
+phpunit.xml
+.phpunit.result.cache
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Laravel
+/storage/*.key
+/vendor
+.env
+.env.backup
+Homestead.json
+Homestead.yaml
+auth.json
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+tests
+.phpunit.cache
+
+# UML
+uml
+
+# Old docker files (if you want to exclude them)
+docker-compose.yml
+Dockerfile

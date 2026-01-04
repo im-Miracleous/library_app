@@ -1,0 +1,102 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/common/php-fpm/Dockerfile
+      args:
+        user: laravel
+        uid: 1000
+    image: library_app:dev
+    container_name: library_app_dev
+    restart: unless-stopped
+    working_dir: /var/www
+    entrypoint: /var/www/docker/development/php-fpm/entrypoint.sh
+    volumes:
+      # Bind mount for live code editing
+      - ./:/var/www
+      # PHP configuration
+      - ./docker/development/php-fpm/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./docker/development/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      # Make entrypoint executable
+      - ./docker/development/php-fpm/entrypoint.sh:/var/www/docker/development/php-fpm/entrypoint.sh:ro
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-library_app}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      APP_ENV: local
+      APP_DEBUG: "true"
+    depends_on:
+      - db
+    networks:
+      - library_network
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/development/nginx/Dockerfile
+    image: library_web:dev
+    container_name: library_web_dev
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+    networks:
+      - library_network
+
+  workspace:
+    build:
+      context: .
+      dockerfile: docker/development/workspace/Dockerfile
+    image: library_workspace:dev
+    container_name: library_workspace_dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./:/var/www
+    tty: true
+    networks:
+      - library_network
+
+  db:
+    image: mysql:8.0
+    container_name: library_db_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-library_app}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+    volumes:
+      - dbdata_dev:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - library_network
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: library_pma_dev
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    depends_on:
+      - db
+    networks:
+      - library_network
+
+volumes:
+  dbdata_dev:
+    driver: local
+
+networks:
+  library_network:
+    driver: bridge
