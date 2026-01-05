@@ -80,6 +80,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,owner'])->group(function () {
         Route::resource('kepegawaian', \App\Http\Controllers\Admin\KepegawaianController::class);
 
+        Route::get('buku/search-google', [\App\Http\Controllers\Admin\BukuController::class, 'searchGoogleBooks'])->name('buku.search-google');
         Route::resource('buku', \App\Http\Controllers\Admin\BukuController::class);
         Route::resource('kategori', \App\Http\Controllers\Admin\KategoriController::class);
         Route::resource('anggota', \App\Http\Controllers\Admin\AnggotaController::class);

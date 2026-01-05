@@ -14,11 +14,18 @@
         <!-- Header & Action -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-enter">
             <!-- Tombol Tambah -->
-            <button onclick="openModal('createModal')"
-                class="flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
-                <span class="material-symbols-outlined text-lg">add</span>
-                Tambah Buku
-            </button>
+            <div class="flex gap-3">
+                <button onclick="openModal('createModal')"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-primary dark:bg-accent text-white dark:text-primary-dark rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-accent/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    Tambah Buku
+                </button>
+                <button onclick="openModal('googleSearchModal')"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-xl font-bold text-sm shadow-sm dark:shadow-lg dark:shadow-blue-500/10 transition-all hover:scale-105 active:scale-95 duration-200 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">search</span>
+                    Import dari Google Books
+                </button>
+            </div>
 
             <!-- Indikator Statistik Compact -->
             <div class="flex flex-wrap gap-3">
@@ -164,6 +171,37 @@
         </x-datatable>
     </div>
 
+    <!-- MODAL GOOGLE BOOKS SEARCH -->
+    <x-modal id="googleSearchModal" title="Import dari Google Books" maxWidth="4xl">
+        <div class="flex flex-col gap-4">
+            <!-- Search Input -->
+            <div class="flex gap-3">
+                <input type="text" id="googleSearchInput" placeholder="Cari judul buku, penulis, atau ISBN..."
+                    class="flex-1 bg-background-light dark:bg-[#120C0A] border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-slate-700 dark:text-white/80 focus:ring-2 focus:ring-primary dark:focus:ring-accent outline-none text-sm"
+                    onkeypress="if(event.key === 'Enter') searchGoogleBooks()">
+                <button onclick="searchGoogleBooks()"
+                    class="px-5 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-lg">search</span>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="googleSearchLoading" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary dark:border-accent"></div>
+                <p class="mt-3 text-sm text-slate-500 dark:text-white/60">Mencari buku...</p>
+            </div>
+
+            <!-- Results Container -->
+            <div id="googleSearchResults" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto"></div>
+
+            <!-- Empty State -->
+            <div id="googleSearchEmpty" class="hidden text-center py-8 text-slate-500 dark:text-white/40">
+                <span class="material-symbols-outlined text-4xl mb-2 opacity-30">search_off</span>
+                <p class="text-sm">Tidak ada hasil ditemukan</p>
+            </div>
+        </div>
+    </x-modal>
+
     <!-- MODAL TAMBAH -->
     <x-modal id="createModal" title="Tambah Buku" maxWidth="3xl">
         <form action="{{ route('buku.store') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -215,6 +253,7 @@
             </div>
 
             <div class="md:col-span-2 mt-2 flex justify-end gap-3 pt-4 border-t border-primary/20 dark:border-[#36271F]">
+                <input type="hidden" id="create_gambar_sampul_url" name="gambar_sampul_url">
                 <button type="button" onclick="closeModal('createModal')"
                     class="px-4 py-2 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold">Batal</button>
                 <button type="submit"
@@ -345,4 +384,100 @@
 
     <x-image-preview-modal />
     <x-image-zoom-modal />
+
+    <script>
+        function searchGoogleBooks() {
+            const query = document.getElementById('googleSearchInput').value.trim();
+            if (!query) {
+                alert('Masukkan kata kunci pencarian');
+                return;
+            }
+
+            const loading = document.getElementById('googleSearchLoading');
+            const results = document.getElementById('googleSearchResults');
+            const empty = document.getElementById('googleSearchEmpty');
+
+            loading.classList.remove('hidden');
+            results.innerHTML = '';
+            results.classList.add('hidden');
+            empty.classList.add('hidden');
+
+            fetch(`{{ route('buku.search-google') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.classList.add('hidden');
+                    
+                    if (data.books && data.books.length > 0) {
+                        results.classList.remove('hidden');
+                        data.books.forEach(book => {
+                            const card = document.createElement('div');
+                            card.className = 'flex gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 hover:border-primary dark:hover:border-accent cursor-pointer transition-all group';
+                            card.onclick = () => selectBook(book);
+
+                            const thumbnail = book.thumbnail ? 
+                                `<img src="${book.thumbnail}" alt="${book.title}" class="w-16 h-24 object-cover rounded">` :
+                                `<div class="w-16 h-24 bg-slate-200 dark:bg-white/10 rounded flex items-center justify-center"><span class="material-symbols-outlined text-slate-400 dark:text-white/20">book</span></div>`;
+
+                            const year = book.publishedDate ? new Date(book.publishedDate).getFullYear() : 'N/A';
+
+                            card.innerHTML = `
+                                ${thumbnail}
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent line-clamp-2">${book.title}</h4>
+                                    <p class="text-xs text-slate-600 dark:text-white/60 mt-1">${book.authors}</p>
+                                    <p class="text-xs text-slate-500 dark:text-white/40 mt-0.5">${book.publisher} (${year})</p>
+                                    ${book.isbn ? `<p class="text-[10px] text-slate-400 dark:text-white/30 mt-1 font-mono">ISBN: ${book.isbn}</p>` : ''}
+                                </div>
+                            `;
+                            results.appendChild(card);
+                        });
+                    } else {
+                        empty.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    loading.classList.add('hidden');
+                    alert('Terjadi kesalahan saat mencari buku');
+                    console.error(error);
+                });
+        }
+
+        function selectBook(book) {
+            closeModal('googleSearchModal');
+            
+            // Reset search modal
+            document.getElementById('googleSearchInput').value = '';
+            document.getElementById('googleSearchResults').innerHTML = '';
+            
+            // Open create modal
+            setTimeout(() => {
+                openModal('createModal');
+                
+                // Populate form fields
+                document.querySelector('[name="judul"]').value = book.title || '';
+                document.querySelector('[name="penulis"]').value = book.authors || '';
+                document.querySelector('[name="penerbit"]').value = book.publisher || '';
+                
+                // Extract year from publishedDate
+                if (book.publishedDate) {
+                    const year = new Date(book.publishedDate).getFullYear();
+                    document.querySelector('[name="tahun_terbit"]').value = year;
+                }
+                
+                document.querySelector('[name="isbn"]').value = book.isbn || '';
+                document.querySelector('[name="deskripsi"]').value = book.description || '';
+                
+                // Set cover image
+                if (book.thumbnail) {
+                    const previewImg = document.getElementById('create_preview_img');
+                    const previewContainer = document.getElementById('create_preview_container');
+                    const imageUrlInput = document.getElementById('create_gambar_sampul_url');
+                    
+                    previewImg.src = book.thumbnail;
+                    previewContainer.classList.remove('hidden');
+                    imageUrlInput.value = book.thumbnail;
+                }
+            }, 300);
+        }
+    </script>
 @endsection

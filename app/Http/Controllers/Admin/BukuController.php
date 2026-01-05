@@ -8,6 +8,7 @@ use App\Models\Buku;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class BukuController extends Controller
 {
@@ -60,6 +61,63 @@ class BukuController extends Controller
         return view('admin.buku.index', compact('buku', 'kategoriList', 'totalBuku', 'totalStok'));
     }
 
+    public function searchGoogleBooks(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (!$query) {
+            return response()->json(['error' => 'Query parameter required'], 400);
+        }
+
+        try {
+            $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+                'q' => $query,
+                'maxResults' => 10,
+                'langRestrict' => 'id,en'
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $books = [];
+
+                if (isset($data['items'])) {
+                    foreach ($data['items'] as $item) {
+                        $volumeInfo = $item['volumeInfo'] ?? [];
+                        $industryIdentifiers = $volumeInfo['industryIdentifiers'] ?? [];
+                        
+                        // Extract ISBN
+                        $isbn = '';
+                        foreach ($industryIdentifiers as $identifier) {
+                            if (in_array($identifier['type'] ?? '', ['ISBN_13', 'ISBN_10'])) {
+                                $isbn = $identifier['identifier'] ?? '';
+                                break;
+                            }
+                        }
+
+                        $books[] = [
+                            'title' => $volumeInfo['title'] ?? 'No Title',
+                            'authors' => isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : 'Unknown',
+                            'publisher' => $volumeInfo['publisher'] ?? '',
+                            'publishedDate' => $volumeInfo['publishedDate'] ?? '',
+                            'description' => $volumeInfo['description'] ?? '',
+                            'isbn' => $isbn,
+                            'thumbnail' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
+                            'categories' => isset($volumeInfo['categories']) ? implode(', ', $volumeInfo['categories']) : ''
+                        ];
+                    }
+                }
+
+                return response()->json(['books' => $books]);
+            }
+
+            \Log::error('Google Books API Error: ' . $response->body());
+            return response()->json(['error' => 'Failed to fetch data from Google Books'], 500);
+        } catch (\Exception $e) {
+            \Log::error('Google Books Search Exception: ' . $e->getMessage());
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -82,6 +140,23 @@ class BukuController extends Controller
         if ($request->hasFile('gambar_sampul')) {
             $path = $request->file('gambar_sampul')->store('covers', 'public');
             $validated['gambar_sampul'] = $path;
+        } elseif ($request->filled('gambar_sampul_url')) {
+            // Download image from URL (Google Books)
+            try {
+                $imageUrl = $request->input('gambar_sampul_url');
+                $imageContent = Http::get($imageUrl)->body();
+                
+                // Generate unique filename
+                $extension = 'jpg';
+                $filename = 'covers/' . uniqid() . '_' . time() . '.' . $extension;
+                
+                // Store image
+                Storage::disk('public')->put($filename, $imageContent);
+                $validated['gambar_sampul'] = $filename;
+            } catch (\Exception $e) {
+                // If download fails, continue without image
+                \Log::warning('Failed to download book cover: ' . $e->getMessage());
+            }
         }
 
         Buku::create($validated);
