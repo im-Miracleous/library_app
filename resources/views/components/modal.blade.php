@@ -22,7 +22,7 @@
     <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
         onclick="closeModal('{{ $id }}')"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-4">
             <div
                 class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-surface-dark border border-primary/20 dark:border-[#36271F] text-left shadow-2xl transition-all duration-300 scale-95 sm:my-8 sm:w-full {{ $maxWidthClass }}">
                 <div
