@@ -313,7 +313,9 @@ class PeminjamanController extends Controller
     public function extendForm($id)
     {
     
-        $peminjaman = Peminjaman::with(['pengguna', 'details.buku'])
+        $peminjaman = Peminjaman::with(['pengguna', 'details' => function($q) {
+                            $q->where('status_buku', 'dipinjam')->with('buku');
+                        }])
                         ->where('id_peminjaman', $id)
                         ->firstOrFail();
 
@@ -321,6 +323,14 @@ class PeminjamanController extends Controller
 
         if ($peminjaman->status_transaksi !== 'berjalan' || $isOverdue) {
             return redirect()->back()->with('error', 'Peminjaman tidak memenuhi syarat untuk diperpanjang (Sudah lewat waktu atau status tidak valid).');
+        }
+
+        if ($peminjaman->is_extended) {
+            return redirect()->back()->with('error', 'Transaksi ini sudah pernah diperpanjang. Perpanjangan hanya diperbolehkan satu kali.');
+        }
+
+        if ($peminjaman->details->isEmpty()) {
+            return redirect()->back()->with('error', 'Semua buku dalam transaksi ini sudah dikembalikan.');
         }
 
         
@@ -334,21 +344,109 @@ class PeminjamanController extends Controller
         return view('admin.sirkulasi.peminjaman.extend', compact('peminjaman', 'newStartDate', 'newDueDate', 'daysToAdd'));
     }
 
-    public function processExtend($id)
+    public function processExtend(Request $request, $id)
     {
-        $peminjaman = Peminjaman::findOrFail($id);
-        
-        // Ambil setting lagi untuk keamanan kalkulasi
-        $pengaturan = Pengaturan::first();
-        $daysToAdd = $pengaturan->batas_peminjaman_hari ?? 7;
-
-        // Update Database
-        $peminjaman->update([
-            'tanggal_jatuh_tempo' => Carbon::now()->addDays($daysToAdd),
-            'is_extended' => true, 
+        $request->validate([
+            'actions' => 'required|array',
+            'actions.*' => 'required|in:extend,return,keep',
         ]);
 
-        return redirect()->route('peminjaman.show', $peminjaman->id_peminjaman)
-                        ->with('success', 'Berhasil! Masa peminjaman telah diperpanjang.');
+        return DB::transaction(function () use ($request, $id) {
+            $peminjaman = Peminjaman::with('details')->findOrFail($id);
+            $actions = $request->actions;
+
+            $extendIds = [];
+            $returnIds = [];
+            $keepIds = [];
+
+            foreach ($peminjaman->details as $detail) {
+                // Ignore already returned items just in case (though UI hides them or handles them)
+                if ($detail->status_buku !== 'dipinjam') continue;
+
+                $action = $actions[$detail->id_detail_peminjaman] ?? 'keep';
+
+                if ($action === 'extend') {
+                    $extendIds[] = $detail->id_detail_peminjaman;
+                } elseif ($action === 'return') {
+                    $returnIds[] = $detail->id_detail_peminjaman;
+                } else {
+                    $keepIds[] = $detail->id_detail_peminjaman;
+                }
+            }
+
+            // 1. Handle Returns First (Apply to current transaction)
+            if (!empty($returnIds)) {
+                // Update status to 'dikembalikan'
+                // Trigger trigger: tr_kembalikan_stok_buku will handle stock
+                DetailPeminjaman::whereIn('id_detail_peminjaman', $returnIds)->update([
+                    'status_buku' => 'dikembalikan',
+                    'tanggal_kembali_aktual' => Carbon::now(),
+                ]);
+            }
+
+            // 2. Determine Strategy
+            $hasExtend = count($extendIds) > 0;
+            $hasKeep = count($keepIds) > 0;
+
+            $pengaturan = Pengaturan::first();
+            $daysToAdd = $pengaturan->batas_peminjaman_hari ?? 7;
+            $newDueDate = Carbon::now()->addDays($daysToAdd);
+
+            if (!$hasExtend) {
+                // Case: No books extended (All returned or kept)
+                // Just redirect back. Logic above already handled returns.
+                $msg = 'Tidak ada buku yang diperpanjang.';
+                if (count($returnIds) > 0) $msg .= ' Buku yang dipilih telah dikembalikan.';
+                return redirect()->route('peminjaman.show', $id)->with('success', $msg);
+            }
+
+            if ($hasKeep) {
+                // === SCENARIO: SPLIT TRANSACTION ===
+                // We have items to Extend AND items to Keep (on old date).
+                // Move Extend items to a NEW Transaction.
+
+                // Create New Transaction
+                // Gunakan ID generator logic atau UUID? Model menggunakan string, biasanya format custom.
+                // Disini kita asumsi auto-generated atau kita copy pattern dari controller store.
+                // Karena controller store pakai Stored Procedure, kita manual insert saja disini atau panggil SP?
+                // Manual insert Eloquent lebih mudah untuk cloning.
+                
+                // Generate ID: Menggunakan format P-YYYYMMDDHis-XX untuk keunikan tanpa locking sequence
+                $newId = 'P-' . Carbon::now()->format('YmdHis') . rand(10, 99);
+
+                $newPeminjaman = new Peminjaman();
+                $newPeminjaman->id_peminjaman = $newId;
+                $newPeminjaman->id_pengguna = $peminjaman->id_pengguna;
+                $newPeminjaman->tanggal_pinjam = Carbon::now();
+                $newPeminjaman->tanggal_jatuh_tempo = $newDueDate;
+                $newPeminjaman->keterangan = 'Perpanjangan (Split) dari ' . $peminjaman->id_peminjaman;
+                $newPeminjaman->status_transaksi = 'berjalan';
+                $newPeminjaman->is_extended = true;
+                $newPeminjaman->save();
+
+                // Move Details
+                DetailPeminjaman::whereIn('id_detail_peminjaman', $extendIds)->update([
+                    'id_peminjaman' => $newId,
+                    // Status remains 'dipinjam'
+                ]);
+
+                return redirect()->route('peminjaman.show', $newId)
+                    ->with('success', 'Transaksi berhasil dipecah! Buku yang diperpanjang telah dipindahkan ke Kode Transaksi baru ini.');
+
+            } else {
+                // === SCENARIO: BULK EXTEND (NO SPLIT) ===
+                // All active books are being extended (Returns are already handled and closed).
+                // Just update the current transaction.
+                
+                $peminjaman->update([
+                    'tanggal_jatuh_tempo' => $newDueDate,
+                    'is_extended' => true,
+                    'keterangan' => $peminjaman->keterangan . ' (Diperpanjang)',
+                ]);
+
+                return redirect()->route('peminjaman.show', $id)
+                    ->with('success', 'Berhasil! Masa peminjaman telah diperpanjang.');
+            }
+        });
     }
 }

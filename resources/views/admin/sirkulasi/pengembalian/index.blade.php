@@ -76,31 +76,46 @@
                         <td class="p-4 text-slate-600 dark:text-white/70">
                             {{ \Carbon\Carbon::parse($item->tanggal_pinjam)->translatedFormat('d M Y') }}
                         </td>
-                        <td class="p-4 text-slate-600 dark:text-white/70">
-                            {{ \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->translatedFormat('d M Y') }}
+                        <td class="p-4">
+                            @php
+                                $isExtended = $item->is_extended ?? false;
+                                $tglJatuhTempo = \Carbon\Carbon::parse($item->tanggal_jatuh_tempo);
+                            @endphp
+                            <div class="flex flex-col gap-1">
+                                <span class="{{ $isExtended ? 'text-cyan-600 dark:text-cyan-400 font-bold' : 'text-slate-600 dark:text-white/70' }}">
+                                    {{ $tglJatuhTempo->translatedFormat('d M Y') }}
+                                </span>
+                                @if($isExtended)
+                                    <span class="text-[9px] bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider w-fit border border-cyan-200 dark:border-cyan-500/30">
+                                        Extend
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="p-4 text-center">
                             @php
                                 $jatuhTempo = \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->startOfDay();
                                 $diffDays = now()->startOfDay()->diffInDays($jatuhTempo, false);
                             @endphp
-                            
-                            @if($diffDays < 0)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30 animate-pulse">
-                                    <span class="material-symbols-outlined text-sm">warning</span>
-                                    Telat {{ abs($diffDays) }} hari
-                                </span>
-                            @elseif($diffDays == 0)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30">
-                                    <span class="material-symbols-outlined text-sm">event</span>
-                                    Hari Ini
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-blue-200 dark:border-blue-500/30">
-                                    <span class="material-symbols-outlined text-sm">schedule</span>
-                                    {{ $diffDays }} hari lagi
-                                </span>
-                            @endif
+
+                            <div class="flex flex-col items-center gap-1.5">
+                                @if($diffDays < 0)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30 animate-pulse">
+                                        <span class="material-symbols-outlined text-sm">warning</span>
+                                        Telat {{ abs($diffDays) }} hari
+                                    </span>
+                                @elseif($diffDays == 0)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30">
+                                        <span class="material-symbols-outlined text-sm">event</span>
+                                        Hari Ini
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-blue-200 dark:border-blue-500/30">
+                                        <span class="material-symbols-outlined text-sm">schedule</span>
+                                        {{ $diffDays }} hari lagi
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="p-4 text-right pr-6">
                             <a href="{{ route('pengembalian.show', $item->id_peminjaman) }}"

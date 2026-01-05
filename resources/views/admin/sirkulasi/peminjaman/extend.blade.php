@@ -26,11 +26,11 @@
                     </h3>
                     <div class="flex items-start gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                         <div class="size-12 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl">
-                            {{ substr($peminjaman->pengguna->nama_lengkap ?? $peminjaman->pengguna->username, 0, 1) }}
+                            {{ substr($peminjaman->pengguna->nama, 0, 1) }}
                         </div>
                         <div>
                             <div class="text-base font-bold text-slate-800 dark:text-white">
-                                {{ $peminjaman->pengguna->nama_lengkap ?? $peminjaman->pengguna->username }}
+                                {{ $peminjaman->pengguna->nama }}
                             </div>
                             <div class="text-sm text-slate-500 dark:text-white/60">
                                 {{ $peminjaman->pengguna->email }}
@@ -42,20 +42,60 @@
                 <div class="bg-white dark:bg-surface-dark rounded-2xl border border-slate-200 dark:border-white/5 p-6 shadow-sm">
                     <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white mb-4">
                         <span class="material-symbols-outlined text-emerald-500">menu_book</span>
-                        Buku yang Diperpanjang
+                        Buku yang Dipinjam
                     </h3>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-4">
                         @foreach($peminjaman->details as $detail)
-                        <div class="flex gap-4 p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors border border-transparent hover:border-slate-100 dark:hover:border-white/5 items-center">
-                            <div class="w-12 h-16 bg-slate-200 dark:bg-white/10 rounded-md flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-slate-400 text-xl">book_2</span>
+                        <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="w-12 h-16 bg-slate-200 dark:bg-white/10 rounded-md flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-slate-400 text-xl">book_2</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">
+                                        {{ $detail->buku->judul }}
+                                    </h4>
+                                    <p class="text-xs text-slate-500 dark:text-white/60 line-clamp-1">
+                                        {{ $detail->buku->penulis }}
+                                    </p>
+                                </div>
                             </div>
-                            
-                            <div class="flex-1">
-                                <h4 class="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">
-                                    {{ $detail->buku->judul }}
-                                </h4>
+
+                            <!-- Action Selector -->
+                            <div class="grid grid-cols-3 gap-2">
+                                <!-- Option: Extend -->
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="actions[{{ $detail->id_detail_peminjaman }}]" value="extend" class="peer sr-only" checked>
+                                    <div class="h-full p-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-center transition-all peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-500/20 peer-checked:border-yellow-500 peer-checked:text-yellow-700 dark:peer-checked:text-yellow-400 hover:bg-slate-50 dark:hover:bg-white/10">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="material-symbols-outlined text-lg">update</span>
+                                            <span class="text-[10px] font-bold uppercase">Perpanjang</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Option: Returns -->
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="actions[{{ $detail->id_detail_peminjaman }}]" value="return" class="peer sr-only">
+                                    <div class="h-full p-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-center transition-all peer-checked:bg-blue-50 dark:peer-checked:bg-blue-500/20 peer-checked:border-blue-500 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 hover:bg-slate-50 dark:hover:bg-white/10">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="material-symbols-outlined text-lg">arrow_back</span>
+                                            <span class="text-[10px] font-bold uppercase">Kembalikan</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Option: Keep -->
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="actions[{{ $detail->id_detail_peminjaman }}]" value="keep" class="peer sr-only">
+                                    <div class="h-full p-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-center transition-all peer-checked:bg-gray-100 dark:peer-checked:bg-white/20 peer-checked:border-slate-400 peer-checked:text-slate-700 dark:peer-checked:text-white hover:bg-slate-50 dark:hover:bg-white/10">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="material-symbols-outlined text-lg">pause_circle</span>
+                                            <span class="text-[10px] font-bold uppercase">Tetap</span>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         </div>
                         @endforeach

@@ -121,14 +121,26 @@
                             @php
                                 $tglJatuhTempo = \Carbon\Carbon::parse($item->tanggal_jatuh_tempo);
                                 $isLate = $tglJatuhTempo->startOfDay()->lt(now()->startOfDay()) && $item->status_transaksi == 'berjalan';
+                                $isExtended = $item->is_extended ?? false; 
                             @endphp
-                            <span
-                                class="{{ $isLate ? 'text-red-600 font-bold animate-pulse' : 'text-slate-600 dark:text-white/70' }}">
-                                {{ $tglJatuhTempo->translatedFormat('d M Y') }}
-                                @if($isLate)
-                                    <span class="ml-2 text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase">Telat</span>
-                                @endif
-                            </span>
+
+                            <div class="flex flex-col">
+                                <span class="{{ $isLate ? 'text-red-600 font-bold animate-pulse' : ($isExtended ? 'text-cyan-600 dark:text-cyan-400 font-bold' : 'text-slate-600 dark:text-white/70') }}">
+                                    {{ $tglJatuhTempo->translatedFormat('d M Y') }}
+                                </span>
+                                
+                                <div class="flex items-center gap-1 mt-1">
+                                    @if($isLate)
+                                        <span class="text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase font-bold">Telat</span>
+                                    @endif
+                                    
+                                    @if($isExtended)
+                                        <span class="text-[9px] bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider w-fit">
+                                            Extend
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
                         </td>
                         <td class="p-4">
                             @php

@@ -49,6 +49,19 @@
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @if($peminjaman->is_extended)
+                        <div class="md:col-span-2 p-3 bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-100 dark:border-cyan-500/20 rounded-xl flex items-center gap-3">
+                            <div class="size-8 rounded-full bg-cyan-100 dark:bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-cyan-600 dark:text-cyan-400 text-sm">update</span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-wide">Status Perpanjangan</div>
+                                <div class="text-xs text-cyan-700 dark:text-cyan-400/80">
+                                    Transaksi ini <strong>telah diperpanjang</strong> dari tanggal sebelumnya.
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         <div
                             class="p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                             <div

@@ -15,8 +15,8 @@
         @php
             $now = \Carbon\Carbon::now();
             $jatuhTempo = \Carbon\Carbon::parse($peminjaman->tanggal_jatuh_tempo);
-            $isOverdue = $now->greaterThan($jatuhTempo) && $peminjaman->status_transaksi == 'berjalan';
-            $canExtend = ($peminjaman->status_transaksi == 'berjalan') && !$isOverdue;
+            $isOverdue = $now->startOfDay()->greaterThan($jatuhTempo->startOfDay()) && $peminjaman->status_transaksi == 'berjalan';
+            $canExtend = ($peminjaman->status_transaksi == 'berjalan') && !$isOverdue && !$peminjaman->is_extended;
             $canApproveReject = $peminjaman->status_transaksi == 'menunggu_verifikasi';
             $canReturn = $peminjaman->status_transaksi == 'berjalan';
             $canEdit = ($peminjaman->status_transaksi == 'berjalan') || ($peminjaman->status_transaksi == 'selesai' && auth()->user()->peran == 'owner');
