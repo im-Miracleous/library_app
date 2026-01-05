@@ -70,6 +70,13 @@ case $COMMAND in
     status)
         echo "📊 Checking running environments..."
         echo ""
+
+        # Check if Docker is available and running
+        if ! docker info > /dev/null 2>&1; then
+            echo "❌ Error: Docker command is not found or Docker is not running."
+            echo "   Please ensure Docker Desktop is started and WSL integration is enabled."
+            exit 1
+        fi
         
         # Check development
         devContainers=$(docker ps --filter "name=library_.*_dev" --format "{{.Names}}" 2>/dev/null)

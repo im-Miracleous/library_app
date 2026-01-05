@@ -69,6 +69,14 @@ switch ($Command) {
     "status" {
         Write-Host "📊 Checking running environments..." -ForegroundColor Cyan
         Write-Host ""
+
+        # Check if Docker is available and running
+        docker info | Out-Null 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "❌ Error: Docker command is not found or Docker is not running." -ForegroundColor Red
+            Write-Host "   Please ensure Docker Desktop is started." -ForegroundColor Red
+            exit 1
+        }
         
         # Check development
         $devContainers = docker ps --filter "name=library_.*_dev" --format "{{.Names}}" 2>$null
