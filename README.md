@@ -135,6 +135,16 @@ Jika ada error aneh, database nyangkut, atau config tidak berubah:
 .\docker.ps1 prod fresh
 ```
 
+### 🔨 Manual Build
+Gunakan perintah ini jika Anda melakukan perubahan pada `Dockerfile` atau konfigurasi image:
+```powershell
+# Rebuild image Development
+.\docker.ps1 dev build
+
+# Rebuild image Production
+.\docker.ps1 prod build
+```
+
 ### 🎨 Frontend
 ```powershell
 # Build untuk Production (Wajib dijalankan jika ingin update asset di Prod)
