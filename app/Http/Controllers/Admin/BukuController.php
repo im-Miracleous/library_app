@@ -100,7 +100,7 @@ class BukuController extends Controller
                             'publisher' => $volumeInfo['publisher'] ?? '',
                             'publishedDate' => $volumeInfo['publishedDate'] ?? '',
                             'description' => $volumeInfo['description'] ?? '',
-                            'isbn' => $isbn,
+                            'isbn' => $this->formatIsbn($isbn),
                             'thumbnail' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
                             'categories' => isset($volumeInfo['categories']) ? implode(', ', $volumeInfo['categories']) : ''
                         ];
@@ -235,6 +235,24 @@ class BukuController extends Controller
         $buku->update($validated);
 
         return redirect()->back()->with('success', 'Data buku & stok berhasil diperbarui.');
+    }
+
+    private function formatIsbn($isbn)
+    {
+        // Hapus karakter non-digit dan dash
+        $cleanIsbn = preg_replace('/[^0-9]/', '', $isbn);
+        
+        // Cek jika 13 digit
+        if (strlen($cleanIsbn) === 13) {
+            // Format khusus Indonesia (Kelompok 602 dan 979)
+            // Pola umum: 978-GGG-PPP-JJJ-C (3-3-3-3-1)
+            // Contoh user: 978-602-401-581-7
+            if (preg_match('/^978(602|979|623)(\d{3})(\d{3})(\d{1})$/', $cleanIsbn, $matches)) {
+                return "978-{$matches[1]}-{$matches[2]}-{$matches[3]}-{$matches[4]}";
+            }
+        }
+        
+        return $isbn;
     }
 
     public function destroy($id)
