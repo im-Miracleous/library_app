@@ -54,16 +54,18 @@ class BukuController extends Controller
         $cartItems = \App\Models\Keranjang::where('id_pengguna', Auth::user()->id_pengguna)->get();
         $cartItemIds = $cartItems->pluck('id_buku')->toArray();
 
-        $borrowedBooksQuery = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
+        $borrowedDetails = \Illuminate\Support\Facades\DB::table('detail_peminjaman')
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->where('peminjaman.id_pengguna', Auth::user()->id_pengguna)
             ->whereIn('peminjaman.status_transaksi', ['berjalan', 'menunggu_verifikasi'])
-            ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan']);
+            ->whereIn('detail_peminjaman.status_buku', ['dipinjam', 'diajukan'])
+            ->select('detail_peminjaman.id_buku', 'detail_peminjaman.status_buku', 'detail_peminjaman.jumlah')
+            ->get();
 
-        $borrowedBookIds = (clone $borrowedBooksQuery)->where('detail_peminjaman.status_buku', 'dipinjam')->pluck('detail_peminjaman.id_buku')->toArray();
-        $pendingBookIds = (clone $borrowedBooksQuery)->where('detail_peminjaman.status_buku', 'diajukan')->pluck('detail_peminjaman.id_buku')->toArray();
+        $borrowedBookIds = $borrowedDetails->where('status_buku', 'dipinjam')->pluck('id_buku')->toArray();
+        $pendingBookIds = $borrowedDetails->where('status_buku', 'diajukan')->pluck('id_buku')->toArray();
 
-        $activeBooksCount = $borrowedBooksQuery->sum('detail_peminjaman.jumlah');
+        $activeBooksCount = $borrowedDetails->sum('jumlah');
 
         // Calculate limit from settings
         $pengaturan = \App\Models\Pengaturan::first();

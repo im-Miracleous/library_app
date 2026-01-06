@@ -131,7 +131,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="p-4"><span class="px-2 py-1 bg-primary/10 dark:bg-white/5 rounded text-xs font-semibold text-primary-dark dark:text-white/80">{{ $item->kategori->nama_kategori ?? '-' }}</span></td>
+                        <td class="p-4"><span class="px-2 py-1 bg-primary/10 dark:bg-white/5 rounded text-xs font-semibold text-primary-dark dark:text-white/80">{{ $item->nama_kategori ?? '-' }}</span></td>
                         <td class="p-4">{{ $item->penulis }}</td>
                         <td class="p-4 text-center">
                             <div class="flex flex-col items-center">
