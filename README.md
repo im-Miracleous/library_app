@@ -125,14 +125,35 @@ Script `docker.ps1` (Windows) dan `docker.sh` (Linux/Mac) adalah teman terbaik A
 # Menampilkan environment mana yang aktif dan port-nya.
 ```
 
-### 🧹 Reset & troubleshooting (Jurus Andalan)
-Jika ada error aneh, database nyangkut, atau config tidak berubah:
+### 🔍 Bantuan (Help)
+Jika Anda lupa command apa saja yang tersedia, gunakan:
 ```powershell
-# Reset Development (Hapus container + volume + seed ulang DB)
+.\docker.ps1 help
+# atau
+.\docker.ps1 list
+```
+
+### 🧹 Maintenance & Reset (Penting!)
+Script ini dilengkapi fitur maintenance canggih:
+
+```powershell
+# 1. Prune System (Hapus Image Sampah)
+# Membersihkan stopped containers, unused networks, dan unused images.
+# GUNAKAN DENGAN HATI-HATI!
+.\docker.ps1 prune
+
+# 2. Reset Development (Soft Reset)
+# Hapus container & volume dev, lalu build ulang & seed database.
 .\docker.ps1 dev fresh
 
-# Reset Production (Rebuild image + clear cache + fresh DB)
+# 3. Reset Production (Soft Reset)
+# Rebuild image prod + clear cache + fresh DB.
 .\docker.ps1 prod fresh
+
+# 4. NUCLEAR RESET (Hard Reset Project) 🧨
+# Menghapus SEMUA container, image, dan volume KHUSUS project ini.
+# Database akan hilang total. Gunakan jika ingin start benar-benar dar 0.
+.\docker.ps1 reset
 ```
 
 ### 🔨 Manual Build
