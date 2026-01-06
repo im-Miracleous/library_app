@@ -195,10 +195,10 @@ class AuthController extends Controller
             if ($user->status === 'nonaktif') {
                 return back()->withErrors(['email' => 'Akun Anda dinonaktifkan. Silahkan hubungi Administrator.'])->onlyInput('email');
             }
-            if ($user->is_locked) {
+            if ($user->is_locked && $user->peran !== 'owner') {
                 return back()->withErrors(['email' => 'Akun terkunci. Hubungi Administrator untuk membuka akses.'])->onlyInput('email');
             }
-            if ($user->lockout_time && now()->lessThan($user->lockout_time)) {
+            if ($user->lockout_time && now()->lessThan($user->lockout_time) && $user->peran !== 'owner') {
                 $seconds = now()->diffInSeconds($user->lockout_time);
                 $minutes = ceil($seconds / 60);
                 return back()->withErrors(['email' => "Tunggu $minutes menit lagi."])->onlyInput('email');
@@ -227,7 +227,7 @@ class AuthController extends Controller
         }
 
         // Logic Lockout
-        if ($user) {
+        if ($user && $user->peran !== 'owner') {
             $user->increment('login_attempts');
 
             if ($user->login_attempts >= 3) {

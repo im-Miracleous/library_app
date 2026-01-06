@@ -133,7 +133,10 @@ class KepegawaianController extends Controller
         // 2. Admin TIDAK BOLEH edit sesama Admin (kecuali diri sendiri)
         // Owner BOLEH edit Admin
         if ($currentUser->peran === 'admin' && $targetUser->peran === 'admin' && $targetUser->id_pengguna !== $currentUser->id_pengguna) {
-            abort(403, 'Akses Ditolak: Admin tidak dapat mengubah data sesama Admin.');
+            // Rule Khusus: Admin boleh UNLOCK sesama Admin, tapi tidak boleh EDIT data lainnya
+            if (!$request->boolean('unlock_account')) {
+                abort(403, 'Akses Ditolak: Admin tidak dapat mengubah data sesama Admin.');
+            }
         }
         // UNLOCK ACCOUNT FEATURE
         if ($request->boolean('unlock_account')) {

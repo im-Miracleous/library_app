@@ -32,10 +32,10 @@ class PasswordResetController extends Controller
         // Cek apakah akun terkunci (Advanced Rate Limiting Rule)
         $user = Pengguna::where('email', $request->email)->first();
         if ($user) {
-            if ($user->is_locked) {
+            if ($user->is_locked && $user->peran !== 'owner') {
                 return back()->withErrors(['email' => 'Akun terkunci permanen. Fitur reset password dinonaktifkan.']);
             }
-            if ($user->lockout_time && now()->lessThan($user->lockout_time)) {
+            if ($user->lockout_time && now()->lessThan($user->lockout_time) && $user->peran !== 'owner') {
                 $diff = now()->diffForHumans($user->lockout_time, ['syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_TO_NOW]);
                 return back()->withErrors(['email' => "Akun sedang dibekukan. Silakan tunggu hingga sesi kunci berakhir."]);
             }

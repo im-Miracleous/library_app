@@ -133,17 +133,45 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.openEditPegawai = function (user) {
+    // 1. Validasi & Set Action URL (Prioritas Utama)
+    if (!user.id_pengguna) {
+        alert('Error System: ID Pengguna tidak ditemukan pada data yang dipilih.');
+        console.error('Data User:', user);
+        return;
+    }
+
+    const form = document.getElementById('editForm');
+    if (form) {
+        form.action = `/kepegawaian/${user.id_pengguna}`;
+    } else {
+        console.error('Form editForm tidak ditemukan!');
+        return;
+    }
+
     document.getElementById('edit_nama').value = user.nama;
     document.getElementById('edit_email').value = user.email;
     document.getElementById('edit_telepon').value = user.telepon;
     document.getElementById('edit_alamat').value = user.alamat;
     document.getElementById('edit_status').value = user.status;
 
+    // Set action URL
+    document.getElementById('editForm').action = `/kepegawaian/${user.id_pengguna}`;
+
     // Set role value manually (for safety, though value mapping usually works)
     const peranSelect = document.getElementById('edit_peran');
     if (peranSelect) {
         // Try to select even if disabled
         peranSelect.value = user.peran;
+    }
+
+    // UNLOCK ACCOUNT UI
+    const unlockContainer = document.getElementById('unlockContainer');
+    // Ensure boolean check (handles 1, "1", true)
+    if (user.is_locked == 1 || user.is_locked === true) {
+        unlockContainer.classList.remove('hidden');
+    } else {
+        unlockContainer.classList.add('hidden');
+        document.getElementById('unlock_account').checked = false;
     }
 
     // Handle Profile Photo Preview
@@ -188,55 +216,88 @@ window.openEditPegawai = function (user) {
     // PROTEKSI ROLE & STATUS
     // Need to access current user ID from Blade to JS (passed via window variable in Blade view)
     const currentUserId = window.currentUserId;
+    const currentUserRole = window.currentUserRole;
+
+    // Elements to control
+    const inputsToControl = [
+        'edit_nama', 'edit_email', 'edit_telepon', 'edit_alamat',
+        'edit_foto_profil', 'edit_status', 'edit_peran'
+    ];
+    const passwordInputs = document.querySelectorAll('#editForm input[type="password"]');
+
+    // Restore missing element references
     const peranReadonly = document.getElementById('edit_peran_readonly');
     const statusSelect = document.getElementById('edit_status');
 
-    // UNLOCK ACCOUNT UI
-    const unlockContainer = document.getElementById('unlockContainer');
-    if (user.is_locked) {
-        unlockContainer.classList.remove('hidden');
-    } else {
-        unlockContainer.classList.add('hidden');
-        document.getElementById('unlock_account').checked = false;
-    }
-
-    // Set action URL
-    document.getElementById('editForm').action = `/kepegawaian/${user.id_pengguna}`;
+    // Helper to set disabled state
+    const setDisabled = (isLocked) => {
+        inputsToControl.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.disabled = isLocked;
+                if (isLocked) {
+                    el.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed', 'opacity-70');
+                } else {
+                    el.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed', 'opacity-70');
+                }
+            }
+        });
+        passwordInputs.forEach(el => {
+            el.disabled = isLocked;
+            if (isLocked) {
+                el.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed', 'opacity-70');
+            } else {
+                el.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed', 'opacity-70');
+            }
+        });
+    };
 
     // Logic Proteksi
-    // Ensure string comparison
     const isOwner = user.peran === 'owner';
     const isSelf = String(user.id_pengguna) === String(currentUserId);
+    const isAdminEditingAdmin = currentUserRole === 'admin' && user.peran === 'admin' && !isSelf;
 
-    if (isOwner) {
-        // Owner Editing: Role & Status Protected
-        peranSelect.classList.add('hidden');
-        peranSelect.disabled = true;
+    if (isAdminEditingAdmin) {
+        // ADMIN EDITING OTHER ADMIN -> LOCK ALL EXCEPT UNLOCK CHECKBOX
+        setDisabled(true);
 
-        if (peranReadonly) peranReadonly.classList.remove('hidden');
-
-        statusSelect.disabled = true;
-        statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
-    } else if (isSelf) {
-        // Self Editing: Role & Status Protected
+        // Ensure role and status are visually locked even if handled by setDisabled
+        if (peranReadonly) peranReadonly.classList.add('hidden'); // Or show it? Maybe better to show the select but disabled
         peranSelect.classList.remove('hidden');
-        peranSelect.disabled = true; // Cannot demote self
-
-        if (peranReadonly) peranReadonly.classList.add('hidden');
-        peranSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
-
-        statusSelect.disabled = true; // Cannot deactivate self
-        statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
     } else {
-        // Normal Editing
-        peranSelect.classList.remove('hidden');
-        peranSelect.disabled = false;
+        // RESET DEFAULT STATE (Enable first, then apply specific restrictions)
+        setDisabled(false);
 
-        if (peranReadonly) peranReadonly.classList.add('hidden');
-        peranSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+        if (isOwner) {
+            // Owner Editing: Role & Status Protected
+            peranSelect.classList.add('hidden');
+            peranSelect.disabled = true;
 
-        statusSelect.disabled = false;
-        statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+            if (peranReadonly) peranReadonly.classList.remove('hidden');
+
+            statusSelect.disabled = true;
+            statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+        } else if (isSelf) {
+            // Self Editing: Role & Status Protected
+            peranSelect.classList.remove('hidden');
+            peranSelect.disabled = true; // Cannot demote self
+
+            if (peranReadonly) peranReadonly.classList.add('hidden');
+            peranSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+            statusSelect.disabled = true; // Cannot deactivate self
+            statusSelect.classList.add('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+        } else {
+            // Normal Editing
+            peranSelect.classList.remove('hidden');
+            peranSelect.disabled = false;
+
+            if (peranReadonly) peranReadonly.classList.add('hidden');
+            peranSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+
+            statusSelect.disabled = false;
+            statusSelect.classList.remove('bg-slate-100', 'dark:bg-slate-800/50', 'cursor-not-allowed');
+        }
     }
 
     openModal('editModal');

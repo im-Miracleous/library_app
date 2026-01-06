@@ -259,11 +259,31 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${lockBadge}
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">
-                        <button onclick="openEditPegawai(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
-                            class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
-                            title="Edit">
-                            <span class="material-symbols-outlined text-lg">edit</span>
-                        </button>
+                        ${(() => {
+                    const currentRole = window.currentUserRole;
+                    const currentId = window.currentUserId;
+                    let canEdit = true;
+
+                    // Logic Permission Client-Side
+                    if (item.peran === 'owner' && currentRole !== 'owner') canEdit = false;
+                    if (currentRole === 'admin' && item.peran === 'admin' && String(item.id_pengguna) !== String(currentId)) {
+                        if (!item.is_locked) canEdit = false;
+                    }
+
+                    if (canEdit) {
+                        return `<button onclick="openEditPegawai(${JSON.stringify(item).replace(/"/g, '&quot;')})" 
+                                    class="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors"
+                                    title="Edit">
+                                    <span class="material-symbols-outlined text-lg">edit</span>
+                                </button>`;
+                    } else {
+                        return `<button disabled
+                                    class="p-2 rounded-lg text-blue-300 dark:text-blue-800 cursor-not-allowed opacity-70"
+                                    title="Edit (Dilindungi)">
+                                    <span class="material-symbols-outlined text-lg">edit</span>
+                                </button>`;
+                    }
+                })()}
                         <form action="/kepegawaian/${item.id_pengguna}" method="POST" onsubmit="return confirm('Yakin hapus pegawai ini?');" class="inline">
                             <input type="hidden" name="_token" value="${csrfToken}">
                             <input type="hidden" name="_method" value="DELETE">

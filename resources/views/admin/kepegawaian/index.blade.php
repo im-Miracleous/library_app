@@ -7,6 +7,7 @@
     @vite(['resources/js/live-search/live-search-kepegawaian.js', 'resources/js/logic/modals/kepegawaian-modal.js'])
     <script>
         window.currentUserId = "{{ auth()->user()->id_pengguna }}";
+        window.currentUserRole = "{{ auth()->user()->peran }}";
     </script>
 @endpush
 
@@ -193,7 +194,10 @@
                                 // 2. Admin tidak bisa edit sesama Admin (kecuali diri sendiri)
                                 // Owner BISA edit Admin
                                 if ($currentUser->peran === 'admin' && $user->peran === 'admin' && $user->id_pengguna !== $currentUser->id_pengguna) {
-                                    $canEdit = false;
+                                    // PENGECUALIAN: Jika akun terkunci, Admin boleh akses tombol ini (untuk membuka kunci)
+                                    if (!$user->is_locked) {
+                                        $canEdit = false;
+                                    }
                                 }
                             @endphp
 
