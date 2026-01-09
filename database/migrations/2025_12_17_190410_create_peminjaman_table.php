@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->foreign('id_pengguna')->references('id_pengguna')->on('pengguna')->onDelete('cascade');
             $table->date('tanggal_pinjam');
             $table->date('tanggal_jatuh_tempo');
+            $table->boolean('is_extended')->default(false);
             $table->enum('status_transaksi', ['menunggu_verifikasi', 'ditolak', 'berjalan', 'selesai', 'dibatalkan'])->default('menunggu_verifikasi');
             $table->text('keterangan')->nullable();
             $table->timestamps();

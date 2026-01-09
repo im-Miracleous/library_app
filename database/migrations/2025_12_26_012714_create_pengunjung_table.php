@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('id_pengguna', 20)->nullable();
             $table->foreign('id_pengguna')->references('id_pengguna')->on('pengguna')->onDelete('cascade');
             $table->string('nama_pengunjung');
-            $table->enum('jenis_pengunjung', ['umum', 'anggota', 'petugas', 'admin']);
+            $table->string('jenis_pengunjung', 100);
             $table->text('keperluan')->nullable();
             $table->timestamps();
         });
