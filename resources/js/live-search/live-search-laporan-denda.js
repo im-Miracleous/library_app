@@ -21,22 +21,20 @@ document.addEventListener('DOMContentLoaded', function () {
     setupControls();
 
     function setupControls() {
-        // LIMIT SELECT (More specific to avoid Status select)
-        const limitSelect = document.querySelector('select[name="limit"]') || document.querySelector('.flex.items-center.gap-2 select');
+        // LIMIT SELECT
+        const limitSelect = document.getElementById('limitSelector');
         if (limitSelect) {
             limitSelect.removeAttribute('onchange');
 
-            Array.from(limitSelect.options).forEach(opt => {
-                if (opt.value === state.limit || opt.value.includes(`limit=${state.limit}`)) {
-                    limitSelect.value = opt.value;
-                }
-            });
+            // Sync state with the currently selected option (trust server-rendered selection)
+            const selectedOption = limitSelect.options[limitSelect.selectedIndex];
+            if (selectedOption && selectedOption.dataset.limit) {
+                state.limit = selectedOption.dataset.limit;
+            }
 
             limitSelect.addEventListener('change', (e) => {
-                const val = e.target.value;
-                const match = val.match(/limit=(\d+)/);
-                state.limit = match ? match[1] : val;
-
+                const selectedOpt = e.target.options[e.target.selectedIndex];
+                state.limit = selectedOpt.dataset.limit || '10';
                 state.page = 1;
                 fetchData();
             });
@@ -353,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     function updateSummaryCards(stats) {
-        const cards = document.querySelectorAll('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4 .text-3xl.font-bold');
+        const cards = document.querySelectorAll('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3 .text-2xl.font-bold');
         if (cards.length >= 3) {
             cards[0].textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(stats.total_denda).replace('Rp', 'Rp ');
             cards[1].textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(stats.total_dibayar).replace('Rp', 'Rp ');

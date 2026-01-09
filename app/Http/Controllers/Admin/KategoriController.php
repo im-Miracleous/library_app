@@ -64,9 +64,10 @@ class KategoriController extends Controller
             'deskripsi' => 'nullable|string',
         ]);
 
-        Kategori::create([
-            'nama_kategori' => $validated['nama_kategori'],
-            'deskripsi' => $validated['deskripsi'],
+        // Kategori::create(...)
+        \Illuminate\Support\Facades\DB::statement('CALL sp_create_kategori(?, ?)', [
+            $validated['nama_kategori'],
+            $validated['deskripsi'] ?? null
         ]);
 
         return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
@@ -87,9 +88,11 @@ class KategoriController extends Controller
             'deskripsi' => 'nullable|string',
         ]);
 
-        $kategori->update([
-            'nama_kategori' => $validated['nama_kategori'],
-            'deskripsi' => $validated['deskripsi'],
+        // $kategori->update(...)
+        \Illuminate\Support\Facades\DB::statement('CALL sp_update_kategori(?, ?, ?)', [
+            $id,
+            $validated['nama_kategori'],
+            $validated['deskripsi'] ?? null
         ]);
 
         return redirect()->back()->with('success', 'Data kategori berhasil diperbarui.');
@@ -105,7 +108,8 @@ class KategoriController extends Controller
             return redirect()->back()->with('error', 'Gagal hapus! Kategori ini masih digunakan oleh data buku.');
         }
 
-        $kategori->delete();
+        // $kategori->delete();
+        \Illuminate\Support\Facades\DB::statement('CALL sp_delete_kategori(?)', [$id]);
         return redirect()->back()->with('success', 'Kategori berhasil dihapus.');
     }
 }

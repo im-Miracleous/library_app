@@ -82,7 +82,6 @@ class PeminjamanController extends Controller
             return redirect()->route('member.keranjang.index')->with('error', 'Keranjang kosong');
         }
 
-        DB::beginTransaction();
         try {
 
             // 1. Validate Stock again
@@ -122,56 +121,40 @@ class PeminjamanController extends Controller
                 }
             }
 
-            // 3. Create Header (Trigger will generate ID)
-            $peminjaman = new Peminjaman();
-            $peminjaman->id_pengguna = $userId;
-            $peminjaman->tanggal_pinjam = now();
-            $peminjaman->tanggal_jatuh_tempo = now()->addDays(7);
-            $peminjaman->status_transaksi = 'menunggu_verifikasi';
-            $peminjaman->save();
+            // 3. Prepare Data for SP
+            $jsonBuku = $items->pluck('id_buku')->toJson();
+            $tglPinjam = now()->format('Y-m-d');
+            $tglJatuhTempo = now()->addDays(7)->format('Y-m-d');
+            
+            // 4. Call SP
+            DB::statement("CALL sp_ajukan_peminjaman(?, ?, ?, ?, ?, @output)", [
+                $userId,
+                $tglPinjam,
+                $tglJatuhTempo,
+                'Pengajuan via Web',
+                $jsonBuku
+            ]);
 
-            // 4. Retrieve Generated ID
-            // Safe strategy: Get the latest record for this user created in the last few seconds.
-            // Or simple latest() if traffic is low per user.
-            $newId = Peminjaman::where('id_pengguna', $userId)
-                ->orderBy('created_at', 'desc')
-                ->value('id_peminjaman');
+            // 5. Check Output
+            $result = DB::select("SELECT @output as message")[0]->message;
 
-            if (!$newId) {
-                throw new \Exception("Gagal mengambil ID Peminjaman baru.");
-            }
-
-            // 5. Create Details
-            foreach ($items as $item) {
-                DetailPeminjaman::create([
-                    'id_peminjaman' => $newId,
-                    'id_buku' => $item->id_buku,
-                    'jumlah' => 1,
-                    'status_buku' => 'diajukan'
-                ]);
-
-                // Decrement Stock: 
-                // Removed because database trigger 'tr_kurangi_stok_buku' 
-                // already handles this on DetailPeminjaman insert.
-                // Buku::where('id_buku', $item->id_buku)->decrement('stok_tersedia');
+            if ($result !== 'Success') {
+                throw new \Exception("Gagal mengajukan peminjaman: " . $result);
             }
 
             // 6. Clear Cart
             Keranjang::where('id_pengguna', $userId)->delete();
 
-            // 7. Consolidation:
-            // Discrete notifications are removed to avoid "notification overload".
-            // The system now uses a status-based "Verification Task" card in the 
-            // dashboard and notification dropdown that automatically aggregates counts.
-
-            DB::commit();
+            // 7. Get New ID (for redirect)
+            $newId = Peminjaman::where('id_pengguna', $userId)
+                ->orderBy('created_at', 'desc')
+                ->value('id_peminjaman');
 
             return redirect()->route('member.peminjaman.index')
                 ->with('success', 'Pengajuan peminjaman berhasil!')
                 ->with('detail_url', route('member.peminjaman.show', $newId));
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return redirect()->route('member.keranjang.index')->with('error', $e->getMessage());
         }
     }

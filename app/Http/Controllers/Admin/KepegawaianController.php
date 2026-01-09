@@ -90,15 +90,15 @@ class KepegawaianController extends Controller
             $fotoPath = $request->file('foto_profil')->store('profile_photos', 'public');
         }
 
-        Pengguna::create([
-            'nama' => $validatedData['nama'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
-            'peran' => $validatedData['peran'],
-            'telepon' => $validatedData['telepon'],
-            'alamat' => $validatedData['alamat'],
-            'foto_profil' => $fotoPath,
-            'status' => 'aktif',
+        // Pengguna::create(...);
+        \Illuminate\Support\Facades\DB::statement('CALL sp_create_pengguna(?, ?, ?, ?, ?, ?, ?)', [
+            $validatedData['nama'],
+            $validatedData['email'],
+            Hash::make($validatedData['password']),
+            $validatedData['peran'],
+            $validatedData['telepon'] ?? null,
+            $validatedData['alamat'] ?? null,
+            $fotoPath
         ]);
 
         return redirect()->back()->with('success', 'Pegawai berhasil ditambahkan.');
@@ -204,7 +204,18 @@ class KepegawaianController extends Controller
             $user->status = $validatedData['status'];
         }
 
-        $user->save();
+        // $user->save();
+        \Illuminate\Support\Facades\DB::statement('CALL sp_update_pengguna(?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            $id,
+            $user->nama,
+            $user->email,
+            $request->filled('password') ? $user->password : null,
+            $user->peran,
+            $user->telepon,
+            $user->alamat,
+            $user->status,
+            $user->foto_profil
+        ]);
 
         return redirect()->back()->with('success', 'Data pegawai berhasil diperbarui.');
     }
@@ -230,7 +241,8 @@ class KepegawaianController extends Controller
             Storage::disk('public')->delete($user->foto_profil);
         }
 
-        $user->delete();
+        // $user->delete();
+        \Illuminate\Support\Facades\DB::statement('CALL sp_delete_pengguna(?)', [$id]);
 
         return redirect()->route('kepegawaian.index')->with('success', 'Data pegawai berhasil dihapus');
     }

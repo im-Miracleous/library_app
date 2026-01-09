@@ -111,7 +111,7 @@ class PengembalianController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            // DB::beginTransaction(); // Removed: SP handles transaction
 
             $peminjaman = Peminjaman::findOrFail($request->id_peminjaman);
             $returnedDetailsIds = $request->details; // Checkbox IDs
@@ -126,89 +126,85 @@ class PengembalianController extends Controller
 
             $totalDenda = 0;
 
+            // Prepare JSON for SP
+            $bukuConditions = [];
+            foreach ($returnedDetailsIds as $detailId) {
+                $detail = DetailPeminjaman::find($detailId);
+                if ($detail && $detail->status_buku === 'dipinjam') {
+                    $condition = $request->input("kondisi.{$detailId}", 'baik');
+                    $bukuConditions[] = [
+                        'id_buku' => $detail->id_buku,
+                        'kondisi' => $condition
+                    ];
+                }
+            }
+
+            // Calculate total denda (Simplified: pass 0 and let SP create header, or calculate PHP side and pass total?)
+            // SP takes p_denda_total. We computed $totalDenda in previous loop for logging/display.
+            // But since we are moving logic to SP, ideally SP calculates it? 
+            // My SP expects p_denda_total. So I will keep the PHP calculation logic above (lines 129-191) 
+            // BUT I need to remove the DB::updates/inserts inside the loop and just gather data.
+            
+            // Wait, existing code calculates denda and Creates Denda Models inside the loop.
+            // SP `sp_complete_peminjaman` processes the return AND inserts Denda.
+            // So executing the PHP loop + SP would double-process or conflict.
+            
+            // REFACTOR STRATEGY:
+            // 1. Loop PHP to calculate Total Denda (without DB writes) and build JSON.
+            // 2. Call SP with JSON and Total Denda.
+            
+            // Reset Arrays/Counters
+            $jsonPayload = [];
+            $totalDendaCalculated = 0;
+
             foreach ($returnedDetailsIds as $detailId) {
                 $detail = DetailPeminjaman::findOrFail($detailId);
+                if ($detail->status_buku !== 'dipinjam') continue;
 
-                // Skip if already returned
-                if ($detail->status_buku !== 'dipinjam')
-                    continue;
-
-                // Calculate Fine for THIS book
                 $condition = $request->input("kondisi.{$detailId}", 'baik');
-                $dendaConditionAmount = 0;
-                $conditionNote = '';
-                $statusBuku = 'dikembalikan';
+                
+                // Calculate Denda per item
+                $itemDenda = 0;
+                $keteranganParts = [];
+                
+                if ($isLate) {
+                    $days = $jatuhTempo->diffInDays($hariIni);
+                    $itemDenda += $days * ($pengaturan->denda_per_hari ?? 0);
+                    $keteranganParts[] = "Telat {$days} hari";
+                }
 
                 if ($condition === 'rusak') {
-                    $dendaConditionAmount = $pengaturan->denda_rusak ?? 0;
-                    $conditionNote = 'Kondisi: Rusak';
-                    $statusBuku = 'rusak';
+                    $itemDenda += $pengaturan->denda_rusak ?? 0;
+                    $keteranganParts[] = "Buku Rusak";
                 } elseif ($condition === 'hilang') {
-                    $dendaConditionAmount = $pengaturan->denda_hilang ?? 0;
-                    $conditionNote = 'Kondisi: Hilang';
-                    $statusBuku = 'hilang';
+                    $itemDenda += $pengaturan->denda_hilang ?? 0;
+                    $keteranganParts[] = "Buku Hilang";
                 }
 
-                // Update Detail
-                $detail->update([
-                    'status_buku' => $statusBuku,
-                    'tanggal_kembali_aktual' => $hariIni,
-                ]);
+                $totalDendaCalculated += $itemDenda;
 
-                if ($dendaConditionAmount > 0) {
-                    $totalDenda += $dendaConditionAmount;
-                    Denda::create([
-                        'id_detail_peminjaman' => $detail->id_detail_peminjaman,
-                        'jenis_denda' => $condition, // 'rusak' or 'hilang'
-                        'jumlah_denda' => $dendaConditionAmount,
-                        'status_bayar' => 'belum_bayar',
-                        'keterangan' => $conditionNote
-                    ]);
-                }
-
-                if ($isLate) {
-                    // Use DB Select for calculation (Example usage of Stored Function)
-                    // Note: In high throughput, calculating in PHP is faster than Round Trip.
-                    // But here we demonstrate the usage.
-                    // FIX: selectScalar not available in standard Laravel. Use select()[0]->denda
-                    $resultDenda = DB::select("SELECT fn_hitung_denda(?, ?, ?) as denda", [
-                        $jatuhTempo->format('Y-m-d'),
-                        $hariIni->format('Y-m-d'),
-                        $dendaPerBukuPerHari
-                    ]);
-                    $dendaLateAmount = $resultDenda[0]->denda;
-
-                    $totalDenda += $dendaLateAmount;
-
-                    Denda::create([
-                        'id_detail_peminjaman' => $detail->id_detail_peminjaman,
-                        'jenis_denda' => 'terlambat',
-                        'jumlah_denda' => $dendaLateAmount,
-                        'status_bayar' => 'belum_bayar',
-                        'keterangan' => "Terlambat $lateDays hari"
-                    ]);
-                }
+                // Add to JSON
+                $jsonPayload[] = [
+                    'id_detail' => $detail->id_detail_peminjaman,
+                    'id_buku' => $detail->id_buku,
+                    'kondisi' => $condition,
+                    'denda_amount' => $itemDenda,
+                    'keterangan' => implode(', ', $keteranganParts)
+                ];
             }
 
-            // Handle Payment of Fine (if any)
-            // Logic Simplified: If user inputs partial payment, we allocate it?
-            // For now, let's assume if there IS a fine created, we might want to mark it as paid if the user pays immediately.
-            // But complex partial payment logic is tricky. Let's just create the debt first.
+            // Call SP
+            \Illuminate\Support\Facades\DB::statement('CALL sp_complete_peminjaman(?, ?, ?)', [
+                $peminjaman->id_peminjaman,
+                $hariIni->format('Y-m-d H:i:s'),
+                json_encode($jsonPayload)
+            ]);
 
-            // Check if ALL items in this transaction are returned
-            $remainingItems = DetailPeminjaman::where('id_peminjaman', $peminjaman->id_peminjaman)
-                ->where('status_buku', 'dipinjam')
-                ->count();
+            // \Illuminate\Support\Facades\DB::commit(); // Removed: SP handles transaction
 
-            if ($remainingItems === 0) {
-                $peminjaman->update(['status_transaksi' => 'selesai']);
-            }
-
-            DB::commit();
-
-            $msg = 'Pengembalian berhasil diproses.';
-            if ($totalDenda > 0) {
-                $msg .= " Total Denda Tercatat: Rp " . number_format($totalDenda, 0, ',', '.');
+            $msg = 'Pengembalian berhasil diproses (SP).';
+            if ($totalDendaCalculated > 0) {
+                $msg .= " Total Denda Tercatat: Rp " . number_format($totalDendaCalculated, 0, ',', '.');
             }
 
             return redirect()->route('pengembalian.index')
@@ -216,7 +212,7 @@ class PengembalianController extends Controller
                 ->with('detail_url', route('peminjaman.show', $peminjaman->id_peminjaman));
 
         } catch (\Exception $e) {
-            DB::rollBack();
+            // DB::rollBack(); // Removed: SP handles transaction rollback internally
             return back()->with('error', 'Gagal memproses pengembalian: ' . $e->getMessage());
         }
     }

@@ -64,6 +64,18 @@
                 </div>
             @endif
 
+            @if($peminjaman->status_transaksi == 'ditolak' && $peminjaman->alasan_penolakan)
+                <div class="mb-6 p-5 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-red-600 text-lg">error</span>
+                        <h3 class="text-sm font-bold text-red-800 dark:text-red-400 uppercase tracking-wide">Alasan Penolakan</h3>
+                    </div>
+                    <p class="text-slate-700 dark:text-white/80 text-sm leading-relaxed pl-7">
+                        {{ $peminjaman->alasan_penolakan }}
+                    </p>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-primary/5 dark:border-white/5">
                     <p class="text-xs text-primary-mid dark:text-white/40 uppercase font-bold tracking-widest mb-1">Tanggal Pinjam</p>

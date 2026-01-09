@@ -36,10 +36,13 @@ class DendaController extends Controller
             }
 
             $currentKeterangan = $cleanKeterangan($denda->keterangan);
-            $denda->update([
-                'status_bayar' => 'lunas',
-                'tanggal_bayar' => Carbon::now(),
-                'keterangan' => $currentKeterangan . ' (Dibayar pada ' . Carbon::now()->format('Y-m-d H:i') . ')'
+            $newKeterangan = $currentKeterangan . ' (Dibayar pada ' . Carbon::now()->format('Y-m-d H:i') . ')';
+
+            // Use Stored Procedure
+            \Illuminate\Support\Facades\DB::statement('CALL sp_bayar_denda(?, ?, ?)', [
+                $id,
+                'manual', // Default method
+                $newKeterangan
             ]);
 
             return back()->with('success', 'Pembayaran denda berhasil dicatat.');

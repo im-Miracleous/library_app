@@ -32,9 +32,6 @@
     --font-body: "Noto Sans", sans-serif;
 }
 
-/* HAPUS GLOBAL TRANSITION YANG BERBAHAYA (Causes flickering & performance issues) */
-/* body, div, ... { ... }  <-- DIHAPUS */
-
 button:not(:disabled), a, input[type="submit"], input[type="button"], input[type="reset"], label[for], select, .cursor-pointer {
     cursor: pointer;
 }

@@ -159,7 +159,21 @@ class BukuController extends Controller
             }
         }
 
-        Buku::create($validated);
+        // Buku::create($validated);
+        // Use Stored Procedure
+        \Illuminate\Support\Facades\DB::statement('CALL sp_create_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            $validated['id_kategori'],
+            $validated['kode_dewey'] ?? null,
+            $validated['isbn'] ?? null,
+            $validated['judul'],
+            $validated['penulis'],
+            $validated['penerbit'] ?? null,
+            $validated['tahun_terbit'],
+            $validated['stok_total'],
+            $validated['stok_tersedia'],
+            $validated['deskripsi'] ?? null,
+            $validated['gambar_sampul'] ?? null
+        ]);
 
         return redirect()->back()->with('success', 'Buku berhasil ditambahkan.');
     }
@@ -232,7 +246,26 @@ class BukuController extends Controller
         $validated['stok_tersedia'] = $newTersedia;
 
         // Update data
-        $buku->update($validated);
+        // $buku->update($validated);
+
+        // Use Stored Procedure
+        \Illuminate\Support\Facades\DB::statement('CALL sp_update_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            $id,
+            $validated['id_kategori'],
+            $validated['kode_dewey'] ?? null,
+            $validated['isbn'] ?? null,
+            $validated['judul'],
+            $validated['penulis'],
+            $validated['penerbit'] ?? null,
+            $validated['tahun_terbit'],
+            $request->stok_total,
+            $newTersedia,
+            $newRusak,
+            $newHilang,
+            $validated['deskripsi'] ?? null,
+            $validated['gambar_sampul'] ?? $buku->gambar_sampul, // Keep old if null and not removed managed by validation logic above
+            $validated['status']
+        ]);
 
         return redirect()->back()->with('success', 'Data buku & stok berhasil diperbarui.');
     }
@@ -263,7 +296,8 @@ class BukuController extends Controller
             Storage::disk('public')->delete($buku->gambar_sampul);
         }
 
-        $buku->delete();
+        // $buku->delete();
+        \Illuminate\Support\Facades\DB::statement('CALL sp_delete_buku(?)', [$id]);
         return redirect()->back()->with('success', 'Buku berhasil dihapus.');
     }
 }

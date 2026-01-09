@@ -22,10 +22,10 @@ return new class extends Migration {
         DB::unprepared(file_get_contents(database_path('sql/triggers/tr_kembalikan_stok_buku.sql')));
 
         // 5. STORED PROCEDURE: sp_buat_peminjaman (Transaction & Rollback)
-        DB::unprepared(file_get_contents(database_path('sql/procedures/sp_buat_peminjaman.sql')));
+        DB::unprepared(file_get_contents(database_path('sql/procedures/transaction_data/sp_buat_peminjaman.sql')));
 
         // 6. STORED PROCEDURE with CURSOR: sp_cek_keterlambatan
-        DB::unprepared(file_get_contents(database_path('sql/procedures/sp_cek_keterlambatan.sql')));
+        DB::unprepared(file_get_contents(database_path('sql/procedures/transaction_data/sp_cek_keterlambatan.sql')));
     }
 
     /**

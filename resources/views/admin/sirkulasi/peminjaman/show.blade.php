@@ -360,6 +360,16 @@
                 <li>Pengguna harus mengajukan ulang jika ingin meminjam kembali.</li>
             </ul>
             </p>
+
+            <div class="mt-4">
+                <label for="alasanPenolakan" class="block text-xs font-bold text-slate-700 dark:text-white/80 mb-1">
+                    Alasan Penolakan <span class="text-red-500">*</span>
+                </label>
+                <textarea id="alasanPenolakan" name="alasan" form="rejectForm" required
+                    class="w-full rounded-xl border border-slate-300 dark:border-white/10 dark:bg-white/5 text-sm focus:ring-primary focus:border-primary p-3 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/50"
+                    rows="3" placeholder="Contoh: Stok buku habis, atau anggota memiliki tanggungan denda..."></textarea>
+                <p class="mt-1 text-[10px] text-slate-400">Alasan ini akan ditampilkan kepada anggota.</p>
+            </div>
         </div>
 
         <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-primary/10 dark:border-white/10">

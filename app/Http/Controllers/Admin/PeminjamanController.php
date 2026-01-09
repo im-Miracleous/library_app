@@ -235,15 +235,14 @@ class PeminjamanController extends Controller
         $pengaturan = Pengaturan::first();
         $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
 
-        $peminjaman->update([
-            'status_transaksi' => 'berjalan',
-            'tanggal_pinjam' => now(),
-            'tanggal_jatuh_tempo' => now()->addDays($batasHari),
+        // $peminjaman->update(...);
+        // Use Stored Procedure
+        \Illuminate\Support\Facades\DB::statement('CALL sp_approve_peminjaman(?, ?)', [
+            $id,
+            auth()->user()->id_pengguna
         ]);
 
-        // Update status_buku for details to trigger stock reduction via tr_kembalikan_stok_buku
-        $peminjaman->details()->where('status_buku', 'diajukan')->update(['status_buku' => 'dipinjam']);
-
+        // Note: Notification logic remains in PHP as it's application concern
         // Mark as read after approval
         Auth::user()->unreadNotifications
             ->where('data.peminjaman_id', $id)
@@ -251,6 +250,7 @@ class PeminjamanController extends Controller
 
         // Notify Member
         try {
+            $peminjaman = Peminjaman::find($id); // Reload to get updated data if needed
             $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'disetujui'));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Failed to notify member about loan approval: " . $e->getMessage());
@@ -259,33 +259,28 @@ class PeminjamanController extends Controller
         return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
     }
 
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
+        $request->validate([
+            'alasan' => 'required|string|max:1000',
+        ]);
+
         $peminjaman = Peminjaman::with('details.buku')->findOrFail($id);
 
         if ($peminjaman->status_transaksi !== 'menunggu_verifikasi') {
             return back()->with('error', 'Hanya transaksi dengan status menunggu verifikasi yang dapat ditolak.');
         }
 
-        DB::transaction(function () use ($peminjaman, $id) {
-            // No manual stock restoration needed anymore because stock is not reduced until approval.
-            // If status is 'diajukan', rejecting it simply keeps stock as is.
-
-            $peminjaman->update([
-                'status_transaksi' => 'ditolak',
-            ]);
-
-            // Optional: Also update status_buku to 'ditolak' for clarity
-            $peminjaman->details()->where('status_buku', 'diajukan')->update(['status_buku' => 'ditolak']);
-
-            // Mark as read after rejection
-            Auth::user()->unreadNotifications
-                ->where('data.peminjaman_id', $id)
-                ->markAsRead();
-        });
+        // Use Stored Procedure
+        \Illuminate\Support\Facades\DB::statement('CALL sp_reject_peminjaman(?, ?, ?)', [
+            $id,
+            auth()->user()->id_pengguna,
+            $request->alasan
+        ]);
 
         // Notify Member
         try {
+            $peminjaman = Peminjaman::find($id); // Reload
             $peminjaman->pengguna->notify(new LoanStatusNotification($peminjaman, 'ditolak'));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Failed to notify member about loan rejection: " . $e->getMessage());
@@ -438,10 +433,11 @@ class PeminjamanController extends Controller
                 // All active books are being extended (Returns are already handled and closed).
                 // Just update the current transaction.
                 
-                $peminjaman->update([
-                    'tanggal_jatuh_tempo' => $newDueDate,
-                    'is_extended' => true,
-                    'keterangan' => $peminjaman->keterangan . ' (Diperpanjang)',
+                // $peminjaman->update(...);
+                // Use Stored Procedure
+                \Illuminate\Support\Facades\DB::statement('CALL sp_extend_peminjaman(?, ?)', [
+                    $id,
+                    $newDueDate->format('Y-m-d')
                 ]);
 
                 return redirect()->route('peminjaman.show', $id)

@@ -84,15 +84,15 @@ class AnggotaController extends Controller
                 $fotoPath = $request->file('foto_profil')->store('profile_photos', 'public');
             }
 
-            Pengguna::create([
-                'nama' => $validatedData['nama'],
-                'email' => $validatedData['email'],
-                'password' => Hash::make($validatedData['password']),
-                'peran' => 'anggota',
-                'telepon' => $validatedData['telepon'],
-                'alamat' => $validatedData['alamat'],
-                'foto_profil' => $fotoPath,
-                'status' => 'aktif',
+            // Pengguna::create(...)
+            \Illuminate\Support\Facades\DB::statement('CALL sp_create_pengguna(?, ?, ?, ?, ?, ?, ?)', [
+                $validatedData['nama'],
+                $validatedData['email'],
+                Hash::make($validatedData['password']),
+                'anggota', // Peran fix anggota
+                $validatedData['telepon'] ?? null,
+                $validatedData['alamat'] ?? null,
+                $fotoPath
             ]);
 
             \Illuminate\Support\Facades\Log::info('User created successfully');
@@ -175,7 +175,18 @@ class AnggotaController extends Controller
             $user->status = $validatedData['status'];
         }
 
-        $user->save();
+        // $user->save();
+        \Illuminate\Support\Facades\DB::statement('CALL sp_update_pengguna(?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            $id,
+            $user->nama,
+            $user->email,
+            $request->filled('password') ? $user->password : null,
+            $user->peran,
+            $user->telepon,
+            $user->alamat,
+            $user->status,
+            $user->foto_profil
+        ]);
 
         return redirect()->back()->with('success', 'Data anggota berhasil diperbarui.');
     }
@@ -195,7 +206,8 @@ class AnggotaController extends Controller
                 Storage::disk('public')->delete($user->foto_profil);
             }
 
-            $user->delete();
+            // $user->delete();
+            \Illuminate\Support\Facades\DB::statement('CALL sp_delete_pengguna(?)', [$id]);
             \Illuminate\Support\Facades\Log::info('User deleted successfully');
             return redirect()->back()->with('success', 'Anggota berhasil dihapus.');
         } catch (\Exception $e) {

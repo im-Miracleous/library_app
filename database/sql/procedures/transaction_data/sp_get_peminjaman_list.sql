@@ -29,8 +29,10 @@ BEGIN
     DEALLOCATE PREPARE count_stmt;
     SET p_total = @temp_total;
 
-    -- Data
-    SET @sql = 'SELECT p.*, u.nama as nama_anggota, u.email as email_anggota, (SELECT COUNT(*) FROM detail_peminjaman dp WHERE dp.id_peminjaman = p.id_peminjaman) as total_buku FROM peminjaman p JOIN pengguna u ON p.id_pengguna = u.id_pengguna';
+    SET @sql = 'SELECT p.*, p.alasan_penolakan, u.nama as nama_anggota, u.email as email_anggota, 
+        (SELECT COUNT(*) FROM detail_peminjaman dp WHERE dp.id_peminjaman = p.id_peminjaman) as total_buku,
+        (SELECT COUNT(*) FROM detail_peminjaman dp WHERE dp.id_peminjaman = p.id_peminjaman AND dp.status_buku = ''dikembalikan'') as total_dikembalikan
+        FROM peminjaman p JOIN pengguna u ON p.id_pengguna = u.id_pengguna';
     SET @sql = CONCAT(@sql, @where_clause);
     
     IF p_sort_col IS NULL OR p_sort_col = '' THEN SET p_sort_col = 'created_at'; END IF;

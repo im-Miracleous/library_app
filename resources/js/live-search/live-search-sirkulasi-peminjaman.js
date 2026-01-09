@@ -212,15 +212,25 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="text-xs text-slate-500 dark:text-white/50">${item.email_anggota || '-'}</span>
                     </div>
                 </td>
-                <td class="p-4 text-center font-bold text-slate-700 dark:text-white">${item.total_buku}</td>
+                <td class="p-4 text-center font-bold text-slate-700 dark:text-white">
+                    <div class="flex flex-col items-center gap-0.5">
+                        <span>${item.total_buku}</span>
+                        ${item.is_extended && item.total_dikembalikan > 0 ? `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">R:${item.total_dikembalikan}</span>` : ''}
+                    </div>
+                </td>
                 <td class="p-4 text-slate-600 dark:text-white/70">
                     ${datePinjam}
                 </td>
                 <td class="p-4">
-                    <span class="${dueClass}">
-                        ${dueStr}
-                        ${isLate ? '<span class="ml-2 text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase">Telat</span>' : ''}
-                    </span>
+                    <div class="flex flex-col">
+                        <span class="${dueClass}">
+                            ${dueStr}
+                        </span>
+                        <div class="flex items-center gap-1 mt-1">
+                            ${isLate ? '<span class="text-[10px] bg-red-100 text-red-600 px-1 rounded uppercase font-bold">Telat</span>' : ''}
+                            ${item.is_extended ? '<span class="text-[9px] bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider w-fit">Extend</span>' : ''}
+                        </div>
+                    </div>
                 </td>
                 <td class="p-4">
                     <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${badgeClass}">

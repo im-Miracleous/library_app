@@ -15,7 +15,7 @@
             class="bg-background-light dark:bg-[#120C0A] border border-primary/20 dark:border-[#36271F] rounded-lg px-4 py-2.5 pr-10 text-primary-dark dark:text-white focus:ring-1 focus:ring-primary dark:focus:ring-accent outline-none appearance-none w-full cursor-pointer {{ $attributes->get('class') }}"
             {{ $required ? 'required' : '' }} {{ $attributes->except('class') }}>
             @if($placeholder)
-                <option value="" disabled {{ $selected == '' ? 'selected' : '' }}>{{ $placeholder }}</option>
+                <option value="" {{ $required ? 'disabled' : '' }} {{ $selected == '' ? 'selected' : '' }}>{{ $placeholder }}</option>
             @endif
 
             {{ $slot }}
