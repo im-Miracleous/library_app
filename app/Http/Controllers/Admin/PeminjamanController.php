@@ -150,7 +150,7 @@ class PeminjamanController extends Controller
                 ->value('id_peminjaman');
 
             return redirect()->route('peminjaman.index')
-                ->with('success', 'Transaksi peminjaman berhasil dibuat (via Stored Procedure).')
+                ->with('success', 'Transaksi peminjaman berhasil dibuat.')
                 ->with('detail_url', route('peminjaman.show', $newId));
 
         } catch (\Exception $e) {
@@ -441,7 +441,7 @@ class PeminjamanController extends Controller
                 ]);
 
                 return redirect()->route('peminjaman.show', $id)
-                    ->with('success', 'Berhasil! Masa peminjaman telah diperpanjang.');
+                    ->with('success', 'Masa peminjaman telah diperpanjang.');
             }
         });
     }

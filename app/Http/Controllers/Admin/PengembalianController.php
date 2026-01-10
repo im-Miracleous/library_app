@@ -202,7 +202,7 @@ class PengembalianController extends Controller
 
             // \Illuminate\Support\Facades\DB::commit(); // Removed: SP handles transaction
 
-            $msg = 'Pengembalian berhasil diproses (SP).';
+            $msg = 'Pengembalian berhasil diproses.';
             if ($totalDendaCalculated > 0) {
                 $msg .= " Total Denda Tercatat: Rp " . number_format($totalDendaCalculated, 0, ',', '.');
             }

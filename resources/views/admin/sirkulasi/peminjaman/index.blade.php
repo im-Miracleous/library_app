@@ -178,7 +178,7 @@
                         <td colspan="7" class="p-12 text-center text-slate-400 dark:text-white/40">
                             <div class="flex flex-col items-center justify-center gap-2">
                                 <span class="material-symbols-outlined text-4xl opacity-50">event_busy</span>
-                                <span>Tidak ada peminjaman yang sedang berjalan.</span>
+                                <span>Tidak ada data peminjaman yang ditemukan.</span>
                             </div>
                         </td>
                     </tr>

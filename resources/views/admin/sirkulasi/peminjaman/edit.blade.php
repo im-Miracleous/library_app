@@ -8,15 +8,7 @@
         <x-breadcrumb-component parent="Sirkulasi" middle="Peminjaman" :middleLink="route('peminjaman.index')"
             current="Edit" class="mb-6 animate-enter" />
 
-        @if ($errors->any())
-            <div
-                class="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-700 dark:text-red-400 flex flex-col gap-1 animate-enter shadow-sm text-sm">
-                @foreach ($errors->all() as $error)
-                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span>
-                        {{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
+        {{-- Errors moved to global notification --}}
 
         <form action="{{ route('peminjaman.update', $peminjaman->id_peminjaman) }}" method="POST"
             class="flex flex-col gap-6 animate-enter delay-100">

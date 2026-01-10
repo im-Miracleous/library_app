@@ -47,29 +47,26 @@
 
             <div class="px-4 sm:px-8 pt-5 sm:pt-8 pb-8 flex flex-col gap-8 max-w-[1600px] mx-auto w-full flex-1">
                 {{-- Flash Messages --}}
+                {{-- Flash Messages (Notification Toast) --}}
                 @if (session('error'))
-                    <div class="mb-4 lg:mb-6 p-4 flex items-center gap-3 text-sm font-medium text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl animate-enter"
-                        role="alert">
-                        <span class="material-symbols-outlined text-xl">error</span>
-                        {{ session('error') }}
-                    </div>
+                    <x-notification type="error" :message="session('error')" class="top-24" />
                 @endif
 
                 @if (session('success'))
-                    <div class="mb-4 lg:mb-6 p-4 flex items-center justify-between gap-3 text-sm font-medium text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl animate-enter"
-                        role="alert">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-xl">check_circle</span>
-                            {{ session('success') }}
-                        </div>
-                        @if (session('detail_url'))
-                            <a href="{{ session('detail_url') }}"
-                                class="shrink-0 flex items-center gap-2 px-4 py-2 bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 rounded-lg text-xs font-bold hover:bg-emerald-300 dark:hover:bg-emerald-700 transition-all active:scale-95 shadow-sm">
-                                <span class="material-symbols-outlined text-sm">visibility</span>
-                                Lihat Detail
-                            </a>
-                        @endif
-                    </div>
+                    <x-notification type="success" :message="session('success')" :detailUrl="session('detail_url')" class="top-24" />
+                @endif
+
+                {{-- Validation Errors --}}
+                @if ($errors->any())
+                    @foreach ($errors->all() as $error)
+                        @php
+                            // Stack errors below the top-24 (6rem). 
+                            // If session error exists, we might overlap, but usually validation errors come from form submit without session error.
+                            // We start at top-24 (6rem). Each card approx 5-6rem height + gap.
+                            $top = 6 + ($loop->index * 7);
+                        @endphp
+                        <x-notification type="error" :message="$error" style="top: {{ $top }}rem;" />
+                    @endforeach
                 @endif
 
                 @yield('content')
