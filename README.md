@@ -184,6 +184,18 @@ Gunakan perintah ini jika Anda melakukan perubahan pada `Dockerfile` atau konfig
 
 # Artisan command lainnya (jalankan di app container)
 .\docker.ps1 dev artisan route:list
+
+# Management Maintenance Mode
+# Aktifkan maintenance mode (Publik lihat 503)
+.\docker.ps1 dev artisan down
+
+# Aktifkan maintenance mode dengan BYPASS (Untuk Admin agar tetap bisa akses)
+.\docker.ps1 dev artisan down --secret="opensesame"
+# Akses URL: http://localhost:8000/opensesame (Hanya sekali untuk set cookie)
+# Setelah itu bisa akses web seperti biasa (edit/preview).
+
+# Matikan maintenance mode (Web kembali live)
+.\docker.ps1 dev artisan up
 ```
 
 ---
