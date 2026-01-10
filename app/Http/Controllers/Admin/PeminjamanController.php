@@ -91,8 +91,8 @@ class PeminjamanController extends Controller
         ]);
 
         $pengaturan = Pengaturan::first();
-        $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
-        $maxBuku = $pengaturan->maksimal_buku_pinjam ?? 3;
+        $batasHari = $pengaturan->batas_peminjaman_hari;
+        $maxBuku = $pengaturan->maksimal_buku_pinjam;
 
         // Validasi Batas Waktu
         $tglPinjam = Carbon::parse($request->tanggal_pinjam);
@@ -106,7 +106,7 @@ class PeminjamanController extends Controller
         // Hitung buku yang sedang dipinjam oleh user (status 'dipinjam')
         $bukuSedangDipinjam = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($request) {
             $q->where('id_pengguna', $request->id_pengguna)
-                ->where('status_transaksi', 'berjalan');
+                ->whereIn('status_transaksi', ['berjalan', 'menunggu_verifikasi']);
         })->where('status_buku', 'dipinjam')->count();
 
         $bukuAkanDipinjam = count($request->buku);
@@ -183,8 +183,20 @@ class PeminjamanController extends Controller
 
         $request->validate([
             'tanggal_pinjam' => 'required|date',
-            'tanggal_jatuh_tempo' => 'required|date', // Validation relaxed for testing purposes
+            'tanggal_jatuh_tempo' => 'required|date|after_or_equal:tanggal_pinjam',
         ]);
+
+        $pengaturan = Pengaturan::first();
+        $batasHari = $pengaturan->batas_peminjaman_hari ?? 7;
+
+        $tglPinjam = Carbon::parse($request->tanggal_pinjam);
+        $tglJatuhTempo = Carbon::parse($request->tanggal_jatuh_tempo);
+
+        // Validasi Batas Waktu (Termasuk jika user mencoba bypass front-end validation)
+        // Kita gunakan floatDiffInDays untuk presisi atau diffInDays biasa
+        if ($tglPinjam->diffInDays($tglJatuhTempo, false) > $batasHari) {
+             return back()->with('error', "Tanggal jatuh tempo tidak boleh melebihi batas maksimal peminjaman ($batasHari hari).")->withInput();
+        }
 
         $peminjaman = Peminjaman::findOrFail($id);
 
@@ -230,6 +242,24 @@ class PeminjamanController extends Controller
             if ($detail->status_buku === 'diajukan' && $detail->buku->stok_tersedia < $detail->jumlah) {
                 return back()->with('error', "Gagal menyetujui. Stok buku '{$detail->buku->judul}' tidak mencukupi.");
             }
+        }
+
+        $pengaturan = Pengaturan::first();
+        $batasHari = $pengaturan->batas_peminjaman_hari;
+        $maxBuku = $pengaturan->maksimal_buku_pinjam;
+
+        // Validasi Limit Buku Pengguna
+        // Hitung buku yang sedang dipinjam (Berjalan)
+        $activeBooks = DetailPeminjaman::whereHas('peminjaman', function ($q) use ($peminjaman) {
+            $q->where('id_pengguna', $peminjaman->id_pengguna)
+              ->where('status_transaksi', 'berjalan');
+        })->where('status_buku', 'dipinjam')->count();
+
+        // Hitung buku dalam transaksi ini
+        $newBooks = $peminjaman->details->count();
+
+        if (($activeBooks + $newBooks) > $maxBuku) {
+            return back()->with('error', "Gagal menyetujui. User ini sedang meminjam $activeBooks buku. Menyetujui transaksi ini ($newBooks buku) akan melebihi batas maksimal $maxBuku buku.");
         }
 
         $pengaturan = Pengaturan::first();

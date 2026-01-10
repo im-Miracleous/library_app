@@ -26,6 +26,9 @@ return new class extends Migration {
 
         // 6. STORED PROCEDURE with CURSOR: sp_cek_keterlambatan
         DB::unprepared(file_get_contents(database_path('sql/procedures/transaction_data/sp_cek_keterlambatan.sql')));
+
+        // 7. TRIGGER: tr_pulihkan_stok_delete (Restores stock on transaction delete)
+        DB::unprepared(file_get_contents(database_path('sql/triggers/tr_pulihkan_stok_delete.sql')));
     }
 
     /**
@@ -39,5 +42,6 @@ return new class extends Migration {
         DB::unprepared("DROP TRIGGER IF EXISTS tr_kembalikan_stok_buku");
         DB::unprepared("DROP PROCEDURE IF EXISTS sp_buat_peminjaman");
         DB::unprepared("DROP PROCEDURE IF EXISTS sp_cek_keterlambatan");
+        DB::unprepared("DROP TRIGGER IF EXISTS tr_pulihkan_stok_delete");
     }
 };
