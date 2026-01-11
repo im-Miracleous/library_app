@@ -30,7 +30,7 @@
     <link rel="icon" type="image/png"
         href="{{ !empty($pengaturan->logo_path) ? asset('storage/' . $pengaturan->logo_path) : 'https://laravel.com/img/favicon/favicon-32x32.png' }}">
 
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/theme-toggle.js', 'resources/js/global-search.js'])
     @stack('styles')
 </head>
 

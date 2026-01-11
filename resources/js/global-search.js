@@ -77,12 +77,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
                 data.buku.forEach(item => {
-                    // Assuming route exists or just linking to generic edit/show
-                    // We need to know the base URL or named route. For now, hardcode pattern: /buku/{id}/edit or similar.
-                    // Or maybe just /buku?search=... 
-                    // Let's try to link to specific detail page if possible. 
-                    // Based on web.php: Route::resource('buku', ...); -> /buku/{id}
-                    const url = `/buku/${item.id_buku}/edit`; // Usually admin wants to edit/view details
+                    // Redirect to buku index with search parameter
+                    const url = `/buku?search=${encodeURIComponent(item.judul)}`;
 
                     html += `
                         <a href="${url}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-b last:border-0 border-gray-100 dark:border-gray-700">
