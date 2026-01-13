@@ -22,6 +22,35 @@
         </div>
 
         <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 class="text-lg font-bold text-primary-dark dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-500">bar_chart</span>
+                    Statistik Kunjungan
+                </h3>
+                
+                <!-- Time Filter -->
+                <div class="flex bg-slate-50 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-border-dark p-1 shadow-sm">
+                    <button onclick="updatePengunjungChart('today')" id="btn-today" 
+                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'today' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
+                        Hari Ini
+                    </button>
+                    <button onclick="updatePengunjungChart('week')" id="btn-week" 
+                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'week' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
+                        Minggu Ini
+                    </button>
+                    <button onclick="updatePengunjungChart('month')" id="btn-month" 
+                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'month' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
+                        Bulan Ini
+                    </button>
+                </div>
+            </div>
+            
+            <div class="relative h-64 w-full">
+                <canvas id="pengunjungChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 animate-enter shadow-sm">
             <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-6 flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-primary/10 dark:bg-accent/10 flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary dark:text-accent">edit_note</span>
@@ -250,3 +279,11 @@
         </form>
     </x-modal>
 @endsection
+
+@push('scripts')
+    <script>
+        window.initialChartData = @json($chartData);
+        window.activeFilter = '{{ $filter }}';
+    </script>
+    @vite(['resources/js/pengunjung/chart.js'])
+@endpush

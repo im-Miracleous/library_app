@@ -8,6 +8,7 @@ use App\Models\Pengunjung;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Carbon\Carbon;
 
 class PengunjungController extends Controller
 {
@@ -33,7 +34,7 @@ class PengunjungController extends Controller
         ]);
         $total = DB::select('SELECT @total as total')[0]->total;
 
-        if ($request->ajax()) {
+        if ($request->ajax() && !$request->has('filter')) {
             return response()->json([
                 'data' => $data,
                 'total' => $total,
@@ -45,6 +46,63 @@ class PengunjungController extends Controller
                     ['path' => $request->url(), 'query' => $request->query()]
                 ))->links()
             ]);
+        }
+
+        // --- CHART DATA LOGIC ---
+        $filter = $request->input('filter', 'today'); // default to today
+        $endDate = Carbon::now();
+        if ($filter === 'today') {
+            $startDate = Carbon::today();
+            $dateFormat = 'H:00';
+            $labelFormat = 'H:i';
+        } elseif ($filter === 'month') {
+            $startDate = Carbon::now()->subDays(30);
+            $dateFormat = 'Y-m-d';
+            $labelFormat = 'd M';
+        } else { // week
+            $startDate = Carbon::now()->subDays(7);
+            $dateFormat = 'Y-m-d';
+            $labelFormat = 'D, d M';
+        }
+
+        $minDate = $startDate->copy();
+        $maxDate = $endDate->copy();
+
+        $pengunjungQuery = Pengunjung::select(
+                DB::raw($filter === 'today' ? 'DATE_FORMAT(created_at, "%H:00") as date' : 'DATE(created_at) as date'),
+                DB::raw('count(*) as count')
+            )
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date');
+
+        $pengunjungData = $pengunjungQuery->get()->pluck('count', 'date')->toArray();
+
+        $labels = [];
+        $chartDataValues = [];
+
+        $current = $minDate->copy();
+        while ($current <= $maxDate) {
+            $key = $filter === 'today' ? $current->format('H:00') : $current->format('Y-m-d');
+            $label = $filter === 'today' ? $current->format('H:00') : $current->format($labelFormat);
+            
+            $labels[] = $label;
+            $chartDataValues[] = $pengunjungData[$key] ?? 0;
+
+            if ($filter === 'today') {
+                $current->addHour();
+            } else {
+                $current->addDay();
+            }
+        }
+
+        $chartData = [
+            'labels' => $labels,
+            'data' => $chartDataValues
+        ];
+
+        if ($request->ajax() && $request->has('filter')) {
+            return response()->json($chartData);
         }
 
         // Hydrate raw results to Models
@@ -59,7 +117,7 @@ class PengunjungController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('admin.sirkulasi.pengunjung.index', compact('pengunjung'));
+        return view('admin.sirkulasi.pengunjung.index', compact('pengunjung', 'chartData', 'filter'));
     }
 
     /**

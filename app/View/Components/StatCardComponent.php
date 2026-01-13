@@ -20,7 +20,7 @@ class StatCardComponent extends Component
     /**
      * Create a new component instance.
      */
-    public function __construct($title, $value, $desc, $icon, $color = 'blue')
+    public function __construct($title, $value, $icon, $desc = '', $color = 'blue')
     {
         $this->title = $title;
         $this->value = $value;

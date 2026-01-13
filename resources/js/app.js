@@ -1,6 +1,36 @@
 import './bootstrap';
 import './global-search';
 import './system-status';
+import {
+    Title,
+    Chart,
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    BarController,
+    BarElement,
+    Tooltip,
+    Legend,
+    Filler
+} from 'chart.js';
+
+Chart.register(
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    BarController,
+    BarElement,
+    Tooltip,
+    Legend,
+    Filler
+)
+
+window.Chart = Chart;
+
 
 document.addEventListener('DOMContentLoaded', () => {
 

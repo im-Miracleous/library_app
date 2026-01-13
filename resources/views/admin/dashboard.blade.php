@@ -27,14 +27,53 @@
         </div>
     @endif
 
-    <div class="animate-enter flex justify-between items-end">
+    <div class="animate-enter flex justify-between items-end mb-6">
         <div>
             <h1 class="text-2xl sm:text-3xl font-bold text-primary-dark dark:text-white">Selamat Datang,
                 {{ Auth::user()->nama }}!
             </h1>
-            <p class="text-primary-mid dark:text-white/60 mt-1">Berikut adalah ringkasan aktivitas
-                perpustakaan
-                hari ini.</p>
+            <p class="text-primary-mid dark:text-white/60 mt-1">Berikut adalah ringkasan aktivitas perpustakaan.</p>
+        </div>
+        
+        <!-- Time Filter -->
+        <div class="flex bg-white dark:bg-surface-dark rounded-xl border border-primary/10 dark:border-border-dark p-1 shadow-sm">
+            <button onclick="updateDashboard('today')" id="btn-today" 
+                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'today' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
+                Hari Ini
+            </button>
+            <button onclick="updateDashboard('week')" id="btn-week" 
+                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'week' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
+                Minggu Ini
+            </button>
+            <button onclick="updateDashboard('month')" id="btn-month" 
+                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'month' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
+                Bulan Ini
+            </button>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Peminjaman Chart -->
+        <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm animate-enter delay-100">
+            <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-500">trending_up</span>
+                Tren Peminjaman
+            </h3>
+            <div class="relative h-64 w-full">
+                <canvas id="peminjamanChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pengunjung Chart -->
+        <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm animate-enter delay-200">
+            <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-500">groups</span>
+                Kunjungan Perpustakaan
+            </h3>
+            <div class="relative h-64 w-full">
+                <canvas id="pengunjungChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -146,3 +185,12 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        // Initial Data from Controller
+        window.initialChartData = @json($chartData);
+        window.activeFilter = '{{ $filter }}';
+    </script>
+    @vite(['resources/js/dashboard/index.js'])
+@endpush

@@ -9,11 +9,89 @@ use App\Models\Pengguna;
 use App\Models\Peminjaman;
 use App\Models\Denda;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $filter = $request->input('filter', 'today'); // today, week, month
+
+        // 1. Determine Date Range
+        $endDate = Carbon::now();
+        if ($filter === 'today') {
+            $startDate = Carbon::today();
+            $dateFormat = 'H:00'; // Group by Hour
+            $labelFormat = 'H:i';
+        } elseif ($filter === 'month') {
+            $startDate = Carbon::now()->subDays(30);
+            $dateFormat = 'Y-m-d'; // Group by Day
+            $labelFormat = 'd M';
+        } else { // week
+            $startDate = Carbon::now()->subDays(7);
+            $dateFormat = 'Y-m-d';
+            $labelFormat = 'D, d M';
+        }
+
+        // 2. Fetch Chart Data (Generic Helper)
+        $minDate = $startDate->copy();
+        $maxDate = $endDate->copy();
+
+        // A. Peminjaman Trend (Line Chart)
+        $peminjamanQuery = Peminjaman::select(
+                DB::raw($filter === 'today' ? 'DATE_FORMAT(created_at, "%H:00") as date' : 'DATE(created_at) as date'),
+                DB::raw('count(*) as count')
+            )
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereIn('status_transaksi', ['berjalan', 'selesai']) // Only valid transactions
+            ->groupBy('date')
+            ->orderBy('date');
+
+        $peminjamanData = $peminjamanQuery->get()->pluck('count', 'date')->toArray();
+
+        // B. Pengunjung Count (Bar Chart)
+        $pengunjungQuery = \App\Models\Pengunjung::select(
+                DB::raw($filter === 'today' ? 'DATE_FORMAT(created_at, "%H:00") as date' : 'DATE(created_at) as date'),
+                DB::raw('count(*) as count')
+            )
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date');
+
+        $pengunjungData = $pengunjungQuery->get()->pluck('count', 'date')->toArray();
+
+        // 3. Fill Missing Dates/Hours
+        $labels = [];
+        $chartPeminjaman = [];
+        $chartPengunjung = [];
+
+        $current = $minDate->copy();
+        while ($current <= $maxDate) {
+            $key = $filter === 'today' ? $current->format('H:00') : $current->format('Y-m-d');
+            $label = $filter === 'today' ? $current->format('H:00') : $current->format($labelFormat);
+            
+            $labels[] = $label;
+            $chartPeminjaman[] = $peminjamanData[$key] ?? 0;
+            $chartPengunjung[] = $pengunjungData[$key] ?? 0;
+
+            if ($filter === 'today') {
+                $current->addHour();
+            } else {
+                $current->addDay();
+            }
+        }
+
+        $chartData = [
+            'labels' => $labels,
+            'peminjaman' => $chartPeminjaman,
+            'pengunjung' => $chartPengunjung,
+        ];
+
+        if ($request->ajax()) {
+            return response()->json($chartData);
+        }
+
         try {
             $stats = [
                 'total_buku' => Buku::count(),
@@ -37,6 +115,6 @@ class DashboardController extends Controller
             $peminjamanTerbaru = [];
         }
 
-        return view('admin.dashboard', compact('stats', 'peminjamanTerbaru'));
+        return view('admin.dashboard', compact('stats', 'peminjamanTerbaru', 'chartData', 'filter'));
     }
 }
