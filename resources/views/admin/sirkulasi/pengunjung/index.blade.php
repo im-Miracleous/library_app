@@ -65,27 +65,27 @@
                 <x-select id="jenis_pengunjung" name="jenis_pengunjung" label="Status / Kategori" required placeholder="">
                     
                     <optgroup label="Personal & Akademik">
-                        <option value="Umum">Umum / Tamu</option>
+                        <option value="Umum / Tamu">Umum / Tamu</option>
                         <option value="Anggota / Mahasiswa">Anggota / Mahasiswa</option>
-                        <option value="Pelajar / Siswa">Pelajar / Siswa Sekolah</option>
-                        <option value="Dosen / Staff PJS">Dosen / Staff Pengajar</option>
-                        <option value="Peneliti">Peneliti / Riset</option>
+                        <option value="Pelajar / Siswa Sekolah">Pelajar / Siswa Sekolah</option>
+                        <option value="Dosen / Staff Pengajar">Dosen / Staff Pengajar</option>
+                        <option value="Peneliti / Riset">Peneliti / Riset</option>
                     </optgroup>
 
                     <optgroup label="Organisasi & Komunitas">
-                        <option value="Organisasi Internal">Organisasi Internal Kampus</option>
-                        <option value="Organisasi Eksternal">Organisasi / Komunitas Luar</option>
-                        <option value="Nonprofit">Yayasan / Nonprofit / NGO</option>
+                        <option value="Organisasi Internal Kampus">Organisasi Internal Kampus</option>
+                        <option value="Organisasi / Komunitas Luar">Organisasi / Komunitas Luar</option>
+                        <option value="Yayasan / Nonprofit / NGO">Yayasan / Nonprofit / NGO</option>
                     </optgroup>
 
                     <optgroup label="Instansi & Perusahaan">
-                        <option value="Pemerintahan">Pemerintahan / Dinas</option>
-                        <option value="Korporasi">Korporasi / Perusahaan Swasta</option>
+                        <option value="Pemerintahan / Dinas">Pemerintahan / Dinas</option>
+                        <option value="Korporasi / Perusahaan Swasta">Korporasi / Perusahaan Swasta</option>
                     </optgroup>
 
                     <optgroup label="Kunjungan Khusus">
-                        <option value="Tamu Undangan">Tamu Undangan / VIP</option>
-                        <option value="Media / Pers">Media / Jurnalis</option>
+                        <option value="Tamu Undangan / VIP">Tamu Undangan / VIP</option>
+                        <option value="Media / Jurnalis">Media / Jurnalis</option>
                         <option value="Lainnya">Lainnya</option>
                     </optgroup>
 
@@ -161,20 +161,22 @@
                             @php
                                 $badgeClass = match ($item->jenis_pengunjung) {
                                     // Kategori Umum
-                                    'Umum', 'Lainnya' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
+                                    'Umum / Tamu', 'Lainnya' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
+                                    'Umum' => 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300', // Legacy support
                                     
                                     // Kategori Akademik
                                     'Anggota / Mahasiswa', 'anggota' => 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
-                                    'Pelajar / Siswa' => 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400',
-                                    'Dosen / Staff PJS', 'Peneliti' => 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
+                                    'Pelajar / Siswa Sekolah', 'Pelajar / Siswa' => 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400',
+                                    'Dosen / Staff Pengajar', 'Dosen / Staff PJS', 'Peneliti / Riset', 'Peneliti' => 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
                                     
                                     // Kategori Organisasi
-                                    'Organisasi Internal', 'Organisasi Eksternal' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
-                                    'Korporasi', 'Nonprofit' => 'bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-400',
+                                    'Organisasi Internal Kampus', 'Organisasi Internal' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
+                                    'Organisasi / Komunitas Luar', 'Organisasi Eksternal' => 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
+                                    'Korporasi / Perusahaan Swasta', 'Korporasi', 'Yayasan / Nonprofit / NGO', 'Nonprofit' => 'bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-400',
                                     
                                     // Kategori Resmi/VIP
-                                    'Pemerintahan', 'petugas' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
-                                    'Tamu Undangan', 'Media / Pers' => 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400',
+                                    'Pemerintahan / Dinas', 'Pemerintahan', 'petugas' => 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
+                                    'Tamu Undangan / VIP', 'Tamu Undangan', 'Media / Jurnalis', 'Media / Pers' => 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400',
                                     
                                     // Admin
                                     'admin' => 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400',
@@ -241,27 +243,27 @@
             <x-select id="edit_jenis" name="jenis_pengunjung" label="Status / Role" required placeholder="">
                 
                 <optgroup label="Personal & Akademik">
-                    <option value="Umum">Umum / Tamu</option>
+                    <option value="Umum / Tamu">Umum / Tamu</option>
                     <option value="Anggota / Mahasiswa">Anggota / Mahasiswa</option>
-                    <option value="Pelajar / Siswa">Pelajar / Siswa Sekolah</option>
-                    <option value="Dosen / Staff PJS">Dosen / Staff Pengajar</option>
-                    <option value="Peneliti">Peneliti / Riset</option>
+                    <option value="Pelajar / Siswa Sekolah">Pelajar / Siswa Sekolah</option>
+                    <option value="Dosen / Staff Pengajar">Dosen / Staff Pengajar</option>
+                    <option value="Peneliti / Riset">Peneliti / Riset</option>
                 </optgroup>
 
                 <optgroup label="Organisasi & Komunitas">
-                    <option value="Organisasi Internal">Organisasi Internal Kampus</option>
-                    <option value="Organisasi Eksternal">Organisasi / Komunitas Luar</option>
-                    <option value="Nonprofit">Yayasan / Nonprofit / NGO</option>
+                    <option value="Organisasi Internal Kampus">Organisasi Internal Kampus</option>
+                    <option value="Organisasi / Komunitas Luar">Organisasi / Komunitas Luar</option>
+                    <option value="Yayasan / Nonprofit / NGO">Yayasan / Nonprofit / NGO</option>
                 </optgroup>
 
                 <optgroup label="Instansi & Perusahaan">
-                    <option value="Pemerintahan">Pemerintahan / Dinas</option>
-                    <option value="Korporasi">Korporasi / Perusahaan Swasta</option>
+                    <option value="Pemerintahan / Dinas">Pemerintahan / Dinas</option>
+                    <option value="Korporasi / Perusahaan Swasta">Korporasi / Perusahaan Swasta</option>
                 </optgroup>
 
                 <optgroup label="Kunjungan Khusus">
-                    <option value="Tamu Undangan">Tamu Undangan / VIP</option>
-                    <option value="Media / Pers">Media / Jurnalis</option>
+                    <option value="Tamu Undangan / VIP">Tamu Undangan / VIP</option>
+                    <option value="Media / Jurnalis">Media / Jurnalis</option>
                     <option value="Lainnya">Lainnya</option>
                 </optgroup>
 

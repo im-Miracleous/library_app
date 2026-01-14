@@ -45,10 +45,10 @@ class PenggunaSeeder extends Seeder
         ]);
 
         // 2. PETUGAS (3 Orang)
-        // Convention: [name]@petugas.library.com
+        // Convention: [name]@staff.library.com
         Pengguna::create([
             'nama' => 'Yoel',
-            'email' => 'yoel@petugas.library.com',
+            'email' => 'yoel@staff.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'petugas',
             'telepon' => '089876543210',
@@ -58,7 +58,7 @@ class PenggunaSeeder extends Seeder
 
         Pengguna::create([
             'nama' => 'Ani Staff',
-            'email' => 'ani@petugas.library.com',
+            'email' => 'ani@staff.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'petugas',
             'telepon' => '089876543211',
@@ -68,7 +68,7 @@ class PenggunaSeeder extends Seeder
 
         Pengguna::create([
             'nama' => 'Citra Nonaktif',
-            'email' => 'citra@petugas.library.com',
+            'email' => 'citra@staff.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'petugas',
             'telepon' => '089876543212',
