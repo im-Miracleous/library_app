@@ -168,25 +168,119 @@ class PeminjamanSeeder extends Seeder
             }
         };
 
-        // Kebutuhan: 10 Row Data
-        // 1. 2 record Selesai, Tepat Waktu
-        $makeLoan($members->random(), 'selesai', false, true);
-        $makeLoan($members->random(), 'selesai', false, true);
+        // Kebutuhan: Minimal 25 Row Data dengan variasi
+        // Variasi:
+        // - Status Transaksi: Selesai (Tepat, Telat), Berjalan (On Time, Overdue)
+        // - Kondisi Buku Selesai: Dikembalikan (Baik), Hilang, Rusak
+        // - Range Tanggal: 30 hari terakhir
 
-        // 2. 2 record Selesai, Terlambat (1 Lunas, 1 Belum)
-        $makeLoan($members->random(), 'selesai', true, true, true); // Lunas
-        $makeLoan($members->random(), 'selesai', true, true, false); // Belum bayar
+        $generateTransactions = function($count, $type) use ($makeLoan, $members) {
+             for ($i = 0; $i < $count; $i++) {
+                $member = $members->random();
+                
+                // Status Mapping Logic
+                // type 1: Selesai - Aman (Tepat Waktu)
+                // type 2: Selesai - Telat (Lunas/Belum)
+                // type 3: Selesai - Masalah (Hilang/Rusak)
+                // type 4: Berjalan - Aman
+                // type 5: Berjalan - Overdue
 
-        // 3. 2 record Berjalan, Terlambat (Melebihi jatuh tempo)
-        // Di sini denda belum dibuat karena belum dikembalikan (denda dihitung saat kembali biasanya), 
-        // tapi statusnya sudah terlambat secara logika aplikasi.
-        $makeLoan($members->random(), 'berjalan', true, false);
-        $makeLoan($members->random(), 'berjalan', true, false);
+                try {
+                    switch ($type) {
+                        case 1: 
+                            // Selesai Tepat Waktu
+                            $makeLoan($member, 'selesai', false, true);
+                            break;
+                        case 2:
+                            // Selesai Telat
+                            $paid = rand(0, 1) == 1;
+                            $makeLoan($member, 'selesai', true, true, $paid);
+                            break;
+                        case 3:
+                            // Selesai - Dengan Masalah (Hilang atau Rusak)
+                            // Kita buat transaksi selesai normal, variasi status buku (hilang/rusak) 
+                            // akan diaplikasikan secara acak pada tahap post-processing di bawah.
+                            $makeLoan($member, 'selesai', rand(0, 1), true, true);
+                            break;
+                        case 4:
+                            // Berjalan Aman
+                            $makeLoan($member, 'berjalan', false, false);
+                             break;
+                        case 5:
+                            // Berjalan Overdue
+                            $makeLoan($member, 'berjalan', true, false);
+                            break;
+                    }
+                } catch (\Exception $e) {
+                    continue; // Skip constraint errors
+                }
+             }
+        };
 
-        // 4. 4 record Berjalan, On Time (Belum jatuh tempo)
-        $makeLoan($members->random(), 'berjalan', false, false);
-        $makeLoan($members->random(), 'berjalan', false, false);
-        $makeLoan($members->random(), 'berjalan', false, false);
-        $makeLoan($members->random(), 'berjalan', false, false);
+        // Total Target ~25-30
+        $generateTransactions(8, 1); // 8 Selesai Tepat
+        $generateTransactions(5, 2); // 5 Selesai Telat
+        $generateTransactions(4, 3); // 4 Selesai (Potential Masalah candidate)
+        $generateTransactions(5, 4); // 5 Berjalan Aman
+        $generateTransactions(5, 5); // 5 Berjalan Overdue
+
+        // SIMULASI BUKU HILANG / RUSAK
+        // Mengubah status beberapa buku yang sudah 'dikembalikan' menjadi 'hilang' atau 'rusak' 
+        // untuk memicu data pada Laporan Kerusakan/Kehilangan.
+        $problematicDetails = DetailPeminjaman::where('status_buku', 'dikembalikan')->inRandomOrder()->take(5)->get();
+        
+        foreach($problematicDetails as $index => $detail) {
+            $status = ($index % 2 == 0) ? 'hilang' : 'rusak';
+            $detail->update(['status_buku' => $status]);
+
+            // Tambahkan denda ganti rugi (Estimasi Rp 50.000 - Rp 150.000)
+            $fineAmount = rand(5, 15) * 10000;
+            try {
+                 Denda::create([
+                    'id_detail_peminjaman' => $detail->id_detail_peminjaman,
+                    'jenis_denda' => $status == 'hilang' ? 'ganti_rugi_hilang' : 'ganti_rugi_rusak',
+                    'jumlah_denda' => $fineAmount,
+                    'status_bayar' => 'belum_bayar',
+                    'keterangan' => "Ganti rugi buku $status"
+                ]);
+            } catch (\Exception $e) {
+                // Skip jika ada kendala database
+            }
+        }
+        // GUARANTEE DATA FOR TODAY (Agar Dashboard "Hari Ini" tidak kosong)
+        try {
+            $member = $members->random();
+            // Transaksi hari ini: Berjalan, Baru saja dipinjam
+            $makeLoanToday = function ($member) use ($books, $generateId) {
+                $tglPinjam = Carbon::now(); // HARI INI
+                $duration = 7;
+                $jatuhTempo = (clone $tglPinjam)->addDays($duration);
+                $newId = $generateId($tglPinjam);
+
+                $peminjaman = Peminjaman::create([
+                    'id_peminjaman' => $newId,
+                    'id_pengguna' => $member->id_pengguna,
+                    'tanggal_pinjam' => $tglPinjam,
+                    'tanggal_jatuh_tempo' => $jatuhTempo,
+                    'status_transaksi' => 'berjalan',
+                    'keterangan' => 'Baru pinjam hari ini (System Generated)'
+                ]);
+
+                // Add 1 Book
+                $book = $books->random();
+                DetailPeminjaman::create([
+                    'id_peminjaman' => $peminjaman->id_peminjaman,
+                    'id_buku' => $book->id_buku,
+                    'jumlah' => 1,
+                    'status_buku' => 'dipinjam',
+                    'tanggal_kembali_aktual' => null
+                ]);
+            };
+
+            $makeLoanToday($member);
+            $makeLoanToday($members->random()); // Buat 2 biji biar yakin
+        } catch (\Exception $e) {
+            // Ignore if fails
+        }
     }
 }

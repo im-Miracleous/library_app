@@ -105,9 +105,14 @@
                             <div class="flex items-center gap-3">
                                 <!-- Cover Image -->
                                 @if($item->gambar_sampul)
+                                    @php
+                                        $coverUrl = \Illuminate\Support\Str::startsWith($item->gambar_sampul, ['http://', 'https://']) 
+                                            ? $item->gambar_sampul 
+                                            : asset('storage/' . $item->gambar_sampul);
+                                    @endphp
                                     <div class="w-10 h-14 rounded overflow-hidden shadow-sm shrink-0 border border-slate-200 dark:border-white/10 relative group cursor-pointer"
-                                        onclick="openImageModal('{{ asset('storage/' . $item->gambar_sampul) }}', '{{ $item->judul }}')">
-                                        <img src="{{ asset('storage/' . $item->gambar_sampul) }}"
+                                        onclick="openImageModal('{{ $coverUrl }}', '{{ $item->judul }}')">
+                                        <img src="{{ $coverUrl }}"
                                             alt="{{ $item->judul }}"
                                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
                                         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">

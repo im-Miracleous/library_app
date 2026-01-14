@@ -113,16 +113,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
             e.preventDefault();
 
-            // Extract page number from href
-            try {
-                const url = new URL(link.href);
-                const page = url.searchParams.get('page');
-                if (page) {
-                    state.page = page;
-                    fetchData();
+            let targetPage = null;
+
+            if (link.dataset.page) {
+                targetPage = link.dataset.page;
+            } else if (link.href && link.href !== '#' && !link.href.endsWith('#')) {
+                try {
+                    const url = new URL(link.href);
+                    targetPage = url.searchParams.get('page');
+                } catch (err) {
+                    console.error('Invalid Pagination URL', link.href);
                 }
-            } catch (err) {
-                console.error('Invalid Pagination URL', link.href);
+            }
+
+            if (targetPage) {
+                state.page = targetPage;
+                fetchData();
             }
         });
     }

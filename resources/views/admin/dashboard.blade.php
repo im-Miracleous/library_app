@@ -57,11 +57,20 @@
         <!-- Peminjaman Chart -->
         <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm animate-enter delay-100">
             <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-blue-500">trending_up</span>
-                Tren Peminjaman
+                <span class="material-symbols-outlined text-blue-500">pie_chart</span>
+                Status Peminjaman
             </h3>
-            <div class="relative h-64 w-full">
-                <canvas id="peminjamanChart"></canvas>
+            <div class="relative h-64 w-full group">
+                <canvas id="peminjamanChart" class="transition-opacity duration-300"></canvas>
+                
+                <!-- Empty State -->
+                <div id="peminjamanEmptyState" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400 dark:text-white/40">
+                    <div class="p-4 rounded-full bg-slate-100 dark:bg-white/5 mb-3 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-4xl">data_loss_prevention</span>
+                    </div>
+                    <p class="text-sm font-semibold">Tidak ada aktivitas peminjaman</p>
+                    <p class="text-xs">untuk periode ini</p>
+                </div>
             </div>
         </div>
 
@@ -71,8 +80,17 @@
                 <span class="material-symbols-outlined text-emerald-500">groups</span>
                 Kunjungan Perpustakaan
             </h3>
-            <div class="relative h-64 w-full">
-                <canvas id="pengunjungChart"></canvas>
+            <div class="relative h-64 w-full group">
+                <canvas id="pengunjungChart" class="transition-opacity duration-300"></canvas>
+                
+                <!-- Empty State -->
+                <div id="pengunjungEmptyState" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400 dark:text-white/40">
+                    <div class="p-4 rounded-full bg-slate-100 dark:bg-white/5 mb-3 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-4xl">no_accounts</span>
+                    </div>
+                    <p class="text-sm font-semibold">Tidak ada kunjungan</p>
+                    <p class="text-xs">untuk periode ini</p>
+                </div>
             </div>
         </div>
     </div>

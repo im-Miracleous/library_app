@@ -18,9 +18,9 @@ class PengaturanSeeder extends Seeder
             ['id' => 1], // Kondisi pencarian
             [
                 'nama_perpustakaan' => 'Perpustakaan Digital',
-                'denda_per_hari' => 1000.00, // Contoh: Rp 1.000 per hari
-                'batas_peminjaman_hari' => 7, // Contoh: 7 hari
-                'maksimal_buku_pinjam' => 3,  // Contoh: Maksimal 3 buku
+                'denda_per_hari' => 500.00, // Denda 500 per hari
+                'batas_peminjaman_hari' => 14, // 14 hari
+                'maksimal_buku_pinjam' => 5,  // Maksimal 5 buku
             ]
         );
     }

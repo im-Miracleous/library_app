@@ -92,9 +92,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
 
                 let targetPage = null;
+
                 if (link.dataset.page) {
                     targetPage = link.dataset.page;
-                } else if (link.href && link.href !== '#') {
+                } else if (link.href && link.href !== '#' && !link.href.endsWith('#')) {
                     try {
                         const url = new URL(link.href);
                         targetPage = url.searchParams.get('page');
@@ -190,11 +191,38 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${idHighlighted}
                     </td>
                     <td class="p-4">
-                        <div class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
-                            ${judulHighlighted}
-                        </div>
-                        <div class="text-xs text-slate-500 dark:text-white/40">
-                            ${isbnHighlighted}
+                        <div class="flex items-center gap-3">
+                            <!-- Cover Image -->
+                            ${(() => {
+                    if (item.gambar_sampul) {
+                        const isUrl = item.gambar_sampul.startsWith('http');
+                        const src = isUrl ? item.gambar_sampul : `/storage/${item.gambar_sampul}`;
+                        return `
+                                    <div class="w-10 h-14 rounded overflow-hidden shadow-sm shrink-0 border border-slate-200 dark:border-white/10 relative group cursor-pointer"
+                                        onclick="openImageModal('${src}', '${item.judul.replace(/'/g, "\\'")}')">
+                                        <img src="${src}"
+                                            alt="${item.judul}"
+                                            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-white text-sm opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md">zoom_in</span>
+                                        </div>
+                                    </div>`;
+                    } else {
+                        return `
+                                    <div class="w-10 h-14 rounded bg-slate-100 dark:bg-white/5 flex items-center justify-center shrink-0 border border-slate-200 dark:border-white/10">
+                                        <span class="material-symbols-outlined text-slate-300 dark:text-white/20 text-xl">book</span>
+                                    </div>`;
+                    }
+                })()}
+
+                            <div class="flex flex-col">
+                                <div class="font-bold text-slate-800 dark:text-white group-hover:text-primary dark:group-hover:text-accent">
+                                    ${judulHighlighted}
+                                </div>
+                                <div class="text-xs text-slate-500 dark:text-white/40 font-mono mt-0.5">
+                                    ${isbnHighlighted}
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td class="p-4">
@@ -257,25 +285,57 @@ document.addEventListener('DOMContentLoaded', function () {
             infoDiv.innerHTML = `Showing <span class="font-bold">${from}</span> to <span class="font-bold">${to}</span> of <span class="font-bold">${total}</span> entries`;
         }
 
-        const linksContainer = footer.querySelector('.flex.gap-2') || footer.querySelector('div:last-child');
+        const linksContainer = footer.querySelector('.flex.gap-2') || footer.querySelector('div:last-child') || footer.querySelector('nav');
         if (linksContainer) {
-            let html = '';
-
-            if (currentPage > 1) {
-                html += `<a href="#" class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors" data-page="${currentPage - 1}">Previous</a>`;
-            } else {
-                html += `<button disabled class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Previous</button>`;
-            }
-
-            const lastPage = Math.ceil(total / perPage);
-            if (currentPage < lastPage) {
-                html += `<a href="#" class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors ml-2" data-page="${currentPage + 1}">Next</a>`;
-            } else {
-                html += `<button disabled class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed ml-2">Next</button>`;
-            }
-
+            linksContainer.className = 'flex flex-wrap gap-1'; // Ensure container has correct classes
+            let html = buildPaginationHTML(total, perPage, currentPage);
             linksContainer.innerHTML = html;
         }
+    }
+
+    function buildPaginationHTML(total, limit, page) {
+        const totalPages = Math.ceil(total / limit);
+        if (totalPages <= 1) return '';
+
+        let html = '<div class="flex flex-wrap gap-1">';
+
+        // Previous
+        if (page > 1) {
+            html += `<a href="#" data-page="${page - 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">Previous</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed">Previous</span>`;
+        }
+
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, page + 2);
+
+        // First Page
+        if (start > 1) {
+            html += `<a href="#" data-page="1" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">1</a>`;
+            if (start > 2) html += `<span class="px-2 text-slate-400">...</span>`;
+        }
+
+        // Window
+        for (let i = start; i <= end; i++) {
+            const active = i === page ? 'bg-primary text-white border-primary dark:bg-accent dark:text-primary-dark dark:border-accent' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5';
+            html += `<a href="#" data-page="${i}" class="px-3 py-1 rounded border text-xs font-bold ${active}">${i}</a>`;
+        }
+
+        // Last Page
+        if (end < totalPages) {
+            if (end < totalPages - 1) html += `<span class="px-2 text-slate-400">...</span>`;
+            html += `<a href="#" data-page="${totalPages}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">${totalPages}</a>`;
+        }
+
+        // Next
+        if (page < totalPages) {
+            html += `<a href="#" data-page="${page + 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs ml-1">Next</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed ml-1">Next</span>`;
+        }
+
+        html += '</div>';
+        return html;
     }
 
     function refreshIcons() {

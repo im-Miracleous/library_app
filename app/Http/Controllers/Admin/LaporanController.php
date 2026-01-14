@@ -58,7 +58,7 @@ class LaporanController extends Controller
 
             return response()->json([
                 'html' => $html,
-                'total' => $type === 'transaksi' || $type === 'denda' ? DB::select('SELECT @total as total')[0]->total ?? count($data) : count($data),
+                'total' => method_exists($data, 'total') ? $data->total() : count($data),
                 'stats' => $stats,
                 'chartData' => $chartData
             ]);
@@ -99,23 +99,66 @@ class LaporanController extends Controller
             'berjalan' => $query->clone()->where('status_transaksi', 'berjalan')->count(),
         ];
 
-        // Chart Data (Daily Transactions)
-        $daily = Peminjaman::select(DB::raw('DATE(tanggal_pinjam) as date'), DB::raw('count(*) as count'))
-            ->whereBetween('tanggal_pinjam', [$startDate, $endDate])
-            ->when($status, fn($q) => $q->where('status_transaksi', $status))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+        // Chart Data (Status Breakdown for Pie Chart)
+        
+        // Use whereDate to handle both DATE and DATETIME columns robustly
+        $countDiajukan = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'menunggu_verifikasi')
+            ->count();
+
+        // 2. Berjalan (Not Overdue)
+        $countBerjalan = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'berjalan')
+            ->where('tanggal_jatuh_tempo', '>=', Carbon::today())
+            ->count();
+
+        // 3. Terlambat (Active Overdue)
+        $countTerlambat = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'berjalan')
+            ->where('tanggal_jatuh_tempo', '<', Carbon::today())
+            ->count();
+
+        // 4. Rusak
+        $countRusak = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'selesai')
+            ->whereHas('details', fn($q) => $q->where('status_buku', 'rusak'))
+            ->count();
+
+        // 5. Hilang
+        $countHilang = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'selesai')
+            ->whereHas('details', fn($q) => $q->where('status_buku', 'hilang'))
+            ->count();
+
+        // 6. Selesai (Clean)
+        $countSelesai = Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
+            ->where('status_transaksi', 'selesai')
+            ->whereDoesntHave('details', fn($q) => $q->whereIn('status_buku', ['rusak', 'hilang']))
+            ->count();
 
         $chartData = [
-            'labels' => $daily->pluck('date')->map(fn($d) => Carbon::parse($d)->format('d M'))->toArray(),
+            'labels' => ['Diajukan', 'Berjalan', 'Terlambat', 'Selesai', 'Rusak', 'Hilang'],
             'datasets' => [[
                 'label' => 'Jumlah Transaksi',
-                'data' => $daily->pluck('count')->toArray(),
-                'borderColor' => '#3b82f6',
-                'backgroundColor' => 'rgba(59, 130, 246, 0.2)',
-                'fill' => true,
-                'tension' => 0.4
+                'data' => [$countDiajukan, $countBerjalan, $countTerlambat, $countSelesai, $countRusak, $countHilang],
+                'backgroundColor' => [
+                    '#f59e0b', // Diajukan (Orange)
+                    '#3b82f6', // Berjalan (Blue)
+                    '#ef4444', // Terlambat (Red)
+                    '#10b981', // Selesai (Emerald)
+                    '#71717a', // Rusak (Zinc-500 approx, or simplified color) -> Let's use Dark Orange or Brown? 
+                    // Actually let's use:
+                    // Rusak: #f97316 (Orange-500)
+                    // Hilang: #64748b (Slate-500)
+                    '#f97316', 
+                    '#64748b'
+                ],
             ]]
         ];
 
@@ -137,11 +180,12 @@ class LaporanController extends Controller
 
         // Build Query
         $query = Denda::query()
-            ->select('denda.*', 'pengguna.nama as nama_anggota', 'peminjaman.id_peminjaman')
+            ->select('denda.*', 'pengguna.nama as nama_anggota', 'peminjaman.id_peminjaman', 'detail_peminjaman.tanggal_kembali_aktual')
             ->join('detail_peminjaman', 'denda.id_detail_peminjaman', '=', 'detail_peminjaman.id_detail_peminjaman')
             ->join('peminjaman', 'detail_peminjaman.id_peminjaman', '=', 'peminjaman.id_peminjaman')
             ->join('pengguna', 'peminjaman.id_pengguna', '=', 'pengguna.id_pengguna')
-            ->whereBetween('denda.created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
+            ->whereDate('denda.created_at', '>=', $startDate)
+            ->whereDate('denda.created_at', '<=', $endDate);
 
         if ($statusBayar) {
             $query->where('denda.status_bayar', $statusBayar);
@@ -164,7 +208,7 @@ class LaporanController extends Controller
         $paginator = $query->paginate($limit, ['*'], 'page', $page)->withQueryString();
 
         // Stats
-        $statsQuery = Denda::whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()]);
+        $statsQuery = Denda::whereDate('created_at', '>=', $startDate)->whereDate('created_at', '<=', $endDate);
         if ($statusBayar) $statsQuery->where('status_bayar', $statusBayar);
 
         $stats = [
@@ -173,24 +217,47 @@ class LaporanController extends Controller
             'belum_bayar' => $statsQuery->clone()->where('status_bayar', 'belum_bayar')->sum('jumlah_denda'),
         ];
 
-        // Chart Data (Daily Fines)
-        $daily = Denda::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(jumlah_denda) as total'))
-            ->whereBetween('created_at', [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()])
-            ->when($statusBayar, fn($q) => $q->where('status_bayar', $statusBayar))
-            ->groupBy('date')
+        // Chart Data (Daily Fines - Grouped Bar)
+        $daily = Denda::select(
+                DB::raw('DATE(created_at) as date'), 
+                'status_bayar',
+                DB::raw('SUM(jumlah_denda) as total')
+            )
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->groupBy('date', 'status_bayar')
             ->orderBy('date')
             ->get();
 
+        $dates = $daily->pluck('date')->unique()->sort()->values();
+        $lunasData = [];
+        $belumBayarData = [];
+
+        foreach ($dates as $date) {
+            $lunasData[] = $daily->where('date', $date)->where('status_bayar', 'lunas')->sum('total');
+            $belumBayarData[] = $daily->where('date', $date)->where('status_bayar', 'belum_bayar')->sum('total');
+        }
+
         $chartData = [
-            'labels' => $daily->pluck('date')->map(fn($d) => Carbon::parse($d)->format('d M'))->toArray(),
-            'datasets' => [[
-                'label' => 'Total Denda (Rp)',
-                'data' => $daily->pluck('total')->toArray(),
-                'borderColor' => '#ef4444',
-                'backgroundColor' => 'rgba(239, 68, 68, 0.2)',
-                'fill' => true,
-                'tension' => 0.4
-            ]]
+            'labels' => $dates->map(fn($d) => Carbon::parse($d)->format('d M'))->toArray(),
+            'datasets' => [
+                [
+                    'label' => 'Sudah Dibayar',
+                    'data' => $lunasData,
+                    'backgroundColor' => '#10b981', // Emerald
+                    'borderColor' => '#059669',
+                    'borderWidth' => 1,
+                    'borderRadius' => 4
+                ],
+                [
+                    'label' => 'Belum Dibayar',
+                    'data' => $belumBayarData,
+                    'backgroundColor' => '#ef4444', // Red
+                    'borderColor' => '#dc2626',
+                    'borderWidth' => 1,
+                    'borderRadius' => 4
+                ]
+            ]
         ];
 
         return [$paginator, $stats, $chartData];
@@ -202,7 +269,8 @@ class LaporanController extends Controller
         // Get Top 10 Books
         $data = DetailPeminjaman::select('id_buku', DB::raw('SUM(jumlah) as total_dipinjam'))
             ->whereHas('peminjaman', function($q) use ($startDate, $endDate) {
-                $q->whereBetween('tanggal_pinjam', [$startDate, $endDate]);
+                $q->whereDate('tanggal_pinjam', '>=', $startDate)
+                  ->whereDate('tanggal_pinjam', '<=', $endDate);
             })
             ->with(['buku' => function($q) {
                 $q->select('id_buku', 'judul', 'penulis', 'gambar_sampul');
@@ -213,7 +281,7 @@ class LaporanController extends Controller
             ->get();
 
         $stats = [
-            'total_buku_unik_dipinjam' => DetailPeminjaman::whereHas('peminjaman', fn($q) => $q->whereBetween('tanggal_pinjam', [$startDate, $endDate]))->distinct('id_buku')->count('id_buku'),
+            'total_buku_unik_dipinjam' => DetailPeminjaman::whereHas('peminjaman', fn($q) => $q->whereDate('tanggal_pinjam', '>=', $startDate)->whereDate('tanggal_pinjam', '<=', $endDate))->distinct('id_buku')->count('id_buku'),
             'top_1_judul' => $data->first() ? $data->first()->buku->judul : '-',
             'top_1_total' => $data->first() ? $data->first()->total_dipinjam : 0,
         ];
@@ -239,7 +307,8 @@ class LaporanController extends Controller
     {
         // Get Top 10 Members
         $data = Peminjaman::select('id_pengguna', DB::raw('count(*) as total_transaksi'))
-            ->whereBetween('tanggal_pinjam', [$startDate, $endDate])
+            ->whereDate('tanggal_pinjam', '>=', $startDate)
+            ->whereDate('tanggal_pinjam', '<=', $endDate)
             ->with(['pengguna' => function($q) {
                 $q->select('id_pengguna', 'nama', 'email', 'foto_profil');
             }])
@@ -249,7 +318,7 @@ class LaporanController extends Controller
             ->get();
 
         $stats = [
-            'total_anggota_aktif' => Peminjaman::whereBetween('tanggal_pinjam', [$startDate, $endDate])->distinct('id_pengguna')->count('id_pengguna'),
+            'total_anggota_aktif' => Peminjaman::whereDate('tanggal_pinjam', '>=', $startDate)->whereDate('tanggal_pinjam', '<=', $endDate)->distinct('id_pengguna')->count('id_pengguna'),
             'top_1_nama' => $data->first() ? $data->first()->pengguna->nama : '-',
             'top_1_total' => $data->first() ? $data->first()->total_transaksi : 0,
         ];

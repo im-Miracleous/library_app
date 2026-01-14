@@ -103,15 +103,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
             e.preventDefault();
 
-            try {
-                const url = new URL(link.href);
-                const page = url.searchParams.get('page');
-                if (page) {
-                    state.page = page;
-                    fetchData();
+            let targetPage = null;
+
+            // Priority 1: Check data-page attribute (AJAX generated)
+            if (link.dataset.page) {
+                targetPage = link.dataset.page;
+            }
+            // Priority 2: Check standard href (Server-side generated)
+            else if (link.href && link.href !== '#' && !link.href.endsWith('#')) {
+                try {
+                    const url = new URL(link.href);
+                    targetPage = url.searchParams.get('page');
+                } catch (err) {
+                    console.error('Invalid Pagination URL', link.href);
                 }
-            } catch (err) {
-                console.error('Invalid Pagination URL', link.href);
+            }
+
+            if (targetPage) {
+                state.page = targetPage;
+                fetchData();
             }
         });
     }

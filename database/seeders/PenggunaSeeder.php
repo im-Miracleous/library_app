@@ -25,8 +25,8 @@ class PenggunaSeeder extends Seeder
         // 1. ADMIN (2 Orang)
         // Convention: [name]@admin.library.com
         Pengguna::create([
-            'nama' => 'Super Admin',
-            'email' => 'super@admin.library.com',
+            'nama' => 'Mire',
+            'email' => 'mire@admin.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'admin',
             'telepon' => '081234567890',
@@ -47,8 +47,8 @@ class PenggunaSeeder extends Seeder
         // 2. PETUGAS (3 Orang)
         // Convention: [name]@petugas.library.com
         Pengguna::create([
-            'nama' => 'Budi Pustakawan',
-            'email' => 'budi@petugas.library.com',
+            'nama' => 'Yoel',
+            'email' => 'yoel@petugas.library.com',
             'password' => Hash::make('password123'),
             'peran' => 'petugas',
             'telepon' => '089876543210',
@@ -73,21 +73,34 @@ class PenggunaSeeder extends Seeder
             'peran' => 'petugas',
             'telepon' => '089876543212',
             'alamat' => 'Cuti Panjang',
-            'status' => 'nonaktif' // Sesuai request ada status nonaktif
+            'status' => 'nonaktif'
         ]);
 
         // 3. ANGGOTA (15 Orang)
-        // Convention: [name]@[domain]
+        // Convention: [name]@domain
         // 5 Nonaktif, 10 Aktif
         $faker = Faker::create('id_ID');
         $domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
 
+        // 3a. Anggota Tetap (Jojo)
+        Pengguna::create([
+            'nama' => 'Jojo',
+            'email' => 'jojo@gmail.com',
+            'password' => Hash::make('password123'),
+            'peran' => 'anggota',
+            'telepon' => '08123123123',
+            'alamat' => 'Jl. Kenangan No. 1',
+            'status' => 'aktif'
+        ]);
+
+        // 3b. Anggota Random (14 Orang: 5 Nonaktif, 9 Aktif)
+        
         // 5 Anggota Nonaktif
         for ($i = 1; $i <= 5; $i++) {
             $firstName = $faker->firstName;
             Pengguna::create([
                 'nama' => "$firstName (Nonaktif)",
-                'email' => strtolower($firstName) . $i . '@' . $faker->randomElement($domains),
+                'email' => strtolower($firstName) . $i . '_na@' . $faker->randomElement($domains),
                 'password' => Hash::make('password123'),
                 'peran' => 'anggota',
                 'telepon' => $faker->phoneNumber,
@@ -96,12 +109,12 @@ class PenggunaSeeder extends Seeder
             ]);
         }
 
-        // 10 Anggota Aktif
-        for ($i = 1; $i <= 10; $i++) {
-            $firstName = $faker->firstName; // e.g Eko
+        // 9 Anggota Aktif (Sisa)
+        for ($i = 1; $i <= 9; $i++) {
+            $firstName = $faker->firstName;
             Pengguna::create([
                 'nama' => $firstName . " Anggota",
-                'email' => strtolower($firstName) . $i . '@' . $faker->randomElement($domains),
+                'email' => strtolower($firstName) . $i . '_a@' . $faker->randomElement($domains),
                 'password' => Hash::make('password123'),
                 'peran' => 'anggota',
                 'telepon' => $faker->phoneNumber,

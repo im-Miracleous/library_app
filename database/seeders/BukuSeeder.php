@@ -27,10 +27,11 @@ class BukuSeeder extends Seeder
                 'penulis' => 'Andrea Hirata',
                 'penerbit' => 'Bentang Pustaka',
                 'tahun_terbit' => 2005,
-                'stok_total' => 10,
-                'stok_tersedia' => 10,
+                'stok_total' => 1,
+                'stok_tersedia' => 1,
                 'deskripsi' => 'Kisah perjuangan anak-anak di Belitung untuk mendapatkan pendidikan yang layak.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9789793062792-L.jpg'
             ],
             [
                 'id_kategori' => $catFiksi,
@@ -43,7 +44,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 8,
                 'stok_tersedia' => 8,
                 'deskripsi' => 'Roman sejarah yang mengambil latar belakang masa kebangkitan nasional.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9789799731234-L.jpg'
             ],
             [
                 'id_kategori' => $catFiksi,
@@ -56,7 +58,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 5,
                 'stok_tersedia' => 5,
                 'deskripsi' => 'Kisah para eksil politik Indonesia yang berkelana di luar negeri.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9786020324784-L.jpg'
             ],
 
             // Kategori Sains & Teknologi
@@ -71,7 +74,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 6,
                 'stok_tersedia' => 6,
                 'deskripsi' => 'Penjelasan populer tentang kosmologi, lubang hitam, dan teori Big Bang.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780553380163-L.jpg'
             ],
             [
                 'id_kategori' => $catSains,
@@ -84,7 +88,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 12,
                 'stok_tersedia' => 12,
                 'deskripsi' => 'Sejarah umat manusia dari zaman batu hingga abad ke-21.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg'
             ],
             [
                 'id_kategori' => $catSains,
@@ -97,7 +102,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 7,
                 'stok_tersedia' => 7,
                 'deskripsi' => 'Panduan untuk menulis kode perangkat lunak yang bersih dan mudah dipelihara.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780132350884-L.jpg'
             ],
 
             // Kategori Sejarah & Budaya
@@ -112,7 +118,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 4,
                 'stok_tersedia' => 4,
                 'deskripsi' => 'Analisis faktor geografis dan lingkungan yang membentuk sejarah manusia.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780393317558-L.jpg'
             ],
             [
                 'id_kategori' => $catSejarah,
@@ -125,7 +132,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 5,
                 'stok_tersedia' => 5,
                 'deskripsi' => 'Pencarian 4000 tahun Yudaisme, Kristen, dan Islam.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9786024410254-L.jpg'
             ],
 
             // Kategori Biografi & Memoar
@@ -140,7 +148,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 9,
                 'stok_tersedia' => 9,
                 'deskripsi' => 'Biografi pendiri Apple yang ditulis berdasarkan wawancara eksklusif.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9781451648539-L.jpg'
             ],
             [
                 'id_kategori' => $catBiografi,
@@ -153,7 +162,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 15,
                 'stok_tersedia' => 15,
                 'deskripsi' => 'Memoar mantan Ibu Negara Amerika Serikat.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg'
             ],
             [
                 'id_kategori' => $catBiografi,
@@ -166,7 +176,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 8,
                 'stok_tersedia' => 8,
                 'deskripsi' => 'Kisah cinta abadi antara B.J. Habibie dan Hasri Ainun Besari.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9789791227940-L.jpg'
             ],
 
             // Kategori Bisnis & Ekonomi
@@ -181,7 +192,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 20,
                 'stok_tersedia' => 20,
                 'deskripsi' => 'Apa yang diajarkan orang kaya pada anak-anak mereka tentang uang.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9781612680194-L.jpg'
             ],
             [
                 'id_kategori' => $catBisnis,
@@ -194,7 +206,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 10,
                 'stok_tersedia' => 10,
                 'deskripsi' => 'Buku motivasi klasik tentang kesuksesan dan kekayaan.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9781585424337-L.jpg'
             ],
             [
                 'id_kategori' => $catBisnis,
@@ -207,7 +220,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 12,
                 'stok_tersedia' => 12,
                 'deskripsi' => 'Pelajaran abadi mengenai kekayaan, keserakahan, dan kebahagiaan.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780857197689-L.jpg'
             ],
             [
                 'id_kategori' => $catBisnis,
@@ -220,7 +234,8 @@ class BukuSeeder extends Seeder
                 'stok_total' => 7,
                 'stok_tersedia' => 7,
                 'deskripsi' => 'Catatan tentang start up dan cara membangun masa depan.',
-                'status' => 'tersedia'
+                'status' => 'tersedia',
+                'gambar_sampul' => 'https://covers.openlibrary.org/b/isbn/9780804139298-L.jpg'
             ],
         ];
 

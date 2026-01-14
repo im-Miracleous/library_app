@@ -23,6 +23,29 @@
             </div>
         </th>
         <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'tanggal_kembali_aktual', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+            <div class="flex items-center gap-1">
+                Tanggal Kembali
+                @if(request('sort') == 'tanggal_kembali_aktual')
+                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                @else
+                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                @endif
+            </div>
+        </th>
+        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
+            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'jenis_denda', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
+            <div class="flex items-center gap-1">
+                Jenis Denda
+                @if(request('sort') == 'jenis_denda')
+                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                @else
+                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
+                @endif
+            </div>
+        </th>
+        <th class="p-4 font-medium">Keterangan</th>
+        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
             onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'jumlah_denda', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
             <div class="flex items-center gap-1">
                 Jumlah
@@ -44,17 +67,7 @@
                 @endif
             </div>
         </th>
-        <th class="p-4 font-medium cursor-pointer hover:text-primary transition-colors select-none"
-            onclick="window.location.href='{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('direction') == 'asc' ? 'desc' : 'asc']) }}'">
-            <div class="flex items-center gap-1">
-                Tanggal Dibuat
-                @if(request('sort') == 'created_at')
-                    <span class="material-symbols-outlined text-sm">{{ request('direction') == 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
-                @else
-                    <span class="material-symbols-outlined text-sm opacity-30">unfold_more</span>
-                @endif
-            </div>
-        </th>
+
         <th class="p-4 font-medium text-center">Aksi</th>
     </x-slot:header>
 

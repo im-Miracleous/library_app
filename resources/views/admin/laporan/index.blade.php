@@ -82,8 +82,17 @@
                     Visualisasi Data
                 </h3>
             </div>
-            <div class="relative h-80 w-full">
-                <canvas id="mainChart"></canvas>
+            <div class="relative h-80 w-full group">
+                <canvas id="mainChart" class="transition-opacity duration-300"></canvas>
+                
+                <!-- Empty State -->
+                <div id="chartEmptyState" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400 dark:text-white/40">
+                    <div class="p-4 rounded-full bg-slate-100 dark:bg-white/5 mb-3 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-5xl">manage_search</span>
+                    </div>
+                    <p class="text-base font-semibold">Tidak ada data untuk ditampilkan</p>
+                    <p class="text-sm">Silakan pilih filter lain</p>
+                </div>
             </div>
         </div>
 
@@ -130,41 +139,9 @@
     <!-- Chart Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            const chartData = @json($chartData);
-
-            new Chart(ctx, {
-                type: '{{ $type == "buku_top" ? "bar" : ($type == "anggota_top" ? "bar" : "line") }}',
-                data: chartData,
-                options: {
-                    indexAxis: '{{ $type == "buku_top" ? "y" : "x" }}',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'nearest',
-                            axis: '{{ $type == "buku_top" ? "y" : "x" }}',
-                            intersect: false,
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
+            // Pass data to external JS
+            window.laporanChartData = @json($chartData);
+            window.laporanType = '{{ $type }}';
         });
     </script>
     @push('scripts')

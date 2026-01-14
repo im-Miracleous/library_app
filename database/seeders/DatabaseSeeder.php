@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
                 PenggunaSeeder::class,
                 BukuSeeder::class,
                 PeminjamanSeeder::class,
+                PengunjungSeeder::class,
             ]);
 
             $this->command->info("Database seeded successfully!\n");

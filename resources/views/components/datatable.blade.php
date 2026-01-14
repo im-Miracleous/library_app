@@ -60,21 +60,56 @@
         <div class="text-xs text-slate-500 dark:text-white/60">
             Showing <span class="font-bold">{{ $data->firstItem() ?? 0 }}</span> to <span class="font-bold">{{ $data->lastItem() ?? 0 }}</span> of <span class="font-bold">{{ $data->total() }}</span> entries
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-1">
+            @php
+                $currentPage = $data->currentPage();
+                $lastPage = $data->lastPage();
+                $start = max(1, $currentPage - 2);
+                $end = min($lastPage, $currentPage + 2);
+            @endphp
+
+            {{-- Previous Button --}}
             @if($data->onFirstPage())
-                <button disabled
-                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Previous</button>
+                <span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed">Previous</span>
             @else
-                <a href="{{ $data->previousPageUrl() }}"
-                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Previous</a>
+                <a href="{{ $data->previousPageUrl() }}" data-page="{{ $currentPage - 1 }}" 
+                   class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">Previous</a>
             @endif
 
+            {{-- First Page --}}
+            @if($start > 1)
+                <a href="{{ $data->url(1) }}" data-page="1" 
+                   class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">1</a>
+                @if($start > 2)
+                    <span class="px-2 text-slate-400">...</span>
+                @endif
+            @endif
+
+            {{-- Page Window --}}
+            @for($i = $start; $i <= $end; $i++)
+                @if($i == $currentPage)
+                    <span class="px-3 py-1 rounded border text-xs font-bold bg-primary text-white border-primary dark:bg-accent dark:text-primary-dark dark:border-accent">{{ $i }}</span>
+                @else
+                    <a href="{{ $data->url($i) }}" data-page="{{ $i }}" 
+                       class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">{{ $i }}</a>
+                @endif
+            @endfor
+
+            {{-- Last Page --}}
+            @if($end < $lastPage)
+                @if($end < $lastPage - 1)
+                    <span class="px-2 text-slate-400">...</span>
+                @endif
+                <a href="{{ $data->url($lastPage) }}" data-page="{{ $lastPage }}" 
+                   class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">{{ $lastPage }}</a>
+            @endif
+
+            {{-- Next Button --}}
             @if($data->hasMorePages())
-                <a href="{{ $data->nextPageUrl() }}"
-                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-primary hover:bg-primary/5 transition-colors">Next</a>
+                <a href="{{ $data->nextPageUrl() }}" data-page="{{ $currentPage + 1 }}" 
+                   class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs ml-1">Next</a>
             @else
-                <button disabled
-                    class="px-3 py-1 rounded-lg border border-slate-200 dark:border-[#36271F] text-slate-400 cursor-not-allowed">Next</button>
+                <span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed ml-1">Next</span>
             @endif
         </div>
     </div>

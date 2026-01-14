@@ -256,8 +256,11 @@ window.openEditBuku = function (id) {
 
             if (previewContainer && previewImg) {
                 if (data.gambar_sampul) {
-                    previewImg.src = `/storage/${data.gambar_sampul}`;
-                    previewImg.dataset.initialSrc = `/storage/${data.gambar_sampul}`;
+                    const isUrl = data.gambar_sampul.startsWith('http');
+                    const src = isUrl ? data.gambar_sampul : `/storage/${data.gambar_sampul}`;
+
+                    previewImg.src = src;
+                    previewImg.dataset.initialSrc = src;
                     previewContainer.classList.remove('hidden');
                     if (deleteBtn) {
                         deleteBtn.classList.remove('hidden');

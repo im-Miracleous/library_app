@@ -1,3 +1,5 @@
+import Chart from 'chart.js/auto';
+
 document.addEventListener('DOMContentLoaded', function () {
     // State
     const state = {
@@ -29,19 +31,108 @@ document.addEventListener('DOMContentLoaded', function () {
     let timeout = null;
     let mainChart = null;
 
-    // Initialize
-    initChartReference();
+    // Initialize Chart if data exists
+    if (window.laporanChartData) {
+        initChart(window.laporanChartData, window.laporanType);
+    }
+
+    // Initialize Controls
     setupControls();
 
-    function initChartReference() {
-        const chartCanvas = document.getElementById('mainChart');
-        if (chartCanvas) {
-            // Chart.js attaches the chart instance to the canvas element in recent versions 
-            // or we can find it via Chart.getChart(ctx)
-            if (window.Chart) {
-                mainChart = window.Chart.getChart(chartCanvas);
-            }
+    function initChart(chartData, type) {
+        const ctx = document.getElementById('mainChart');
+        if (!ctx) return;
+
+        const emptyState = document.getElementById('chartEmptyState');
+        const total = chartData.datasets[0].data.reduce((a, b) => a + Number(b), 0);
+
+        if (total === 0) {
+            ctx.classList.add('opacity-0', 'pointer-events-none');
+            emptyState.classList.remove('hidden');
+            emptyState.classList.add('flex');
+        } else {
+            ctx.classList.remove('opacity-0', 'pointer-events-none');
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
         }
+
+        // Determine Chart Configuration
+        let chartType = 'line';
+        let cutout = 0;
+        let legendDisplay = false;
+        let indexAxis = 'x';
+        let scales = {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        };
+
+        if (type === 'transaksi') {
+            chartType = 'pie'; // Requested: Pie, not Doughnut
+            legendDisplay = true;
+            scales = {}; // No scales for Pie
+        } else if (type === 'buku_top') {
+            chartType = 'bar';
+            indexAxis = 'y';
+        } else if (type === 'anggota_top') {
+            chartType = 'bar';
+        } else if (type === 'denda') {
+            chartType = 'bar';
+            scales = {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: {
+                        callback: function (value) {
+                            return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                        }
+                    }
+                },
+                x: { grid: { display: false } }
+            };
+        }
+
+        mainChart = new Chart(ctx, {
+            type: chartType,
+            data: chartData,
+            options: {
+                indexAxis: indexAxis,
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: 0, // 0 for Pie
+                plugins: {
+                    legend: {
+                        display: legendDisplay,
+                        position: 'right',
+                    },
+                    tooltip: {
+                        mode: 'nearest',
+                        intersect: false,
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) label += ': ';
+                                let value = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
+
+                                if (type === 'transaksi') {
+                                    let total = context.chart._metasets[context.datasetIndex].total;
+                                    let percentage = ((value / total) * 100).toFixed(1) + '%';
+                                    return label + value + ' (' + percentage + ')';
+                                } else if (type === 'denda') {
+                                    return label + 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                } else {
+                                    return label + value;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: scales
+            }
+        });
+    }
+
+    function initChartReference() {
+        // Deprecated by initChart above
     }
 
     function setupControls() {
@@ -205,12 +296,24 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paginationContainer) {
             paginationContainer.addEventListener('click', (e) => {
                 const link = e.target.closest('a');
-                if (link && link.href) {
-                    e.preventDefault();
-                    // Extract page
-                    const url = new URL(link.href);
-                    const page = url.searchParams.get('page');
-                    state.page = page;
+                if (!link) return;
+
+                e.preventDefault();
+
+                let targetPage = null;
+                if (link.dataset.page) {
+                    targetPage = link.dataset.page;
+                } else if (link.href && link.href !== '#' && !link.href.endsWith('#')) {
+                    try {
+                        const url = new URL(link.href);
+                        targetPage = url.searchParams.get('page');
+                    } catch (err) {
+                        console.error('Invalid Pagination URL', link.href);
+                    }
+                }
+
+                if (targetPage) {
+                    state.page = targetPage;
                     fetchData();
                 }
             });
@@ -379,14 +482,78 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updatePaginationInfo(total) {
-        const infoDiv = document.querySelector('.p-4.border-t .text-xs');
+        const footer = document.querySelector('.p-4.border-t');
+        if (!footer) return;
+
+        const perPage = parseInt(state.limit);
+        const currentPage = parseInt(state.page);
+        const from = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1;
+        const to = Math.min(currentPage * perPage, total);
+
+        const infoDiv = footer.querySelector('div.text-xs');
         if (infoDiv) {
-            // Simplify for now as I don't have 'from'/'to' in JSON response (just total usually)
-            // But controller returns 'total'.
-            // I'd need from/to to be accurate.
-            // For now just update total.
-            const totalSpan = infoDiv.querySelectorAll('span.font-bold')[2];
-            if (totalSpan) totalSpan.innerText = total;
+            infoDiv.innerHTML = `Showing <span class="font-bold">${from}</span> to <span class="font-bold">${to}</span> of <span class="font-bold">${total}</span> entries`;
         }
+
+        const linksContainer = footer.querySelector('.flex.gap-2') || footer.querySelector('nav') || footer.querySelector('div.flex.justify-between') || footer.lastElementChild;
+        if (linksContainer) {
+            // Ensure container is ready for flex items
+            if (!linksContainer.classList.contains('flex')) {
+                // If it uses the default laravel nav style or something else, we might want to replace innerHTML directly
+                // but keeping classes safe is good.
+                linksContainer.className = 'flex flex-wrap gap-1';
+            }
+            // Actually, x-datatable footer has a specific structure. 
+            // Let's target the container that holds the buttons.
+            // If we found 'nav', it might be the container.
+
+            let html = buildPaginationHTML(total, perPage, currentPage);
+            linksContainer.innerHTML = html;
+        }
+    }
+
+    function buildPaginationHTML(total, limit, page) {
+        const totalPages = Math.ceil(total / limit);
+        if (totalPages <= 1) return '';
+
+        let html = '<div class="flex flex-wrap gap-1">';
+
+        // Previous
+        if (page > 1) {
+            html += `<a href="#" data-page="${page - 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">Previous</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed">Previous</span>`;
+        }
+
+        let start = Math.max(1, page - 2);
+        let end = Math.min(totalPages, page + 2);
+
+        // First Page
+        if (start > 1) {
+            html += `<a href="#" data-page="1" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">1</a>`;
+            if (start > 2) html += `<span class="px-2 text-slate-400">...</span>`;
+        }
+
+        // Window
+        for (let i = start; i <= end; i++) {
+            const active = i === page ? 'bg-primary text-white border-primary dark:bg-accent dark:text-primary-dark dark:border-accent' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5';
+            html += `<a href="#" data-page="${i}" class="px-3 py-1 rounded border text-xs font-bold ${active}">${i}</a>`;
+        }
+
+        // Last Page
+        if (end < totalPages) {
+            if (end < totalPages - 1) html += `<span class="px-2 text-slate-400">...</span>`;
+            html += `<a href="#" data-page="${totalPages}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs">${totalPages}</a>`;
+        }
+
+        // Next
+        if (page < totalPages) {
+            html += `<a href="#" data-page="${page + 1}" class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 text-xs ml-1">Next</a>`;
+        } else {
+            html += `<span class="px-3 py-1 rounded border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 text-xs cursor-not-allowed ml-1">Next</span>`;
+        }
+
+        html += '</div>';
+        return html;
     }
 });
