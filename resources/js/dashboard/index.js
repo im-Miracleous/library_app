@@ -19,7 +19,18 @@ function initCharts(data) {
     const chartCanvasPengunjung = document.getElementById('pengunjungChart');
 
     // Initial Empty Check (Peminjaman)
-    const peminjamanTotal = data.peminjaman.data.reduce((a, b) => a + b, 0);
+    const peminjamanDataValues = data.peminjaman.data;
+    const peminjamanTotal = peminjamanDataValues.reduce((a, b) => a + b, 0); // Includes Diajukan for empty check
+
+    // Calculate Valid Total (Exclude Diajukan - Index 0)
+    // Indexes: 0=Diajukan, 1=Berjalan, 2=Terlambat, 3=Selesai, 4=Rusak, 5=Hilang
+    const peminjamanValidTotal = peminjamanDataValues.slice(1).reduce((a, b) => a + b, 0);
+
+    const totalPeminjamanEl = document.getElementById('totalPeminjaman');
+    if (totalPeminjamanEl) {
+        totalPeminjamanEl.innerText = peminjamanValidTotal.toLocaleString('id-ID');
+    }
+
     if (peminjamanTotal === 0) {
         chartCanvas.classList.add('opacity-0', 'pointer-events-none');
         emptyState.classList.remove('hidden');
@@ -27,7 +38,11 @@ function initCharts(data) {
     }
 
     // Initial Empty Check (Pengunjung)
-    const pengunjungTotal = data.pengunjung.data.reduce((a, b) => a + b, 0);
+    let pengunjungTotal = 0;
+    if (data.pengunjung.datasets && data.pengunjung.datasets[0]) {
+        pengunjungTotal = data.pengunjung.datasets[0].data.reduce((a, b) => a + b, 0);
+    }
+
     if (pengunjungTotal === 0) {
         chartCanvasPengunjung.classList.add('opacity-0', 'pointer-events-none');
         emptyStatePengunjung.classList.remove('hidden');
@@ -89,42 +104,79 @@ function initCharts(data) {
         }
     });
 
-    // 2. Pengunjung Bar Chart
+    // 2. Pengunjung Bar Chart (Categorical - Horizontal Percentage)
+    let pengunjungCounts = data.pengunjung.datasets[0].data;
+    let pengunjungTotalCalc = pengunjungCounts.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+
+    // Update Total Counter (Initial Load)
+    const totalCounter = document.getElementById('totalPengunjung');
+    if (totalCounter) {
+        totalCounter.innerText = pengunjungTotalCalc.toLocaleString('id-ID');
+    }
+
+    let pengunjungPercentages = pengunjungCounts.map(count =>
+        pengunjungTotalCalc > 0 ? ((count / pengunjungTotalCalc) * 100) : 0
+    );
+
     pengunjungChart = new Chart(ctxPengunjung, {
         type: 'bar',
         data: {
             labels: data.pengunjung.labels,
             datasets: [{
-                label: 'Pengunjung',
-                data: data.pengunjung.data,
-                backgroundColor: '#10b981', // Emerald
-                borderRadius: 4,
-                hoverBackgroundColor: '#059669'
+                ...data.pengunjung.datasets[0],
+                data: pengunjungPercentages, // Use percentages
+                rawCounts: pengunjungCounts // Store original counts
             }]
         },
         options: {
+            indexAxis: 'y', // Makes it horizontal
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: {
+                    display: false
+                },
                 tooltip: {
-                    mode: 'index',
                     intersect: false,
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                     padding: 10,
                     cornerRadius: 8,
-                    displayColors: false
+                    displayColors: true,
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label = context.label + ': ';
+                            }
+                            let percentage = context.parsed.x.toFixed(1) + '%';
+                            let count = context.dataset.rawCounts[context.dataIndex];
+
+                            return label + percentage + ' (' + count + ')';
+                        }
+                    }
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [5, 5] },
-                    ticks: { stepSize: 1 }
-                },
                 x: {
-                    grid: { display: false },
-                    ticks: { maxTicksLimit: 8 }
+                    min: 0,
+                    max: 100, // Fixed range 0-100%
+                    grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [5, 5] },
+                    ticks: {
+                        stepSize: 20,
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            },
+            elements: {
+                bar: {
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    maxBarThickness: 40
                 }
             }
         }
@@ -156,14 +208,22 @@ window.updateDashboard = function (filter) {
             // Peminjaman (Dougnut)
             const peminjamanData = data.peminjaman.data;
             const peminjamanTotal = peminjamanData.reduce((a, b) => a + b, 0);
+
+            // Calculate Valid Total (Exclude Diajukan - Index 0)
+            const peminjamanValidTotal = peminjamanData.slice(1).reduce((a, b) => a + b, 0);
+            const totalPeminjamanEl = document.getElementById('totalPeminjaman');
+            if (totalPeminjamanEl) {
+                totalPeminjamanEl.innerText = peminjamanValidTotal.toLocaleString('id-ID');
+            }
+
             const emptyState = document.getElementById('peminjamanEmptyState');
             const chartCanvas = document.getElementById('peminjamanChart');
 
             if (peminjamanTotal === 0) {
                 // Show Empty State
                 chartCanvas.classList.add('opacity-0', 'pointer-events-none');
-                emptyState.classList.remove('hidden');
                 emptyState.classList.add('flex');
+                emptyState.classList.remove('hidden');
             } else {
                 // Show Chart
                 chartCanvas.classList.remove('opacity-0', 'pointer-events-none');
@@ -176,8 +236,17 @@ window.updateDashboard = function (filter) {
             }
 
             // Pengunjung (Bar)
-            const pengunjungData = data.pengunjung.data;
-            const pengunjungTotal = pengunjungData.reduce((a, b) => a + b, 0);
+            let pengunjungTotal = 0;
+            if (data.pengunjung.datasets && data.pengunjung.datasets[0]) {
+                pengunjungTotal = data.pengunjung.datasets[0].data.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+            }
+
+            // Update Total Counter
+            const totalCounter = document.getElementById('totalPengunjung');
+            if (totalCounter) {
+                totalCounter.innerText = pengunjungTotal.toLocaleString('id-ID'); // Format number
+            }
+
             const emptyStatePengunjung = document.getElementById('pengunjungEmptyState');
             const chartCanvasPengunjung = document.getElementById('pengunjungChart');
 
@@ -190,8 +259,18 @@ window.updateDashboard = function (filter) {
                 emptyStatePengunjung.classList.add('hidden');
                 emptyStatePengunjung.classList.remove('flex');
 
+                // Calculate Percentages
+                let rawCounts = data.pengunjung.datasets[0].data;
+                let percentages = rawCounts.map(count =>
+                    pengunjungTotal > 0 ? ((count / pengunjungTotal) * 100) : 0
+                );
+
                 pengunjungChart.data.labels = data.pengunjung.labels;
-                pengunjungChart.data.datasets[0].data = data.pengunjung.data;
+                pengunjungChart.data.datasets = [{
+                    ...data.pengunjung.datasets[0],
+                    data: percentages,
+                    rawCounts: rawCounts
+                }];
                 pengunjungChart.update();
             }
         })

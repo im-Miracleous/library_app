@@ -56,10 +56,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Peminjaman Chart -->
         <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm animate-enter delay-100">
-            <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-blue-500">pie_chart</span>
-                Status Peminjaman
-            </h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-primary-dark dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-500">pie_chart</span>
+                    Status Peminjaman
+                </h3>
+                <div class="px-3 py-1 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">show_chart</span>
+                    <span>Total: </span>
+                    <span id="totalPeminjaman">0</span>
+                </div>
+            </div>
             <div class="relative h-64 w-full group">
                 <canvas id="peminjamanChart" class="transition-opacity duration-300"></canvas>
                 
@@ -76,10 +83,17 @@
 
         <!-- Pengunjung Chart -->
         <div class="bg-white dark:bg-surface-dark rounded-2xl border border-primary/20 dark:border-border-dark p-6 shadow-sm animate-enter delay-200">
-            <h3 class="text-lg font-bold text-primary-dark dark:text-white mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-500">groups</span>
-                Kunjungan Perpustakaan
-            </h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-primary-dark dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-500">groups</span>
+                    Kunjungan Perpustakaan
+                </h3>
+                <div class="px-3 py-1 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">show_chart</span>
+                    <span>Total: </span>
+                    <span id="totalPengunjung">0</span>
+                </div>
+            </div>
             <div class="relative h-64 w-full group">
                 <canvas id="pengunjungChart" class="transition-opacity duration-300"></canvas>
                 

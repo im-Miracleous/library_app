@@ -28,20 +28,23 @@
                     Statistik Kunjungan
                 </h3>
                 
-                <!-- Time Filter -->
-                <div class="flex bg-slate-50 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-border-dark p-1 shadow-sm">
-                    <button onclick="updatePengunjungChart('today')" id="btn-today" 
-                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'today' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
-                        Hari Ini
-                    </button>
-                    <button onclick="updatePengunjungChart('week')" id="btn-week" 
-                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'week' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
-                        Minggu Ini
-                    </button>
-                    <button onclick="updatePengunjungChart('month')" id="btn-month" 
-                        class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'month' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60' }}">
-                        Bulan Ini
-                    </button>
+                <div class="flex items-center gap-3">
+                    <!-- Total Badge -->
+                    <div class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-bold flex items-center gap-2 h-[36px]">
+                        <span class="material-symbols-outlined text-[18px]">show_chart</span>
+                        <span>Total: </span>
+                        <span id="totalVisitorCount">0</span>
+                    </div>
+
+                    <!-- Time Filter -->
+                    <div class="flex items-center bg-slate-50 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-border-dark px-3 shadow-sm h-[36px]">
+                        <select id="filterPengunjung" onchange="updatePengunjungChart(this.value)" 
+                            class="bg-transparent text-sm font-bold text-slate-600 dark:text-white/80 focus:outline-none cursor-pointer border-none p-0 pr-8">
+                            <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini</option>
+                            <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Minggu Ini</option>
+                            <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulan Ini</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             

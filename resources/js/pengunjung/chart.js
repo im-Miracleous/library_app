@@ -9,63 +9,81 @@ document.addEventListener('DOMContentLoaded', function () {
 function initChart(data) {
     const ctx = document.getElementById('pengunjungChart').getContext('2d');
 
-    // Gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.8)'); // Emerald
-    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+    // Calculate Initial Data
+    let rawCounts = data.data;
+    let total = rawCounts.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+    let percentages = rawCounts.map(count =>
+        total > 0 ? ((count / total) * 100) : 0
+    );
+
+    // Update Initial Badge
+    const totalBadge = document.getElementById('totalVisitorCount');
+    if (totalBadge) {
+        totalBadge.innerText = total.toLocaleString('id-ID');
+    }
 
     pengunjungChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.labels,
             datasets: [{
-                label: 'Jumlah Pengunjung',
-                data: data.data,
-                backgroundColor: gradient,
-                borderRadius: 6,
-                hoverBackgroundColor: '#059669',
+                // label: 'Jumlah Pengunjung', // Not strictly needed if legend hidden
+                data: percentages,
+                rawCounts: rawCounts,
+                backgroundColor: [
+                    '#3B82F6', // Blue - Personal & Akademik
+                    '#10B981', // Emerald - Organisasi & Komunitas
+                    '#F59E0B', // Amber - Instansi & Perusahaan 
+                    '#6366F1'  // Indigo - Kunjungan Khusus
+                ],
+                borderRadius: 4,
                 barThickness: 'flex',
                 maxBarThickness: 40
             }]
         },
         options: {
+            indexAxis: 'y', // Horizontal
             responsive: true,
             maintainAspectRatio: false,
-            animation: {
-                duration: 1000,
-                easing: 'easeOutQuart'
-            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    imageUrl: null,
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: { family: 'Spline Sans', size: 13 },
-                    bodyFont: { family: 'Spline Sans', size: 12 },
                     padding: 12,
                     cornerRadius: 8,
-                    displayColors: false,
+                    displayColors: true,
                     callbacks: {
                         label: function (context) {
-                            return context.parsed.y + ' Pengunjung';
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            let percentage = context.parsed.x.toFixed(1) + '%';
+                            let count = context.dataset.rawCounts[context.dataIndex];
+
+                            return label + percentage + ' (' + count + ')';
                         }
                     }
                 }
             },
             scales: {
-                y: {
+                x: {
                     beginAtZero: true,
+                    min: 0,
+                    max: 100,
                     grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [5, 5] },
                     ticks: {
-                        stepSize: 1,
+                        stepSize: 20,
+                        callback: function (value) {
+                            return value + '%';
+                        },
                         font: { family: 'Spline Sans' }
                     }
                 },
-                x: {
+                y: {
                     grid: { display: false },
                     ticks: {
-                        font: { family: 'Spline Sans' },
-                        maxTicksLimit: 12
+                        font: { family: 'Spline Sans' }
                     }
                 }
             }
@@ -74,17 +92,6 @@ function initChart(data) {
 }
 
 window.updatePengunjungChart = function (filter) {
-    // 1. Update UI Buttons
-    const buttons = ['today', 'week', 'month'];
-    buttons.forEach(btn => {
-        const el = document.getElementById(`btn-${btn}`);
-        if (btn === filter) {
-            el.className = 'px-4 py-1.5 text-sm font-bold rounded-lg transition-all bg-primary text-white shadow-md';
-        } else {
-            el.className = 'px-4 py-1.5 text-sm font-bold rounded-lg transition-all text-slate-500 hover:bg-white dark:hover:bg-white/5 dark:text-white/60';
-        }
-    });
-
     // 2. Fetch Data
     fetch(`?filter=${filter}`, {
         headers: {
@@ -93,8 +100,23 @@ window.updatePengunjungChart = function (filter) {
     })
         .then(response => response.json())
         .then(data => {
+            // Recalculate Logic
+            let rawCounts = data.data;
+            let total = rawCounts.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+            let percentages = rawCounts.map(count =>
+                total > 0 ? ((count / total) * 100) : 0
+            );
+
+            // Update Badge
+            const totalBadge = document.getElementById('totalVisitorCount');
+            if (totalBadge) {
+                totalBadge.innerText = total.toLocaleString('id-ID');
+            }
+
+            // Update Chart
             pengunjungChart.data.labels = data.labels;
-            pengunjungChart.data.datasets[0].data = data.data;
+            pengunjungChart.data.datasets[0].data = percentages;
+            pengunjungChart.data.datasets[0].rawCounts = rawCounts;
             pengunjungChart.update();
         })
         .catch(error => console.error('Error updating chart:', error));

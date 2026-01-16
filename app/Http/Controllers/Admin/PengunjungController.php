@@ -12,13 +12,10 @@ use Carbon\Carbon;
 
 class PengunjungController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $page = $request->input('page', 1);
-        $limit = $request->input('limit', 10);
+        $page = max(1, (int) $request->input('page', 1));
+        $limit = max(1, (int) $request->input('limit', 10));
         $offset = ($page - 1) * $limit;
         $search = $request->input('search');
         $sort = $request->input('sort') ?: 'created_at';
@@ -49,56 +46,49 @@ class PengunjungController extends Controller
         }
 
         // --- CHART DATA LOGIC ---
+        // --- CHART DATA LOGIC ---
         $filter = $request->input('filter', 'today'); // default to today
         $endDate = Carbon::now();
         if ($filter === 'today') {
             $startDate = Carbon::today();
-            $dateFormat = 'H:00';
-            $labelFormat = 'H:i';
         } elseif ($filter === 'month') {
             $startDate = Carbon::now()->subDays(30);
-            $dateFormat = 'Y-m-d';
-            $labelFormat = 'd M';
         } else { // week
             $startDate = Carbon::now()->subDays(7);
-            $dateFormat = 'Y-m-d';
-            $labelFormat = 'D, d M';
         }
 
-        $minDate = $startDate->copy();
-        $maxDate = $endDate->copy();
-
-        $pengunjungQuery = Pengunjung::select(
-                DB::raw($filter === 'today' ? 'DATE_FORMAT(created_at, "%H:00") as date' : 'DATE(created_at) as date'),
-                DB::raw('count(*) as count')
-            )
+        $pengunjungQuery = Pengunjung::select('jenis_pengunjung', DB::raw('count(*) as count'))
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('date')
-            ->orderBy('date');
+            ->groupBy('jenis_pengunjung')
+            ->get();
 
-        $pengunjungData = $pengunjungQuery->get()->pluck('count', 'date')->toArray();
+        // Initialize Categories
+        $groupedCounts = [
+            'Personal & Akademik' => 0,
+            'Organisasi & Komunitas' => 0,
+            'Instansi & Perusahaan' => 0,
+            'Kunjungan Khusus' => 0,
+        ];
 
-        $labels = [];
-        $chartDataValues = [];
+        // Map Results to Categories
+        foreach ($pengunjungQuery as $row) {
+            $category = 'Personal & Akademik'; // Default
+            $jenis = $row->jenis_pengunjung;
 
-        $current = $minDate->copy();
-        while ($current <= $maxDate) {
-            $key = $filter === 'today' ? $current->format('H:00') : $current->format('Y-m-d');
-            $label = $filter === 'today' ? $current->format('H:00') : $current->format($labelFormat);
-            
-            $labels[] = $label;
-            $chartDataValues[] = $pengunjungData[$key] ?? 0;
-
-            if ($filter === 'today') {
-                $current->addHour();
-            } else {
-                $current->addDay();
+            if (in_array($jenis, ['Organisasi Internal Kampus', 'Organisasi / Komunitas Luar', 'Yayasan / Nonprofit / NGO'])) {
+                $category = 'Organisasi & Komunitas';
+            } elseif (in_array($jenis, ['Pemerintahan / Dinas', 'Korporasi / Perusahaan Swasta'])) {
+                $category = 'Instansi & Perusahaan';
+            } elseif (in_array($jenis, ['Tamu Undangan / VIP', 'Media / Jurnalis', 'Lainnya'])) {
+                $category = 'Kunjungan Khusus';
             }
+
+            $groupedCounts[$category] += $row->count;
         }
 
         $chartData = [
-            'labels' => $labels,
-            'data' => $chartDataValues
+            'labels' => array_keys($groupedCounts),
+            'data' => array_values($groupedCounts)
         ];
 
         if ($request->ajax() && $request->has('filter')) {

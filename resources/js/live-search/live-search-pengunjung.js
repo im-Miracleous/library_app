@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function setupControls() {
         // LIMIT SELECT
         // Use :not for potential specificity if other selects exist, though standard is generic select in x-datatable
-        const limitSelect = document.querySelector('select:not([name="jenis_pengunjung"])');
+        const limitSelect = document.querySelector('select:not([name="jenis_pengunjung"]):not(#filterPengunjung)');
         if (limitSelect) {
             limitSelect.removeAttribute('onchange');
 
@@ -192,22 +192,40 @@ document.addEventListener('DOMContentLoaded', function () {
         data.forEach((item, index) => {
             const date = new Date(item.created_at);
             const dateStr = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
 
-            // Badges
-            const badges = {
-                'umum': 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300',
-                'anggota': 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
-                'petugas': 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400',
-                'admin': 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
-            };
-            const badgeClass = badges[item.jenis_pengunjung] || 'bg-slate-100';
-            const roleDisplay = item.jenis_pengunjung === 'petugas' ? 'Staff' : (item.jenis_pengunjung.charAt(0).toUpperCase() + item.jenis_pengunjung.slice(1));
+            // Badges matching Blade logic
+            let badgeClass = 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300';
+            const jenis = item.jenis_pengunjung;
+
+            if (['Umum / Tamu', 'Lainnya', 'Umum'].includes(jenis)) {
+                badgeClass = 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300';
+            } else if (['Anggota / Mahasiswa', 'anggota'].includes(jenis)) {
+                badgeClass = 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400';
+            } else if (['Pelajar / Siswa Sekolah', 'Pelajar / Siswa'].includes(jenis)) {
+                badgeClass = 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400';
+            } else if (['Dosen / Staff Pengajar', 'Dosen / Staff PJS', 'Peneliti / Riset', 'Peneliti'].includes(jenis)) {
+                badgeClass = 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400';
+            } else if (['Organisasi Internal Kampus', 'Organisasi Internal'].includes(jenis)) {
+                badgeClass = 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400';
+            } else if (['Organisasi / Komunitas Luar', 'Organisasi Eksternal'].includes(jenis)) {
+                badgeClass = 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400';
+            } else if (['Korporasi / Perusahaan Swasta', 'Korporasi', 'Yayasan / Nonprofit / NGO', 'Nonprofit'].includes(jenis)) {
+                badgeClass = 'bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-400';
+            } else if (['Pemerintahan / Dinas', 'Pemerintahan', 'petugas'].includes(jenis)) {
+                badgeClass = 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400';
+            } else if (['Tamu Undangan / VIP', 'Tamu Undangan', 'Media / Jurnalis', 'Media / Pers'].includes(jenis)) {
+                badgeClass = 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400';
+            } else if (jenis === 'admin') {
+                badgeClass = 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400';
+            }
+
+            const roleDisplay = item.jenis_pengunjung; // Display as is, assuming saved correctly via standard
 
             // Registered Check
             let registeredHtml = '';
             if (item.id_pengguna) {
-                registeredHtml = `<div class="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[10px]">verified</span>Terdaftar</div>`;
+                registeredHtml = `<div class="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5 font-bold"><span class="material-symbols-outlined text-[12px]">verified</span>Terdaftar</div>`;
             }
 
             // Highlight
@@ -215,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const keperluanHighlighted = highlightText(item.keperluan || '-', searchQuery);
 
             const row = document.createElement('tr');
-            row.className = 'hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group animate-enter';
+            row.className = 'hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group animate-enter'; // Updated hover class to match Blade
 
             // Prepare Item for Edit
             const itemString = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
@@ -229,13 +247,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${registeredHtml}
                 </td>
                 <td class="p-4">
-                    <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${badgeClass}">
+                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${badgeClass}">
                         ${roleDisplay}
                     </span>
                 </td>
-                <td class="p-4 text-slate-600 dark:text-white/70">${keperluanHighlighted}</td>
-                <td class="p-4 font-mono text-slate-500 dark:text-white/50">
-                    ${dateStr}, <span class="text-slate-800 dark:text-white font-bold">${timeStr}</span>
+                <td class="p-4 text-slate-600 dark:text-white/70 text-sm">${keperluanHighlighted}</td>
+                <td class="p-4 font-mono text-xs text-slate-500 dark:text-white/50">
+                    ${dateStr}
+                    <div class="text-slate-800 dark:text-white font-bold">${timeStr}</div>
                 </td>
                 <td class="p-4 text-right pr-6 flex justify-end gap-2">
                     <button onclick='openEditPengunjung(${itemString})'
