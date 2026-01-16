@@ -249,7 +249,7 @@ class BukuController extends Controller
         // $buku->update($validated);
 
         // Use Stored Procedure
-        \Illuminate\Support\Facades\DB::statement('CALL sp_update_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        \Illuminate\Support\Facades\DB::statement('CALL sp_update_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
             $id,
             $validated['id_kategori'],
             $validated['kode_dewey'] ?? null,
@@ -264,7 +264,6 @@ class BukuController extends Controller
             $newHilang,
             $validated['deskripsi'] ?? null,
             $validated['gambar_sampul'] ?? $buku->gambar_sampul, // Keep old if null and not removed managed by validation logic above
-            $validated['status']
         ]);
 
         return redirect()->back()->with('success', 'Data buku & stok berhasil diperbarui.');

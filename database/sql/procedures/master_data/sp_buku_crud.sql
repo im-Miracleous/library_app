@@ -39,8 +39,7 @@ CREATE PROCEDURE sp_update_buku(
     IN p_stok_rusak INT,
     IN p_stok_hilang INT,
     IN p_deskripsi TEXT,
-    IN p_gambar_sampul VARCHAR(255),
-    IN p_status ENUM('tersedia', 'tidak_tersedia')
+    IN p_gambar_sampul VARCHAR(255)
 )
 BEGIN
     UPDATE buku 
@@ -58,7 +57,6 @@ BEGIN
         stok_hilang = p_stok_hilang,
         deskripsi = p_deskripsi,
         gambar_sampul = IF(p_gambar_sampul IS NOT NULL, p_gambar_sampul, gambar_sampul),
-        status = p_status,
         updated_at = NOW()
     WHERE id_buku = p_id_buku;
 END;
