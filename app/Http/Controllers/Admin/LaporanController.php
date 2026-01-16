@@ -20,30 +20,32 @@ class LaporanController extends Controller
      */
     public function index(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->format('Y-m-d'));
+        $startDate = $request->input('start_date', Carbon::create(2000, 1, 1)->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
-        $type = $request->input('type', 'transaksi'); // transaksi, denda, buku_top, anggota_top
+        $type = $request->input('type'); // Defaults to null
 
         // Common Data
         $data = [];
         $stats = [];
         $chartData = [];
 
-        // Determine Logic based on Type
-        switch ($type) {
-            case 'denda':
-                [$data, $stats, $chartData] = $this->getLaporanDenda($request, $startDate, $endDate);
-                break;
-            case 'buku_top':
-                [$data, $stats, $chartData] = $this->getBukuTerlaris($request, $startDate, $endDate);
-                break;
-            case 'anggota_top':
-                [$data, $stats, $chartData] = $this->getAnggotaTeraktif($request, $startDate, $endDate);
-                break;
-            case 'transaksi':
-            default:
-                [$data, $stats, $chartData] = $this->getLaporanTransaksi($request, $startDate, $endDate);
-                break;
+        if ($type) {
+            // Determine Logic based on Type
+            switch ($type) {
+                case 'denda':
+                    [$data, $stats, $chartData] = $this->getLaporanDenda($request, $startDate, $endDate);
+                    break;
+                case 'buku_top':
+                    [$data, $stats, $chartData] = $this->getBukuTerlaris($request, $startDate, $endDate);
+                    break;
+                case 'anggota_top':
+                    [$data, $stats, $chartData] = $this->getAnggotaTeraktif($request, $startDate, $endDate);
+                    break;
+                case 'transaksi':
+                default:
+                    [$data, $stats, $chartData] = $this->getLaporanTransaksi($request, $startDate, $endDate);
+                    break;
+            }
         }
 
         if ($request->ajax()) {

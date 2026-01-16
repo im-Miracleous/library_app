@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function initChart(data) {
     const ctx = document.getElementById('pengunjungChart').getContext('2d');
 
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
     // Calculate Initial Data
     let rawCounts = data.data;
     let total = rawCounts.reduce((a, b) => parseInt(a) + parseInt(b), 0);
@@ -71,8 +74,10 @@ function initChart(data) {
                     beginAtZero: true,
                     min: 0,
                     max: 100,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [5, 5] },
+                    grid: { color: gridColor, borderDash: [5, 5] },
+                    border: { color: gridColor },
                     ticks: {
+                        color: isDark ? 'rgba(255, 255, 255, 0.6)' : undefined,
                         stepSize: 20,
                         callback: function (value) {
                             return value + '%';
@@ -89,6 +94,26 @@ function initChart(data) {
             }
         }
     });
+
+    // Watch for Theme Changes
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                const isNowDark = document.documentElement.classList.contains('dark');
+                const newGridColor = isNowDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const newTickColor = isNowDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+
+                if (pengunjungChart) {
+                    pengunjungChart.options.scales.x.grid.color = newGridColor;
+                    pengunjungChart.options.scales.x.border.color = newGridColor;
+                    pengunjungChart.options.scales.x.ticks.color = newTickColor;
+                    pengunjungChart.update();
+                }
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
 }
 
 window.updatePengunjungChart = function (filter) {

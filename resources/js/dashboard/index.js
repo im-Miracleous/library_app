@@ -15,6 +15,9 @@ function initCharts(data) {
     const emptyState = document.getElementById('peminjamanEmptyState');
     const chartCanvas = document.getElementById('peminjamanChart');
 
+    const isDark = document.documentElement.classList.contains('dark');
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
     const emptyStatePengunjung = document.getElementById('pengunjungEmptyState');
     const chartCanvasPengunjung = document.getElementById('pengunjungChart');
 
@@ -22,13 +25,10 @@ function initCharts(data) {
     const peminjamanDataValues = data.peminjaman.data;
     const peminjamanTotal = peminjamanDataValues.reduce((a, b) => a + b, 0); // Includes Diajukan for empty check
 
-    // Calculate Valid Total (Exclude Diajukan - Index 0)
-    // Indexes: 0=Diajukan, 1=Berjalan, 2=Terlambat, 3=Selesai, 4=Rusak, 5=Hilang
-    const peminjamanValidTotal = peminjamanDataValues.slice(1).reduce((a, b) => a + b, 0);
-
+    // Total (Include All Statuses)
     const totalPeminjamanEl = document.getElementById('totalPeminjaman');
     if (totalPeminjamanEl) {
-        totalPeminjamanEl.innerText = peminjamanValidTotal.toLocaleString('id-ID');
+        totalPeminjamanEl.innerText = peminjamanTotal.toLocaleString('id-ID');
     }
 
     if (peminjamanTotal === 0) {
@@ -160,8 +160,10 @@ function initCharts(data) {
                 x: {
                     min: 0,
                     max: 100, // Fixed range 0-100%
-                    grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [5, 5] },
+                    grid: { color: gridColor, borderDash: [5, 5] },
+                    border: { color: gridColor },
                     ticks: {
+                        color: isDark ? 'rgba(255, 255, 255, 0.6)' : undefined,
                         stepSize: 20,
                         callback: function (value) {
                             return value + '%';
@@ -181,20 +183,31 @@ function initCharts(data) {
             }
         }
     });
+
+    // Watch for Theme Changes
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                const isNowDark = document.documentElement.classList.contains('dark');
+                const newGridColor = isNowDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const newTickColor = isNowDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+
+                if (pengunjungChart) {
+                    pengunjungChart.options.scales.x.grid.color = newGridColor;
+                    pengunjungChart.options.scales.x.border.color = newGridColor;
+                    pengunjungChart.options.scales.x.ticks.color = newTickColor;
+                    pengunjungChart.update();
+                }
+            }
+        });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
 }
 
 // Update Dashboard Function (Exposed globally)
 window.updateDashboard = function (filter) {
-    // 1. Update Buttons UI
-    const buttons = ['today', 'week', 'month'];
-    buttons.forEach(btn => {
-        const el = document.getElementById(`btn-${btn}`);
-        if (btn === filter) {
-            el.className = 'px-4 py-1.5 text-sm font-bold rounded-lg transition-all bg-primary text-white shadow-md';
-        } else {
-            el.className = 'px-4 py-1.5 text-sm font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5';
-        }
-    });
+    // Filter Updated
 
     // 2. Fetch New Data
     fetch(`?filter=${filter}`, {
@@ -209,11 +222,10 @@ window.updateDashboard = function (filter) {
             const peminjamanData = data.peminjaman.data;
             const peminjamanTotal = peminjamanData.reduce((a, b) => a + b, 0);
 
-            // Calculate Valid Total (Exclude Diajukan - Index 0)
-            const peminjamanValidTotal = peminjamanData.slice(1).reduce((a, b) => a + b, 0);
+            // Total (Include All Statuses)
             const totalPeminjamanEl = document.getElementById('totalPeminjaman');
             if (totalPeminjamanEl) {
-                totalPeminjamanEl.innerText = peminjamanValidTotal.toLocaleString('id-ID');
+                totalPeminjamanEl.innerText = peminjamanTotal.toLocaleString('id-ID');
             }
 
             const emptyState = document.getElementById('peminjamanEmptyState');

@@ -45,8 +45,9 @@
     <tr>
         <td colspan="7" class="p-12 text-center text-slate-400 dark:text-white/40">
             <div class="flex flex-col items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-4xl opacity-50">search_off</span>
-                <span>Tidak ada data ditemukan.</span>
+                <span class="material-symbols-outlined text-4xl opacity-50">manage_search</span>
+                <span class="font-semibold">Tidak ada data untuk ditampilkan</span>
+                <span class="text-sm text-slate-400 dark:text-white/30">Silakan pilih filter lain</span>
             </div>
         </td>
     </tr>

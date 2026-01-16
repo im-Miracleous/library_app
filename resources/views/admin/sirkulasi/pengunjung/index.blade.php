@@ -37,13 +37,17 @@
                     </div>
 
                     <!-- Time Filter -->
-                    <div class="flex items-center bg-slate-50 dark:bg-white/5 rounded-xl border border-primary/10 dark:border-border-dark px-3 shadow-sm h-[36px]">
-                        <select id="filterPengunjung" onchange="updatePengunjungChart(this.value)" 
-                            class="bg-transparent text-sm font-bold text-slate-600 dark:text-white/80 focus:outline-none cursor-pointer border-none p-0 pr-8">
+                    <!-- Improved Time Filter -->
+                    <div class="relative min-w-[150px]">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/60 dark:text-white/40 text-[20px] pointer-events-none">calendar_today</span>
+                        <select id="filterPengunjung" onchange="updatePengunjungChart(this.value)"
+                            class="w-full appearance-none bg-slate-50 dark:bg-white/5 text-sm font-bold text-slate-600 dark:text-white/80 border border-primary/10 dark:border-border-dark rounded-xl py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-sm dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white h-[40px]">
+                            <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>Semua</option>
                             <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini</option>
                             <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Minggu Ini</option>
                             <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulan Ini</option>
                         </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 dark:text-white/40 text-[20px] pointer-events-none">expand_more</span>
                     </div>
                 </div>
             </div>

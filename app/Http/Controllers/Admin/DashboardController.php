@@ -16,7 +16,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $filter = $request->input('filter', 'today'); // today, week, month
+        $filter = $request->input('filter', 'all'); // today, week, month, all (default)
 
         // 1. Determine Date Range
         $endDate = Carbon::now();
@@ -28,6 +28,10 @@ class DashboardController extends Controller
             $startDate = Carbon::now()->subDays(30);
             $dateFormat = 'Y-m-d'; // Group by Day
             $labelFormat = 'd M';
+        } elseif ($filter === 'all') {
+            $startDate = Carbon::create(2000, 1, 1);
+            $dateFormat = 'Y'; 
+            $labelFormat = 'Y';
         } else { // week
             $startDate = Carbon::now()->subDays(7);
             $dateFormat = 'Y-m-d';

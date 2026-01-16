@@ -39,12 +39,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Controls
     setupControls();
 
-    function initChart(chartData, type) {
+    function updateChartVisibility(chartData) {
         const ctx = document.getElementById('mainChart');
-        if (!ctx) return;
-
         const emptyState = document.getElementById('chartEmptyState');
-        const total = chartData.datasets[0].data.reduce((a, b) => a + Number(b), 0);
+        if (!ctx || !emptyState) return;
+
+        // Calculate total to check for emptiness
+        // Handle potential missing data gracefully
+        const total = chartData.datasets[0]?.data.reduce((a, b) => a + Number(b), 0) || 0;
 
         if (total === 0) {
             ctx.classList.add('opacity-0', 'pointer-events-none');
@@ -55,6 +57,13 @@ document.addEventListener('DOMContentLoaded', function () {
             emptyState.classList.add('hidden');
             emptyState.classList.remove('flex');
         }
+    }
+
+    function initChart(chartData, type) {
+        const ctx = document.getElementById('mainChart');
+        if (!ctx) return;
+
+        updateChartVisibility(chartData);
 
         // Determine Chart Configuration
         let chartType = 'line';
@@ -99,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: 0, // 0 for Pie
+                elements: {
+                    arc: {
+                        borderWidth: 0
+                    }
+                },
                 plugins: {
                     legend: {
                         display: legendDisplay,
@@ -161,7 +175,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     end = new Date(today);
                     start = new Date(today);
 
-                    if (val === 'today') {
+                    if (val === 'all') {
+                        start = new Date('2000-01-01');
+                    } else if (val === 'today') {
                         // start and end are today
                     } else if (val === 'week') {
                         start.setDate(today.getDate() - 7);
@@ -176,6 +192,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Reset custom text if moving away from custom (optional, but good for cleanup)
                     if (optionCustom) optionCustom.innerText = 'Lainnya...';
                     if (customDateTrigger) customDateTrigger.classList.add('hidden');
+
+                    // Auto-submit form
+                    const form = document.querySelector('form[action*="laporan"]');
+                    if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
                 }
             });
 
@@ -207,6 +227,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Update Dropdown to 'custom' and show indicator
                     periodeSelect.value = 'custom';
                     updateCustomUI(s, e);
+
+                    // Auto-submit form
+                    const form = document.querySelector('form[action*="laporan"]');
+                    if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
 
                     closeModal('customDateModal');
                 } else {
@@ -255,7 +279,11 @@ document.addEventListener('DOMContentLoaded', function () {
             monthStart.setDate(monthStart.getDate() - 30);
             const monthStartStr = formatDate(monthStart);
 
-            if (start === today && end === today) {
+            if (start === '2000-01-01') {
+                select.value = 'all';
+                if (customDateTrigger) customDateTrigger.classList.add('hidden');
+                if (optionCustom) optionCustom.innerText = 'Lainnya...';
+            } else if (start === today && end === today) {
                 select.value = 'today';
                 if (customDateTrigger) customDateTrigger.classList.add('hidden');
                 if (optionCustom) optionCustom.innerText = 'Lainnya...';
@@ -409,8 +437,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-
     async function fetchData() {
+        // ... (previous fetch logic) ...
         const params = new URLSearchParams();
         Object.keys(state).forEach(key => {
             if (state[key]) params.set(key, state[key]);
@@ -441,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (json.chartData && mainChart) {
                 mainChart.data = json.chartData;
                 mainChart.update();
+                updateChartVisibility(json.chartData); // Call the helper!
             }
 
             // 4. Update Stats Cards

@@ -16,7 +16,7 @@ BEGIN
     SET @start_date = p_start_date;
     SET @end_date = p_end_date;
     
-    SET @where_clause = ' WHERE p.tanggal_pinjam BETWEEN ? AND ? ';
+    SET @where_clause = ' WHERE DATE(p.tanggal_pinjam) BETWEEN ? AND ? ';
     
     IF p_status IS NOT NULL AND p_status != '' THEN
         SET @where_clause = CONCAT(@where_clause, ' AND p.status_transaksi = "', p_status, '" ');

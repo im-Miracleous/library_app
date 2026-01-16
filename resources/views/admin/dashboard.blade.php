@@ -36,19 +36,16 @@
         </div>
         
         <!-- Time Filter -->
-        <div class="flex bg-white dark:bg-surface-dark rounded-xl border border-primary/10 dark:border-border-dark p-1 shadow-sm">
-            <button onclick="updateDashboard('today')" id="btn-today" 
-                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'today' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
-                Hari Ini
-            </button>
-            <button onclick="updateDashboard('week')" id="btn-week" 
-                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'week' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
-                Minggu Ini
-            </button>
-            <button onclick="updateDashboard('month')" id="btn-month" 
-                class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all {{ $filter == 'month' ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5' }}">
-                Bulan Ini
-            </button>
+        <div class="relative min-w-[150px]">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/60 dark:text-white/40 text-[20px] pointer-events-none">calendar_today</span>
+            <select id="filterDashboard" onchange="updateDashboard(this.value)"
+                class="w-full appearance-none bg-white dark:bg-surface-dark text-sm font-bold text-slate-600 dark:text-white/80 border border-primary/10 dark:border-border-dark rounded-xl py-2.5 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-sm dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white">
+                <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>Semua</option>
+                <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Hari Ini</option>
+                <option value="week" {{ $filter == 'week' ? 'selected' : '' }}>Minggu Ini</option>
+                <option value="month" {{ $filter == 'month' ? 'selected' : '' }}>Bulan Ini</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 dark:text-white/40 text-[20px] pointer-events-none">expand_more</span>
         </div>
     </div>
 

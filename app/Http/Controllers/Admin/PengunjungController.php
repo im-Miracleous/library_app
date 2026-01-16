@@ -47,12 +47,14 @@ class PengunjungController extends Controller
 
         // --- CHART DATA LOGIC ---
         // --- CHART DATA LOGIC ---
-        $filter = $request->input('filter', 'today'); // default to today
+        $filter = $request->input('filter', 'all'); // default to all
         $endDate = Carbon::now();
         if ($filter === 'today') {
             $startDate = Carbon::today();
         } elseif ($filter === 'month') {
             $startDate = Carbon::now()->subDays(30);
+        } elseif ($filter === 'all') {
+            $startDate = Carbon::create(2000, 1, 1);
         } else { // week
             $startDate = Carbon::now()->subDays(7);
         }
