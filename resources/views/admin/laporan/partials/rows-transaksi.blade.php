@@ -1,5 +1,5 @@
 @forelse($data as $item)
-    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group">
+    <tr class="hover:bg-primary/5 dark:hover:bg-white/5 transition-colors group animate-enter">
         <td class="p-4 pl-6 font-mono text-sm text-slate-600 dark:text-white/70 whitespace-nowrap">
             <span class="font-bold text-primary dark:text-accent">{{ $item->id_peminjaman }}</span>
         </td>

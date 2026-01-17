@@ -17,6 +17,9 @@
                         <option value="transaksi" {{ $type == 'transaksi' ? 'selected' : '' }}>Laporan Transaksi</option>
 
                         <option value="denda" {{ $type == 'denda' ? 'selected' : '' }}>Laporan Denda</option>
+                        
+                        <option value="kunjungan" {{ $type == 'kunjungan' ? 'selected' : '' }}>Laporan Kunjungan</option>
+                        <option value="inventaris" {{ $type == 'inventaris' ? 'selected' : '' }}>Laporan Inventaris</option>
                         <optgroup label="Analisis Data">
                             <option value="buku_top" {{ $type == 'buku_top' ? 'selected' : '' }}>Buku Terpopuler</option>
                             <option value="anggota_top" {{ $type == 'anggota_top' ? 'selected' : '' }}>Anggota Teraktif</option>
@@ -119,6 +122,15 @@
                     <div id="stat_denda_total"><x-stat-card-component title="Total Denda" value="Rp {{ number_format($stats['total_denda'], 0, ',', '.') }}" icon="payments" color="rose" desc="Akumulasi denda" /></div>
                     <div id="stat_denda_dibayar"><x-stat-card-component title="Sudah Dibayar" value="Rp {{ number_format($stats['dibayar'], 0, ',', '.') }}" icon="check_circle" color="emerald" desc="Denda lunas" /></div>
                     <div id="stat_denda_belum"><x-stat-card-component title="Belum Dibayar" value="Rp {{ number_format($stats['belum_bayar'], 0, ',', '.') }}" icon="warning" color="orange" desc="Tunggakan denda" /></div>
+                @elseif($type == 'kunjungan')
+                    <div id="stat_kunjungan_total"><x-stat-card-component title="Total Pengunjung" :value="$stats['total_pengunjung']" icon="diversity_3" color="blue" desc="Pengunjung periode ini" /></div>
+                    <div id="stat_kunjungan_avg"><x-stat-card-component title="Rata-rata Harian" :value="$stats['avg_daily']" icon="analytics" color="emerald" desc="Pengunjung / hari" /></div>
+                    <div class="col-span-2" id="stat_kunjungan_top"><x-stat-card-component title="Kategori Terbanyak" :value="$stats['top_kategori']" icon="category" color="purple" desc="Paling dominan" /></div>
+                @elseif($type == 'inventaris')
+                    <div id="stat_inv_judul"><x-stat-card-component title="Total Judul" :value="$stats['total_judul']" icon="library_books" color="blue" desc="Koleksi buku unik" /></div>
+                    <div id="stat_inv_eks"><x-stat-card-component title="Total Eksemplar" :value="$stats['total_eksemplar']" icon="inventory_2" color="indigo" desc="Total fisik buku" /></div>
+                    <div id="stat_inv_rusak"><x-stat-card-component title="Buku Rusak" :value="$stats['total_rusak']" icon="broken_image" color="orange" desc="Butuh perbaikan" /></div>
+                    <div id="stat_inv_hilang"><x-stat-card-component title="Buku Hilang" :value="$stats['total_hilang']" icon="highlight_off" color="rose" desc="Aset hilang" /></div>
                 @elseif($type == 'buku_top')
                     <div class="col-span-2" id="stat_buku_top_1">
                         <x-stat-card-component title="Top 1 Buku" :value="$stats['top_1_judul']" icon="emoji_events" color="yellow" desc="Paling diminati" />
@@ -140,6 +152,10 @@
                     @include('admin.laporan.partials.table-transaksi', ['data' => $data])
                 @elseif($type == 'denda')
                     @include('admin.laporan.partials.table-denda', ['data' => $data])
+                @elseif($type == 'kunjungan')
+                    @include('admin.laporan.partials.table-kunjungan', ['data' => $data])
+                @elseif($type == 'inventaris')
+                    @include('admin.laporan.partials.table-inventaris', ['data' => $data])
                 @elseif($type == 'buku_top')
                     @include('admin.laporan.partials.table-buku-top', ['data' => $data])
                 @elseif($type == 'anggota_top')

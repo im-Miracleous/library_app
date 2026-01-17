@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('searchTransaksiInput'),
         document.getElementById('searchDendaInput'),
         // Add generic search input selector if needed
+        // Add generic search input selector if needed
     ];
     // Use the first found search input
     const searchInput = searchInputs.find(el => el !== null);
@@ -30,6 +31,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.querySelector('tbody');
     let timeout = null;
     let mainChart = null;
+
+    // Helper: Refresh Sort Icons
+    function refreshIcons() {
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            let icon = th.querySelector('.material-symbols-outlined');
+            if (!icon) {
+                // Create icon if missing (some headers might not have it initially)
+                // But our Blade template has them.
+                return;
+            }
+
+            if (th.dataset.sort === state.sort) {
+                icon.textContent = state.direction === 'asc' ? 'arrow_upward' : 'arrow_downward';
+                icon.style.opacity = '1';
+                th.classList.add('text-primary');
+            } else {
+                icon.textContent = 'unfold_more';
+                icon.style.opacity = '0.3';
+                th.classList.remove('text-primary');
+            }
+        });
+    }
 
     // Initialize Chart if data exists
     if (window.laporanChartData) {
@@ -69,13 +92,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 transaksi: ['#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#f97316', '#64748b'], // Orange, Blue, Red, Emerald, DkOrange, Slate
                 denda: { lunas: '#10b981', belum: '#ef4444' },
                 buku: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b'],
-                anggota: '#8b5cf6' // Violet
+                anggota: '#8b5cf6', // Violet
+                // Kunjungan: Object for Fill vs Border
+                kunjungan: {
+                    bg: 'rgba(59, 130, 246, 0.1)',
+                    border: '#3b82f6'
+                },
+                inventaris: ['#10b981', '#3b82f6', '#f97316', '#64748b'] // Tersedia, Dipinjam, Rusak, Hilang
             },
             dark: {
                 transaksi: ['#fbbf24', '#60a5fa', '#f87171', '#34d399', '#fb923c', '#94a3b8'], // Brighter shades
                 denda: { lunas: '#34d399', belum: '#f87171' },
                 buku: ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#f472b6', '#818cf8', '#2dd4bf', '#fb923c', '#94a3b8'],
-                anggota: '#a78bfa' // Light Violet
+                anggota: '#a78bfa', // Light Violet
+                kunjungan: {
+                    bg: 'rgba(96, 165, 250, 0.05)', // Even more transparent in dark mode
+                    border: '#60a5fa'
+                },
+                // Inventaris Dark: Brighter/Pastel versions
+                inventaris: ['#34d399', '#60a5fa', '#fb923c', '#94a3b8']
             }
         };
 
@@ -85,6 +120,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (type === 'denda') return [p.denda.lunas, p.denda.belum]; // Specific order for stacked/grouped
             if (type === 'buku_top') return p.buku;
             if (type === 'anggota_top') return p.anggota;
+            if (type === 'kunjungan') return p.kunjungan;
+            if (type === 'inventaris') return p.inventaris;
             return '#cbd5e1';
         }
 
@@ -114,12 +151,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 chartData.datasets[1].backgroundColor = isDarkMode ? PALETTE.dark.denda.belum : PALETTE.light.denda.belum;
                 chartData.datasets[1].borderColor = chartData.datasets[1].backgroundColor;
             }
+        } else if (type === 'kunjungan') {
+            // Special handling for Line Chart with Fill
+            if (chartData.datasets[0]) {
+                chartData.datasets[0].backgroundColor = colors.bg;
+                chartData.datasets[0].borderColor = colors.border;
+            }
         } else {
             // Single Dataset types
             if (chartData.datasets[0]) {
                 chartData.datasets[0].backgroundColor = colors;
                 // For bar charts, border can match background to avoid outline issues
                 chartData.datasets[0].borderColor = colors;
+                // Doughnut/Pie border fix
+                if (type === 'inventaris' || type === 'transaksi') {
+                    chartData.datasets[0].borderColor = isDarkMode ? '#1e1e1e' : '#ffffff';
+                    chartData.datasets[0].borderWidth = 2;
+                }
             }
         }
 
@@ -147,6 +195,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 x: { grid: { display: false }, ticks: { color: textColor } }
             };
+        } else if (type === 'kunjungan') {
+            chartType = 'line';
+            scales = {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                x: { grid: { display: false }, ticks: { color: textColor } }
+            };
+        } else if (type === 'inventaris') {
+            chartType = 'doughnut';
+            legendDisplay = true;
+            scales = {};
         }
 
         mainChart = new Chart(ctx, {
@@ -156,9 +214,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 indexAxis: indexAxis,
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: 0,
+                cutout: (type === 'inventaris') ? '70%' : 0,
                 elements: {
-                    arc: { borderWidth: 0 }
+                    arc: { borderWidth: (type === 'inventaris') ? 2 : 0 }
                 },
                 plugins: {
                     legend: {
@@ -222,13 +280,24 @@ document.addEventListener('DOMContentLoaded', function () {
                                 mainChart.data.datasets[0].backgroundColor = lunas;
                                 mainChart.data.datasets[0].borderColor = lunas;
                                 mainChart.data.datasets[1].backgroundColor = belum;
+                                mainChart.data.datasets[1].backgroundColor = belum;
                                 mainChart.data.datasets[1].borderColor = belum;
+                            }
+                        } else if (type === 'kunjungan') {
+                            const c = isDark ? PALETTE.dark.kunjungan : PALETTE.light.kunjungan;
+                            if (mainChart.data.datasets[0]) {
+                                mainChart.data.datasets[0].backgroundColor = c.bg;
+                                mainChart.data.datasets[0].borderColor = c.border;
                             }
                         } else {
                             const newColors = getColors(type, isDark);
                             if (mainChart.data.datasets[0]) {
                                 mainChart.data.datasets[0].backgroundColor = newColors;
-                                mainChart.data.datasets[0].borderColor = newColors;
+                                if (type === 'inventaris' || type === 'transaksi') {
+                                    mainChart.data.datasets[0].borderColor = isDark ? '#1e1e1e' : '#ffffff';
+                                } else {
+                                    mainChart.data.datasets[0].borderColor = newColors;
+                                }
                             }
                         }
 
@@ -458,51 +527,41 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // SORTING
+        // SORTING (AJAX Implementation)
         const headers = document.querySelectorAll('th[onclick]');
         headers.forEach(th => {
-            th.removeAttribute('onclick'); // Disable default redirection
-            th.addEventListener('click', () => {
-                // Read sort param from the original onclick intent or data attributes
-                // The original code used window.location.href inside onclick.
-                // We'll rely on our state.
-                // Assuming I updated the render to use data-sort attributes would be better, 
-                // but let's parse the onclick string if present, or just use text content?
-                // Actually the blade template injects `window.location.href=...sort=...`
-                // Let's rely on simple data attributes if I added them? 
-                // In my partials I didn't add data-sort. I left the onclick.
+            const clickStr = th.getAttribute('onclick');
+            if (clickStr) {
+                // Extract sort column from URL in onclick
+                // URL example: ...?sort=column&direction=...
+                const match = clickStr.match(/sort=([^&']+)/);
+                if (match) {
+                    th.dataset.sort = match[1];
+                    th.removeAttribute('onclick'); // Disable default reload
+                    th.style.cursor = 'pointer';
 
-                // Hack: we already removed onclick. We can't parse it now unless we cached it.
-                // BETTER: Update the partials to use data-sort.
-                // For now, let's skip sorting via AJAX or reload page.
-                // Implementation Plan said "Verify ... work as expected".
-                // Let's try to parse the header text.
+                    // Add AJAX click handler
+                    th.addEventListener('click', () => {
+                        const col = th.dataset.sort;
+                        if (state.sort === col) {
+                            state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            state.sort = col;
+                            state.direction = 'asc';
+                        }
 
-                // To be safe and clean, I will NOT AJAX sort for now unless I update partials.
-                // I will reload page for sorting for robustness.
-                // BUT wait, I removed onclick! So clicking does NOTHING now.
-                // I must handle it.
-                // Re-adding functionality:
-                const text = th.innerText.trim();
-                let sortCol = '';
-                if (text.includes('Kode') || text.includes('ID')) sortCol = state.type === 'denda' ? 'id_denda' : 'id_peminjaman';
-                else if (text.includes('Peminjam') || text.includes('Anggota')) sortCol = 'nama_anggota';
-                else if (text.includes('Tanggal Pinjam')) sortCol = 'tanggal_pinjam';
-                else if (text.includes('Jatuh Tempo')) sortCol = 'tanggal_jatuh_tempo';
-                else if (text.includes('Jumlah')) sortCol = 'jumlah_denda';
-                else if (text.includes('Status')) sortCol = state.type === 'denda' ? 'status_bayar' : 'status_transaksi';
+                        // Reset page to 1 on sort change
+                        state.page = 1;
 
-                if (sortCol) {
-                    if (state.sort === sortCol) {
-                        state.direction = state.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        state.sort = sortCol;
-                        state.direction = 'asc';
-                    }
-                    fetchData();
+                        fetchData();
+                    });
                 }
-            });
+            }
         });
+
+        // Initial Icon State
+        refreshIcons();
+
 
         // LIVE SEARCH
         if (searchInput) {
@@ -597,7 +656,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (json.stats.top_1_nama !== undefined) updateStat('stat_anggota_top_1', json.stats.top_1_nama);
                 if (json.stats.top_1_total !== undefined && document.getElementById('stat_anggota_total')) updateStat('stat_anggota_total', json.stats.top_1_total);
                 if (json.stats.total_anggota_aktif !== undefined) updateStat('stat_anggota_aktif', json.stats.total_anggota_aktif);
+                if (json.stats.top_1_total !== undefined && document.getElementById('stat_anggota_total')) updateStat('stat_anggota_total', json.stats.top_1_total);
+                if (json.stats.total_anggota_aktif !== undefined) updateStat('stat_anggota_aktif', json.stats.total_anggota_aktif);
+
+                // Kunjungan
+                if (json.stats.total_pengunjung !== undefined) updateStat('stat_kunjungan_total', json.stats.total_pengunjung);
+                if (json.stats.avg_daily !== undefined) updateStat('stat_kunjungan_avg', json.stats.avg_daily);
+                if (json.stats.top_kategori !== undefined) updateStat('stat_kunjungan_top', json.stats.top_kategori);
+
+                // Inventaris
+                if (json.stats.total_judul !== undefined) updateStat('stat_inv_judul', json.stats.total_judul);
+                if (json.stats.total_eksemplar !== undefined) updateStat('stat_inv_eks', json.stats.total_eksemplar);
+                if (json.stats.total_rusak !== undefined) updateStat('stat_inv_rusak', json.stats.total_rusak);
+                if (json.stats.total_hilang !== undefined) updateStat('stat_inv_hilang', json.stats.total_hilang);
             }
+
+            // 5. Update Sort Icons
+            refreshIcons();
 
         } catch (error) {
             console.error('Error fetching data:', error);
