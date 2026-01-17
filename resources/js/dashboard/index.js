@@ -15,6 +15,23 @@ function initCharts(data) {
     const emptyState = document.getElementById('peminjamanEmptyState');
     const chartCanvas = document.getElementById('peminjamanChart');
 
+    // --- COLOR PALETTES ---
+    const PALETTE = {
+        light: {
+            peminjaman: ['#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#f97316', '#64748b'], // Orange, Blue, Red, Emerald, DkOrange, Slate
+            pengunjung: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'] // Blue, Emerald, Amber, Indigo
+        },
+        dark: {
+            peminjaman: ['#fbbf24', '#60a5fa', '#f87171', '#34d399', '#fb923c', '#94a3b8'], // Brighter shades
+            pengunjung: ['#60a5fa', '#34d399', '#fbbf24', '#818cf8'] // Brighter Blue, Emerald, Amber, Indigo
+        }
+    };
+
+    function getColors(type, isDark) {
+        const p = isDark ? PALETTE.dark : PALETTE.light;
+        return p[type];
+    }
+
     const isDark = document.documentElement.classList.contains('dark');
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
@@ -56,14 +73,7 @@ function initCharts(data) {
             labels: data.peminjaman.labels,
             datasets: [{
                 data: data.peminjaman.data,
-                backgroundColor: [
-                    '#f59e0b', // Diajukan (Orange)
-                    '#3b82f6', // Berjalan (Blue)
-                    '#ef4444', // Terlambat (Red)
-                    '#10b981', // Selesai (Emerald)
-                    '#f97316', // Rusak (Orange-500)
-                    '#64748b'  // Hilang (Slate-500)
-                ],
+                backgroundColor: getColors('peminjaman', isDark),
                 borderWidth: 0,
                 hoverOffset: 4
             }]
@@ -78,7 +88,8 @@ function initCharts(data) {
                     labels: {
                         font: { family: 'Spline Sans', size: 11 },
                         usePointStyle: true,
-                        boxWidth: 8
+                        boxWidth: 8,
+                        color: isDark ? '#e2e8f0' : '#64748b'
                     }
                 },
                 tooltip: {
@@ -125,7 +136,8 @@ function initCharts(data) {
             datasets: [{
                 ...data.pengunjung.datasets[0],
                 data: pengunjungPercentages, // Use percentages
-                rawCounts: pengunjungCounts // Store original counts
+                rawCounts: pengunjungCounts, // Store original counts
+                backgroundColor: getColors('pengunjung', isDark),
             }]
         },
         options: {
@@ -163,7 +175,7 @@ function initCharts(data) {
                     grid: { color: gridColor, borderDash: [5, 5] },
                     border: { color: gridColor },
                     ticks: {
-                        color: isDark ? 'rgba(255, 255, 255, 0.6)' : undefined,
+                        color: isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b',
                         stepSize: 20,
                         callback: function (value) {
                             return value + '%';
@@ -171,7 +183,10 @@ function initCharts(data) {
                     }
                 },
                 y: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: {
+                        color: isDark ? '#e2e8f0' : '#64748b'
+                    }
                 }
             },
             elements: {
@@ -191,11 +206,29 @@ function initCharts(data) {
                 const isNowDark = document.documentElement.classList.contains('dark');
                 const newGridColor = isNowDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
                 const newTickColor = isNowDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+                const newLabelColor = isNowDark ? '#e2e8f0' : '#64748b';
 
+                // Update Peminjaman Chart
+                if (peminjamanChart) {
+                    peminjamanChart.data.datasets[0].backgroundColor = getColors('peminjaman', isNowDark);
+                    if (peminjamanChart.options.plugins.legend) {
+                        peminjamanChart.options.plugins.legend.labels.color = newLabelColor;
+                    }
+                    peminjamanChart.update();
+                }
+
+                // Update Pengunjung Chart
                 if (pengunjungChart) {
                     pengunjungChart.options.scales.x.grid.color = newGridColor;
                     pengunjungChart.options.scales.x.border.color = newGridColor;
                     pengunjungChart.options.scales.x.ticks.color = newTickColor;
+
+                    // Also update Y axis labels (category names)
+                    if (pengunjungChart.options.scales.y) {
+                        pengunjungChart.options.scales.y.ticks.color = newLabelColor;
+                    }
+
+                    pengunjungChart.data.datasets[0].backgroundColor = getColors('pengunjung', isNowDark);
                     pengunjungChart.update();
                 }
             }

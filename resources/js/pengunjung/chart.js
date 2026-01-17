@@ -9,8 +9,19 @@ document.addEventListener('DOMContentLoaded', function () {
 function initChart(data) {
     const ctx = document.getElementById('pengunjungChart').getContext('2d');
 
+    // --- COLOR PALETTES ---
+    const PALETTE = {
+        light: ['#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899'], // Blue, Emerald, Amber, Indigo, Pink
+        dark: ['#60A5FA', '#34D399', '#FBBF24', '#818CF8', '#F472B6']   // Brighter shades
+    };
+
+    function getColors(isDark) {
+        return isDark ? PALETTE.dark : PALETTE.light;
+    }
+
     const isDark = document.documentElement.classList.contains('dark');
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const tickColor = isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
 
     // Calculate Initial Data
     let rawCounts = data.data;
@@ -33,12 +44,7 @@ function initChart(data) {
                 // label: 'Jumlah Pengunjung', // Not strictly needed if legend hidden
                 data: percentages,
                 rawCounts: rawCounts,
-                backgroundColor: [
-                    '#3B82F6', // Blue - Personal & Akademik
-                    '#10B981', // Emerald - Organisasi & Komunitas
-                    '#F59E0B', // Amber - Instansi & Perusahaan 
-                    '#6366F1'  // Indigo - Kunjungan Khusus
-                ],
+                backgroundColor: getColors(isDark),
                 borderRadius: 4,
                 barThickness: 'flex',
                 maxBarThickness: 40
@@ -77,7 +83,7 @@ function initChart(data) {
                     grid: { color: gridColor, borderDash: [5, 5] },
                     border: { color: gridColor },
                     ticks: {
-                        color: isDark ? 'rgba(255, 255, 255, 0.6)' : undefined,
+                        color: tickColor,
                         stepSize: 20,
                         callback: function (value) {
                             return value + '%';
@@ -88,6 +94,7 @@ function initChart(data) {
                 y: {
                     grid: { display: false },
                     ticks: {
+                        color: isDark ? '#e2e8f0' : '#64748b',
                         font: { family: 'Spline Sans' }
                     }
                 }
@@ -102,11 +109,21 @@ function initChart(data) {
                 const isNowDark = document.documentElement.classList.contains('dark');
                 const newGridColor = isNowDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
                 const newTickColor = isNowDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+                const newLabelColor = isNowDark ? '#e2e8f0' : '#64748b';
 
                 if (pengunjungChart) {
                     pengunjungChart.options.scales.x.grid.color = newGridColor;
                     pengunjungChart.options.scales.x.border.color = newGridColor;
                     pengunjungChart.options.scales.x.ticks.color = newTickColor;
+
+                    // Update Y axis labels
+                    if (pengunjungChart.options.scales.y) {
+                        pengunjungChart.options.scales.y.ticks.color = newLabelColor;
+                    }
+
+                    // Update Dataset Colors
+                    pengunjungChart.data.datasets[0].backgroundColor = getColors(isNowDark);
+
                     pengunjungChart.update();
                 }
             }

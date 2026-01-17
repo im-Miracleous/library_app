@@ -63,22 +63,70 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('mainChart');
         if (!ctx) return;
 
+        // --- COLOR PALETTES ---
+        const PALETTE = {
+            light: {
+                transaksi: ['#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#f97316', '#64748b'], // Orange, Blue, Red, Emerald, DkOrange, Slate
+                denda: { lunas: '#10b981', belum: '#ef4444' },
+                buku: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b'],
+                anggota: '#8b5cf6' // Violet
+            },
+            dark: {
+                transaksi: ['#fbbf24', '#60a5fa', '#f87171', '#34d399', '#fb923c', '#94a3b8'], // Brighter shades
+                denda: { lunas: '#34d399', belum: '#f87171' },
+                buku: ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#f472b6', '#818cf8', '#2dd4bf', '#fb923c', '#94a3b8'],
+                anggota: '#a78bfa' // Light Violet
+            }
+        };
+
+        function getColors(type, isDark) {
+            const p = isDark ? PALETTE.dark : PALETTE.light;
+            if (type === 'transaksi') return p.transaksi;
+            if (type === 'denda') return [p.denda.lunas, p.denda.belum]; // Specific order for stacked/grouped
+            if (type === 'buku_top') return p.buku;
+            if (type === 'anggota_top') return p.anggota;
+            return '#cbd5e1';
+        }
+
+        // Check for Dark Mode
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const textColor = isDarkMode ? '#e2e8f0' : '#64748b'; // slate-200 vs slate-500
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)';
+
         updateChartVisibility(chartData);
 
         // Determine Chart Configuration
         let chartType = 'line';
-        let cutout = 0;
         let legendDisplay = false;
         let indexAxis = 'x';
         let scales = {
-            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-            x: { grid: { display: false } }
+            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+            x: { grid: { display: false }, ticks: { color: textColor } }
         };
 
+        // Apply Colors Initial
+        const colors = getColors(type, isDarkMode);
+        if (type === 'denda') {
+            // Denda is unique: 2 Datasets
+            if (chartData.datasets.length >= 2) {
+                chartData.datasets[0].backgroundColor = isDarkMode ? PALETTE.dark.denda.lunas : PALETTE.light.denda.lunas;
+                chartData.datasets[0].borderColor = chartData.datasets[0].backgroundColor;
+                chartData.datasets[1].backgroundColor = isDarkMode ? PALETTE.dark.denda.belum : PALETTE.light.denda.belum;
+                chartData.datasets[1].borderColor = chartData.datasets[1].backgroundColor;
+            }
+        } else {
+            // Single Dataset types
+            if (chartData.datasets[0]) {
+                chartData.datasets[0].backgroundColor = colors;
+                // For bar charts, border can match background to avoid outline issues
+                chartData.datasets[0].borderColor = colors;
+            }
+        }
+
         if (type === 'transaksi') {
-            chartType = 'pie'; // Requested: Pie, not Doughnut
+            chartType = 'pie';
             legendDisplay = true;
-            scales = {}; // No scales for Pie
+            scales = {};
         } else if (type === 'buku_top') {
             chartType = 'bar';
             indexAxis = 'y';
@@ -89,14 +137,15 @@ document.addEventListener('DOMContentLoaded', function () {
             scales = {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    grid: { color: gridColor },
                     ticks: {
+                        color: textColor,
                         callback: function (value) {
                             return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
                         }
                     }
                 },
-                x: { grid: { display: false } }
+                x: { grid: { display: false }, ticks: { color: textColor } }
             };
         }
 
@@ -107,16 +156,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 indexAxis: indexAxis,
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: 0, // 0 for Pie
+                cutout: 0,
                 elements: {
-                    arc: {
-                        borderWidth: 0
-                    }
+                    arc: { borderWidth: 0 }
                 },
                 plugins: {
                     legend: {
                         display: legendDisplay,
                         position: 'right',
+                        labels: {
+                            color: textColor,
+                            font: { family: "'Inter', sans-serif", weight: 'bold' }
+                        }
                     },
                     tooltip: {
                         mode: 'nearest',
@@ -143,6 +194,51 @@ document.addEventListener('DOMContentLoaded', function () {
                 scales: scales
             }
         });
+
+        // Dynamic Theme Switch Listener
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    const text = isDark ? '#e2e8f0' : '#64748b';
+                    const grid = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.05)';
+
+                    if (mainChart) {
+                        // 1. Update Layout Colors
+                        if (mainChart.options.plugins.legend) {
+                            mainChart.options.plugins.legend.labels.color = text;
+                        }
+                        if (mainChart.options.scales.x) mainChart.options.scales.x.ticks.color = text;
+                        if (mainChart.options.scales.y) {
+                            mainChart.options.scales.y.ticks.color = text;
+                            mainChart.options.scales.y.grid.color = grid;
+                        }
+
+                        // 2. Update Dataset Colors
+                        if (type === 'denda') {
+                            if (mainChart.data.datasets.length >= 2) {
+                                const lunas = isDark ? PALETTE.dark.denda.lunas : PALETTE.light.denda.lunas;
+                                const belum = isDark ? PALETTE.dark.denda.belum : PALETTE.light.denda.belum;
+                                mainChart.data.datasets[0].backgroundColor = lunas;
+                                mainChart.data.datasets[0].borderColor = lunas;
+                                mainChart.data.datasets[1].backgroundColor = belum;
+                                mainChart.data.datasets[1].borderColor = belum;
+                            }
+                        } else {
+                            const newColors = getColors(type, isDark);
+                            if (mainChart.data.datasets[0]) {
+                                mainChart.data.datasets[0].backgroundColor = newColors;
+                                mainChart.data.datasets[0].borderColor = newColors;
+                            }
+                        }
+
+                        mainChart.update();
+                    }
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
     }
 
     function initChartReference() {

@@ -13,7 +13,7 @@
                 <!-- Report Type -->
                 <div class="w-full lg:w-64">
                     <x-select name="type" label="Jenis Laporan" :selected="$type" required="true" icon="description" onchange="this.form.submit()" placeholder="Pilih Jenis Laporan..."
-                        class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white">
+                        class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&_option]:bg-[#1E1E1E] dark:[&_option]:text-white dark:[&_optgroup]:bg-[#1E1E1E] dark:[&_optgroup]:text-white">
                         <option value="transaksi" {{ $type == 'transaksi' ? 'selected' : '' }}>Laporan Transaksi</option>
 
                         <option value="denda" {{ $type == 'denda' ? 'selected' : '' }}>Laporan Denda</option>
@@ -45,7 +45,7 @@
                     <!-- Improved Time Filter -->
                     <div class="min-w-[150px] w-full lg:w-48">
                         <x-select id="periode_filter" name="periode" icon="calendar_today" placeholder=""
-                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white">
+                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&_option]:bg-[#1E1E1E] dark:[&_option]:text-white dark:[&_optgroup]:bg-[#1E1E1E] dark:[&_optgroup]:text-white">
                             <option value="all" selected>Semua</option>
                             <option value="today">Hari Ini</option>
                             <option value="week">Minggu Ini</option>
@@ -59,7 +59,7 @@
                 @if($type == 'transaksi')
                     <div class="w-full lg:w-48">
                         <x-select name="status" label="Status Transaksi" placeholder="Semua" :selected="request('status')" icon="check_circle" onchange="this.form.submit()"
-                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white">
+                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&_option]:bg-[#1E1E1E] dark:[&_option]:text-white dark:[&_optgroup]:bg-[#1E1E1E] dark:[&_optgroup]:text-white">
                             <option value="berjalan" {{ request('status') == 'berjalan' ? 'selected' : '' }}>Berjalan</option>
                             <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                         </x-select>
@@ -69,7 +69,7 @@
                 @if($type == 'denda')
                     <div class="w-full lg:w-48">
                         <x-select name="status_bayar" label="Status Pembayaran" placeholder="Semua" :selected="request('status_bayar')" icon="payments" onchange="this.form.submit()"
-                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&>option]:bg-[#1E1E1E] dark:[&>option]:text-white">
+                            class="bg-slate-50 dark:bg-white/5 border-primary/10 dark:border-border-dark h-[42px] !py-2 shadow-sm text-sm font-bold text-slate-600 dark:text-white/80 dark:[&_option]:bg-[#1E1E1E] dark:[&_option]:text-white dark:[&_optgroup]:bg-[#1E1E1E] dark:[&_optgroup]:text-white">
                             <option value="belum_bayar" {{ request('status_bayar') == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
                             <option value="lunas" {{ request('status_bayar') == 'lunas' ? 'selected' : '' }}>Lunas</option>
                         </x-select>
@@ -77,7 +77,7 @@
                 @endif
 
                 <button type="button" onclick="window.print()"
-                    class="w-full lg:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-accent dark:text-primary-dark rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm duration-200 h-[42px]">
+                    class="w-full lg:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm duration-200 h-[42px]">
                     <span class="material-symbols-outlined text-lg">print</span>
                     Cetak Laporan
                 </button>

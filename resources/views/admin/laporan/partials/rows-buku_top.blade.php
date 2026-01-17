@@ -7,7 +7,12 @@
             <div class="flex items-center gap-4">
                 <div class="w-12 h-16 rounded-md bg-slate-200 dark:bg-white/5 overflow-hidden flex-shrink-0 border border-black/5">
                     @if($item->buku->gambar_sampul)
-                        <img src="{{ asset('storage/' . $item->buku->gambar_sampul) }}" alt="Cover" class="w-full h-full object-cover">
+
+                        @if(\Illuminate\Support\Str::startsWith($item->buku->gambar_sampul, ['http://', 'https://']))
+                            <img src="{{ $item->buku->gambar_sampul }}" alt="Cover" class="w-full h-full object-cover">
+                        @else
+                            <img src="{{ asset('storage/' . $item->buku->gambar_sampul) }}" alt="Cover" class="w-full h-full object-cover">
+                        @endif
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-400">
                             <span class="material-symbols-outlined">book</span>
