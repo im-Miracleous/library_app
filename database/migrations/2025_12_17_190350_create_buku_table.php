@@ -24,17 +24,19 @@ return new class extends Migration {
             $table->integer('stok_hilang')->default(0);
             $table->text('deskripsi')->nullable();
             $table->string('gambar_sampul')->nullable();
-            $table->enum('status', ['tersedia', 'tidak_tersedia'])->default('tersedia');
+            $table->enum('status', ['tersedia', 'tidak_tersedia', 'habis'])->default('tersedia');
             $table->timestamps();
         });
 
-        // Trigger Buku (Update nama kolom id -> id_buku)
+        // Trigger Buku
         DB::unprepared(file_get_contents(database_path('sql/triggers/tr_buku_id_insert.sql')));
+        DB::unprepared(file_get_contents(database_path('sql/triggers/tr_update_status_stok.sql')));
     }
 
     public function down(): void
     {
         DB::unprepared('DROP TRIGGER IF EXISTS tr_buku_id_insert');
+        DB::unprepared('DROP TRIGGER IF EXISTS tr_update_status_stok');
         Schema::dropIfExists('buku');
     }
 };

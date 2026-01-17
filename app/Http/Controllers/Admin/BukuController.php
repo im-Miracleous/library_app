@@ -131,10 +131,12 @@ class BukuController extends Controller
             'deskripsi' => 'nullable|string',
             'kode_dewey' => 'nullable|string',
             'gambar_sampul' => 'nullable|image|max:2048', // Max 2MB
+            'status' => 'nullable|in:tersedia,tidak_tersedia,habis',
         ]);
 
         // Stok tersedia awal = stok total
         $validated['stok_tersedia'] = $validated['stok_total'];
+        $validated['status'] = $request->input('status', 'tersedia');
 
         // Handle File Upload
         if ($request->hasFile('gambar_sampul')) {
@@ -161,7 +163,7 @@ class BukuController extends Controller
 
         // Buku::create($validated);
         // Use Stored Procedure
-        \Illuminate\Support\Facades\DB::statement('CALL sp_create_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        \Illuminate\Support\Facades\DB::statement('CALL sp_create_buku(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
             $validated['id_kategori'],
             $validated['kode_dewey'] ?? null,
             $validated['isbn'] ?? null,
@@ -172,7 +174,8 @@ class BukuController extends Controller
             $validated['stok_total'],
             $validated['stok_tersedia'],
             $validated['deskripsi'] ?? null,
-            $validated['gambar_sampul'] ?? null
+            $validated['gambar_sampul'] ?? null,
+            $validated['status']
         ]);
 
         return redirect()->back()->with('success', 'Buku berhasil ditambahkan.');
@@ -197,7 +200,7 @@ class BukuController extends Controller
             'isbn' => 'nullable|string|unique:buku,isbn,' . $id . ',id_buku',
             'stok_total' => 'required|integer|min:0',
             'deskripsi' => 'nullable|string',
-            'status' => 'required|in:tersedia,tidak_tersedia',
+            'status' => 'required|in:tersedia,tidak_tersedia,habis',
             'kode_dewey' => 'nullable|string',
             'stok_rusak' => 'nullable|integer|min:0',
             'stok_hilang' => 'nullable|integer|min:0',

@@ -16,7 +16,7 @@ class BukuController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Buku::query()->where('status', 'tersedia')->with('kategori');
+        $query = Buku::query()->whereIn('status', ['tersedia', 'habis'])->with('kategori');
 
         // Filter by Category
         if ($request->has('kategori') && $request->kategori != '') {
@@ -80,7 +80,7 @@ class BukuController extends Controller
     {
         $buku = Buku::with('kategori')->findOrFail($id);
 
-        if ($buku->status !== 'tersedia') {
+        if (!in_array($buku->status, ['tersedia', 'habis'])) {
             abort(404);
         }
 

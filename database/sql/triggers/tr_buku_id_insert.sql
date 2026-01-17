@@ -14,4 +14,10 @@ BEGIN
     );
 
     SET NEW.id_buku = CONCAT('B-', cat_code, '-', LPAD(next_no, 3, '0'));
+
+    -- Cek Stok Awal (Insert Logic)
+    -- Jika stok 0, otomatis set ke 'habis', KECUALI jika di-explicit set 'tidak_tersedia'
+    IF NEW.stok_tersedia <= 0 AND NEW.status != 'tidak_tersedia' THEN
+        SET NEW.status = 'habis';
+    END IF;
 END

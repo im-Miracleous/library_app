@@ -54,8 +54,12 @@ services:
     build:
       context: .
       dockerfile: docker/development/workspace/Dockerfile
+      args:
+        user: laravel
+        uid: 1000
     image: library_workspace:dev
     container_name: library_workspace_dev
+    restart: unless-stopped
     ports:
       - "5173:5173"
     volumes:

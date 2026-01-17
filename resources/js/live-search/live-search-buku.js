@@ -168,6 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Default logic from Blade
             if (item.status === 'tersedia') {
                 statusClass = 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10';
+            } else if (item.status === 'habis') {
+                statusClass = 'text-orange-600 dark:text-orange-500 bg-orange-50 dark:bg-orange-500/10';
             } else {
                 statusClass = 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10';
             }
@@ -245,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded text-xs font-bold uppercase ${statusClass}">
-                            ${item.status}
+                            ${item.status === 'tersedia' ? 'Tersedia' : (item.status === 'habis' ? 'Habis' : 'Tidak Tersedia')}
                         </span>
                     </td>
                     <td class="p-4 pr-6 text-right flex justify-end gap-2">

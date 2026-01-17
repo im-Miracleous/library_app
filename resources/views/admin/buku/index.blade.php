@@ -150,8 +150,21 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold uppercase {{ $item->status == 'tersedia' ? 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10' : 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10' }}">
-                                {{ $item->status == 'tersedia' ? 'Tersedia' : 'Tidak Tersedia' }}
+                        <td class="p-4">
+                            @php
+                                $statusLabel = 'Tidak Tersedia';
+                                $statusClass = 'text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-500/10';
+                                
+                                if ($item->status === 'tersedia') {
+                                    $statusLabel = 'Tersedia';
+                                    $statusClass = 'text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10';
+                                } elseif ($item->status === 'habis') {
+                                    $statusLabel = 'Habis';
+                                    $statusClass = 'text-orange-600 dark:text-orange-500 bg-orange-50 dark:bg-orange-500/10';
+                                }
+                            @endphp
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase {{ $statusClass }}">
+                                {{ $statusLabel }}
                             </span>
                         </td>
                         <td class="p-4 pr-6 text-right flex justify-end gap-2">
@@ -332,8 +345,9 @@
                     <!-- Group: Input Stok -->
                     <div class="flex flex-col gap-4">
                         <div class="grid grid-cols-2 gap-4">
-                            <x-select id="edit_status" name="status" label="Status">
+                            <x-select id="edit_status" name="status" label="Status" placeholder="">
                                 <option value="tersedia">Tersedia</option>
+                                <option value="habis">Habis</option>
                                 <option value="tidak_tersedia">Tidak Tersedia</option>
                             </x-select>
 
