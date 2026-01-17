@@ -196,9 +196,54 @@ window.openEditBuku = function (id) {
             document.getElementById('edit_dewey').value = data.kode_dewey || '';
             document.getElementById('edit_deskripsi').value = data.deskripsi || '';
 
-            // Select Status
+            // Select Status & Dynamic Validation
             const statusSelect = document.getElementById('edit_status');
-            if (statusSelect) statusSelect.value = data.status;
+            const stokTersedia = parseInt(data.stok_tersedia);
+
+            if (statusSelect) {
+                const options = statusSelect.options;
+
+                // Reset all options first
+                for (let i = 0; i < options.length; i++) {
+                    options[i].hidden = false;
+                    options[i].disabled = false;
+                }
+
+                if (stokTersedia === 0) {
+                    // Jika stok habis (0):
+                    // - Tampilkan: "Habis" dan "Tidak Tersedia"
+                    // - Sembunyikan: "Tersedia"
+                    // - Jika status saat ini 'tersedia' (yg mana aneh kl stok 0), paksa ubah ke 'habis'
+
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value === 'tersedia') {
+                            options[i].hidden = true;
+                            options[i].disabled = true;
+                        }
+                    }
+
+                    // Jika data asli masih 'tersedia' (bug case), set ke 'habis' di pampilan
+                    if (data.status === 'tersedia') {
+                        statusSelect.value = 'habis';
+                    } else {
+                        statusSelect.value = data.status;
+                    }
+
+                } else {
+                    // Jika stok > 0:
+                    // - Tampilkan: "Tersedia" dan "Tidak Tersedia"
+                    // - Sembunyikan: "Habis"
+
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value === 'habis') {
+                            options[i].hidden = true;
+                            options[i].disabled = true;
+                        }
+                    }
+
+                    statusSelect.value = data.status;
+                }
+            }
 
             // Handle Image Preview & Draft Delete
             const previewContainer = document.getElementById('edit_preview_container');

@@ -10,7 +10,8 @@ CREATE PROCEDURE sp_create_buku(
     IN p_stok_total INT,
     IN p_stok_tersedia INT,
     IN p_deskripsi TEXT,
-    IN p_gambar_sampul VARCHAR(255)
+    IN p_gambar_sampul VARCHAR(255),
+    IN p_status ENUM('tersedia', 'tidak_tersedia', 'habis')
 )
 BEGIN
     INSERT INTO buku (
@@ -20,7 +21,7 @@ BEGIN
     ) VALUES (
         p_id_kategori, p_kode_dewey, p_isbn, p_judul, p_penulis, p_penerbit, 
         p_tahun_terbit, p_stok_total, p_stok_tersedia, p_deskripsi, 
-        p_gambar_sampul, 'tersedia', NOW(), NOW()
+        p_gambar_sampul, p_status, NOW(), NOW()
     );
 END;
 
@@ -39,7 +40,8 @@ CREATE PROCEDURE sp_update_buku(
     IN p_stok_rusak INT,
     IN p_stok_hilang INT,
     IN p_deskripsi TEXT,
-    IN p_gambar_sampul VARCHAR(255)
+    IN p_gambar_sampul VARCHAR(255),
+    IN p_status ENUM('tersedia', 'tidak_tersedia', 'habis')
 )
 BEGIN
     UPDATE buku 
@@ -57,6 +59,7 @@ BEGIN
         stok_hilang = p_stok_hilang,
         deskripsi = p_deskripsi,
         gambar_sampul = IF(p_gambar_sampul IS NOT NULL, p_gambar_sampul, gambar_sampul),
+        status = p_status,
         updated_at = NOW()
     WHERE id_buku = p_id_buku;
 END;
