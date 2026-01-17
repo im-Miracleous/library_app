@@ -91,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
         // Modul Laporan
         Route::prefix('laporan')->name('laporan.')->group(function () {
              Route::get('/', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('index');
+             Route::get('/cetak', [\App\Http\Controllers\Admin\LaporanController::class, 'cetak'])->name('cetak');
              Route::post('/denda/{id}/bayar', [\App\Http\Controllers\Admin\DendaController::class, 'update'])->name('denda.bayar');
         });
     });

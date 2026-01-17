@@ -78,12 +78,41 @@
                         </x-select>
                     </div>
                 @endif
+                
+                <div class="flex flex-col gap-2 w-full lg:w-auto">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="noSignatureCheckbox" class="rounded border-gray-300 text-emerald-600 shadow-sm focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50" onchange="updatePrintLink()">
+                        <label for="noSignatureCheckbox" class="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">Hanya Data Tabel</label>
+                    </div>
 
-                <button type="button" onclick="window.print()"
-                    class="w-full lg:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm duration-200 h-[42px]">
-                    <span class="material-symbols-outlined text-lg">print</span>
-                    Cetak Laporan
-                </button>
+                    <a href="{{ route('laporan.cetak', request()->all()) }}" target="_blank" id="printLinkButton"
+                        class="w-full lg:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm duration-200 h-[42px]">
+                        <span class="material-symbols-outlined text-lg">print</span>
+                        Cetak Laporan
+                    </a>
+                </div>
+                
+                <script>
+                    function updatePrintLink() {
+                        const checkbox = document.getElementById('noSignatureCheckbox');
+                        const link = document.getElementById('printLinkButton');
+                        let baseUrl = "{{ route('laporan.cetak', request()->query()) }}";
+                        // Ensure baseUrl is treated correctly as string in JS, safe from decoding issues if any
+                        // Actually, route() with query params returns a full URL.
+                        // We need to check if it already has '?' which it likely does if filters are active.
+                        
+                        // Simple URL object construction to be safe
+                        let url = new URL(baseUrl.replace(/&amp;/g, '&'));
+                        
+                        if (checkbox.checked) {
+                            url.searchParams.set('signature', '0');
+                        } else {
+                            url.searchParams.delete('signature'); // Default is with signature
+                        }
+                        
+                        link.href = url.toString();
+                    }
+                </script>
                 @endif
             </form>
         </div>

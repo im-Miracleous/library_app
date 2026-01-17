@@ -86,6 +86,58 @@ class LaporanController extends Controller
         ));
     }
 
+    public function cetak(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::create(2000, 1, 1)->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $type = $request->input('type', 'transaksi');
+        $status = $request->input('status');
+        $statusBayar = $request->input('status_bayar');
+        $search = $request->input('search');
+        $kategori = $request->input('kategori');
+        $withSignature = $request->input('signature', 1);
+
+        $data = [];
+
+        switch ($type) {
+            case 'transaksi':
+                $data = DB::select('CALL sp_get_laporan_transaksi_cetak(?, ?, ?, ?)', [
+                    $startDate, $endDate, $status, $search
+                ]);
+                break;
+            case 'denda':
+                 $data = DB::select('CALL sp_get_laporan_denda_cetak(?, ?, ?, ?)', [
+                    $startDate, $endDate, $statusBayar, $search
+                ]);
+                break;
+            case 'kunjungan':
+                 $data = DB::select('CALL sp_get_laporan_kunjungan_cetak(?, ?, ?)', [
+                    $startDate, $endDate, $search
+                ]);
+                break;
+            case 'inventaris':
+                 $data = DB::select('CALL sp_get_laporan_inventaris_cetak(?, ?)', [
+                    $search, $kategori
+                ]);
+                break;
+            case 'buku_top':
+                 $data = DB::select('CALL sp_get_buku_terpopuler_cetak(?, ?)', [
+                    $startDate, $endDate
+                ]);
+                break;
+            case 'anggota_top':
+                 $data = DB::select('CALL sp_get_anggota_teraktif_cetak(?, ?)', [
+                    $startDate, $endDate
+                ]);
+                break;
+            default:
+                 $data = [];
+                 break;
+        }
+
+        return view('admin.laporan.print', compact('data', 'startDate', 'endDate', 'type', 'withSignature'));
+    }
+
 
     // --- LOGIC: TRANSAKSI ---
     private function getLaporanTransaksi($request, $startDate, $endDate)
@@ -238,7 +290,7 @@ class LaporanController extends Controller
         if ($sort) {
             $query->orderBy($sort, $direction);
         } else {
-            $query->orderBy('denda.created_at', 'desc');
+            $query->orderBy('denda.id_denda', 'desc');
         }
 
         $paginator = $query->paginate($limit, ['*'], 'page', $page)->withQueryString();
