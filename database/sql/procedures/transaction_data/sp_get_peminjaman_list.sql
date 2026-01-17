@@ -1,4 +1,5 @@
 DROP PROCEDURE IF EXISTS sp_get_peminjaman_list;
+
 CREATE PROCEDURE sp_get_peminjaman_list(
     IN p_search VARCHAR(255),
     IN p_status VARCHAR(20),
@@ -12,16 +13,18 @@ BEGIN
     IF p_search IS NULL THEN SET p_search = ''; END IF;
     SET @search_param = CONCAT('%', p_search, '%');
     
+   
     SET @where_clause = ' WHERE 1=1 ';
 
+    
     IF p_status IS NOT NULL AND p_status != '' THEN
-        SET @where_clause = CONCAT(@where_clause, ' AND p.status_transaksi = "', p_status, '" ');
+        SET @where_clause = CONCAT(@where_clause, ' AND status_transaksi = "', p_status, '" ');
     END IF;
 
-    SET @where_clause = CONCAT(@where_clause, ' AND (p.id_peminjaman LIKE ? OR u.nama LIKE ?) ');
+    SET @where_clause = CONCAT(@where_clause, ' AND (id_peminjaman LIKE ? OR nama_anggota LIKE ?) ');
 
-    -- Count
-    SET @count_sql = 'SELECT COUNT(*) INTO @temp_total FROM peminjaman p JOIN pengguna u ON p.id_pengguna = u.id_pengguna';
+    
+    SET @count_sql = 'SELECT COUNT(*) INTO @temp_total FROM v_peminjaman_list';
     SET @count_sql = CONCAT(@count_sql, @where_clause);
     
     PREPARE count_stmt FROM @count_sql;
@@ -29,10 +32,8 @@ BEGIN
     DEALLOCATE PREPARE count_stmt;
     SET p_total = @temp_total;
 
-    SET @sql = 'SELECT p.*, p.alasan_penolakan, u.nama as nama_anggota, u.email as email_anggota, 
-        (SELECT COUNT(*) FROM detail_peminjaman dp WHERE dp.id_peminjaman = p.id_peminjaman) as total_buku,
-        (SELECT COUNT(*) FROM detail_peminjaman dp WHERE dp.id_peminjaman = p.id_peminjaman AND dp.status_buku = ''dikembalikan'') as total_dikembalikan
-        FROM peminjaman p JOIN pengguna u ON p.id_pengguna = u.id_pengguna';
+
+    SET @sql = 'SELECT * FROM v_peminjaman_list';
     SET @sql = CONCAT(@sql, @where_clause);
     
     IF p_sort_col IS NULL OR p_sort_col = '' THEN SET p_sort_col = 'created_at'; END IF;
