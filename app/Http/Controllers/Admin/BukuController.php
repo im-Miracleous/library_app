@@ -9,6 +9,7 @@ use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use App\Models\ActivityLog; 
 
 class BukuController extends Controller
 {
@@ -175,6 +176,9 @@ class BukuController extends Controller
             $validated['gambar_sampul'] ?? null
         ]);
 
+        // === [LOG] TAMBAH BUKU ===
+        ActivityLog::record('CREATE', 'Menambahkan Buku Baru: ' . $validated['judul']);
+
         return redirect()->back()->with('success', 'Buku berhasil ditambahkan.');
     }
 
@@ -267,6 +271,9 @@ class BukuController extends Controller
             $validated['status']
         ]);
 
+        // === [LOG] UPDATE BUKU ===
+        ActivityLog::record('UPDATE', 'Memperbarui Data Buku: ' . $validated['judul']);
+
         return redirect()->back()->with('success', 'Data buku & stok berhasil diperbarui.');
     }
 
@@ -291,6 +298,7 @@ class BukuController extends Controller
     public function destroy($id)
     {
         $buku = Buku::findOrFail($id);
+        $judulBuku = $buku->judul;
 
         if ($buku->gambar_sampul && Storage::disk('public')->exists($buku->gambar_sampul)) {
             Storage::disk('public')->delete($buku->gambar_sampul);
@@ -298,6 +306,10 @@ class BukuController extends Controller
 
         // $buku->delete();
         \Illuminate\Support\Facades\DB::statement('CALL sp_delete_buku(?)', [$id]);
+
+        // === [LOG] HAPUS BUKU ===
+        ActivityLog::record('DELETE', 'Menghapus Buku: ' . $judulBuku);
+
         return redirect()->back()->with('success', 'Buku berhasil dihapus.');
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\PeminjamanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\Admin\ActivityLogController;
 
 // 1. Halaman Utama (Root)
 Route::get('/', function () {
@@ -85,6 +86,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('kategori', \App\Http\Controllers\Admin\KategoriController::class);
         Route::resource('anggota', \App\Http\Controllers\Admin\AnggotaController::class);
 
+         // Route melihat Log Aktivitas (CCTV)
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
+
         // Modul Laporan
         Route::prefix('laporan')->name('laporan.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('index');
@@ -92,6 +96,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/denda', [\App\Http\Controllers\Admin\LaporanController::class, 'denda'])->name('denda');
             Route::post('/denda/{id}/bayar', [\App\Http\Controllers\Admin\DendaController::class, 'update'])->name('denda.bayar');
         });
+
+       
 
         // Route Update & Delete Status Denda (Outside Laporan Prefix)
         Route::put('/denda/{id}', [\App\Http\Controllers\Admin\DendaController::class, 'update'])->name('denda.update');

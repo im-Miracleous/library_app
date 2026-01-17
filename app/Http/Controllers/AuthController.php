@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Models\ActivityLog;
 
 class AuthController extends Controller
 {
@@ -216,6 +217,10 @@ class AuthController extends Controller
             if ($user) {
                 $user->update(['login_attempts' => 0, 'lockout_time' => null, 'is_locked' => false]);
             }
+
+            // CCTV LOG
+            ActivityLog::record('LOGIN', 'User ' . Auth::user()->nama . ' berhasil masuk sistem.');
+
             // Redirect berdasarkan peran
             // Redirect berdasarkan peran
             if ($user->peran === 'anggota') {
@@ -243,6 +248,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+             ActivityLog::record('LOGOUT', 'User ' . Auth::user()->nama . ' keluar dari sistem.');
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

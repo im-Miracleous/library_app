@@ -119,6 +119,19 @@
                         <p class="text-sm {{ request()->routeIs('kategori*') ? 'font-bold' : 'font-medium' }}">Data Kategori</p>
                     </a>
 
+                    <a href="{{ route('activity_logs.index') }}"
+                        class="{{ request()->routeIs('activity_logs*')
+                        ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/20 dark:bg-accent text-primary-dark dark:text-primary-dark transition-all hover:brightness-110 hover:shadow-md cursor-pointer shadow-sm dark:shadow-[0_0_15px_rgba(236,177,118,0.3)]'
+                        : 'flex items-center gap-3 px-4 py-3 rounded-xl text-primary-dark/80 dark:text-white/70 hover:bg-white dark:hover:bg-primary/20 hover:text-primary-dark dark:hover:text-white transition-all cursor-pointer group' }}">
+                        <span
+                            class="material-symbols-outlined {{ request()->routeIs('activity_logs*') ? 'filled' : 'group-hover:text-primary dark:group-hover:text-accent transition-colors' }}">
+                            manage_search
+                        </span>
+                        <p class="text-sm {{ request()->routeIs('activity_logs*') ? 'font-bold' : 'font-medium' }}">
+                            Log Aktivitas
+                        </p>
+                    </a>
+
                     @if(Auth::user()->peran == 'owner')
                         <a href="{{ route('pengaturan.index') }}"
                             class="{{ request()->routeIs('pengaturan*')

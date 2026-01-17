@@ -15,6 +15,7 @@ use App\Models\Pengaturan;
 use App\Notifications\LoanStatusNotification;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\ActivityLog;
 
 class PeminjamanController extends Controller
 {
@@ -149,6 +150,9 @@ class PeminjamanController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->value('id_peminjaman');
 
+            // === [LOG] PEMINJAMAN BARU ===
+            ActivityLog::record('TRANSAKSI', 'Membuat Peminjaman Baru (Kode: ' . $newId . ') untuk user ' . $idPengguna);
+
             return redirect()->route('peminjaman.index')
                 ->with('success', 'Transaksi peminjaman berhasil dibuat.')
                 ->with('detail_url', route('peminjaman.show', $newId));
@@ -205,6 +209,9 @@ class PeminjamanController extends Controller
             'tanggal_jatuh_tempo' => $request->tanggal_jatuh_tempo,
             'keterangan' => $request->keterangan,
         ]);
+
+        // === [LOG] UPDATE DATA ===
+        ActivityLog::record('UPDATE', 'Mengedit Data Peminjaman Kode: ' . $id);
 
         return redirect()->route('peminjaman.show', $id)->with('success', 'Transaksi berhasil diperbarui.');
     }
@@ -286,6 +293,9 @@ class PeminjamanController extends Controller
             \Illuminate\Support\Facades\Log::error("Failed to notify member about loan approval: " . $e->getMessage());
         }
 
+        // === [LOG] PERSETUJUAN ===
+        ActivityLog::record('PERSETUJUAN', 'Menyetujui Peminjaman Kode: ' . $id . ' oleh Admin ' . Auth::user()->nama);
+
         return redirect()->back()->with('success', 'Peminjaman berhasil disetujui.');
     }
 
@@ -316,6 +326,9 @@ class PeminjamanController extends Controller
             \Illuminate\Support\Facades\Log::error("Failed to notify member about loan rejection: " . $e->getMessage());
         }
 
+        // === [LOG] PENOLAKAN ===
+        ActivityLog::record('PENOLAKAN', 'Menolak Peminjaman Kode: ' . $id . '. Alasan: ' . $request->alasan);
+
         return redirect()->back()->with('success', 'Peminjaman berhasil ditolak.');
     }
 
@@ -330,7 +343,12 @@ class PeminjamanController extends Controller
         }
 
         $peminjaman = Peminjaman::findOrFail($id);
+        $kode = $peminjaman->id_peminjaman;
         $peminjaman->delete();
+
+        // === [LOG] HAPUS TRANSAKSI ===
+        ActivityLog::record('DELETE', 'Menghapus Transaksi Peminjaman Kode: ' . $kode);
+
         return redirect()->route('peminjaman.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 
@@ -449,6 +467,8 @@ class PeminjamanController extends Controller
                 $newPeminjaman->is_extended = true;
                 $newPeminjaman->save();
 
+                ActivityLog::record('PERPANJANGAN', 'Memecah & Memperpanjang Transaksi Lama: ' . $id . ' menjadi Baru: ' . $newId);
+
                 // Move Details
                 DetailPeminjaman::whereIn('id_detail_peminjaman', $extendIds)->update([
                     'id_peminjaman' => $newId,
@@ -469,6 +489,10 @@ class PeminjamanController extends Controller
                     $id,
                     $newDueDate->format('Y-m-d')
                 ]);
+
+                // === [LOG] PERPANJANGAN (FULL) ===
+                ActivityLog::record('PERPANJANGAN', 'Memperpanjang masa pinjam Transaksi: ' . $id . ' sampai ' . $newDueDate->format('d M Y'));
+               
 
                 return redirect()->route('peminjaman.show', $id)
                     ->with('success', 'Masa peminjaman telah diperpanjang.');
